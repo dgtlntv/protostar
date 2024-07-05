@@ -79,9 +79,7 @@
                 term.open(document.getElementById("terminal"))
 
                 term.attachCustomKeyEventHandler((event) => {
-                    console.log(`Key event detected: ${event.type}, Code: ${event.code}, CtrlKey: ${event.ctrlKey}`)
-                    if (event.ctrlKey && event.code === "KeyV" && event.type === "keydown") {
-                        console.log("Paste")
+                    if ((event.ctrlKey || event.metaKey) && event.code === "KeyV" && event.type === "keydown") {
                         event.preventDefault()
                         navigator.clipboard
                             .readText()
