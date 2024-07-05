@@ -105,6 +105,7 @@
                 function handleCommand(cmd) {
                     const trimmedCmd = cmd.trim().toLowerCase()
                     if (trimmedCmd === "clear") {
+                        term.writeln("bruh")
                         term.clear()
                     } else if (trimmedCmd === "help") {
                         term.writeln("Available commands:")
