@@ -84,11 +84,10 @@
                         navigator.clipboard.readText().then((text) => {
                             term.write(text)
                         })
-
                         return false
                     }
 
-                    if ((event.ctrlKey || event.metaKey) && arg.code === "KeyC" && arg.type === "keydown") {
+                    if ((event.ctrlKey || event.metaKey) && event.code === "KeyC" && event.type === "keydown") {
                         event.preventDefault()
                         console.log("Copy")
                         const selection = term.getSelection()
