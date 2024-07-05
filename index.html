@@ -105,8 +105,8 @@
                 function handleCommand(cmd) {
                     const trimmedCmd = cmd.trim().toLowerCase()
                     if (trimmedCmd === "clear") {
-                        term.writeln("bruh")
                         term.clear()
+                        term.write("$ ")
                     } else if (trimmedCmd === "help") {
                         term.writeln("Available commands:")
                         term.writeln("  help  - Show this help message")
@@ -114,12 +114,14 @@
                         Object.keys(customCommands).forEach((command) => {
                             term.writeln(`  ${command} - ${customCommands[command].description}`)
                         })
+                        term.write("$ ")
                     } else if (customCommands[trimmedCmd]) {
                         term.writeln(customCommands[trimmedCmd].action)
+                        term.write("$ ")
                     } else {
                         term.writeln(`Unknown command: ${cmd}`)
+                        term.write("$ ")
                     }
-                    term.write("$ ")
                 }
 
                 term.writeln("\x1b[1;36mWelcome to the CLI prototype!\x1b[0m")
