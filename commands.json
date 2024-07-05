@@ -2,9 +2,5 @@
     "hello": {
         "description": "Prints a greeting",
         "action": "Hello, world!"
-    },
-    "date": {
-        "description": "Displays the current date",
-        "action": "The current date is: "
     }
 }
