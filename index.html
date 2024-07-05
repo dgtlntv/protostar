@@ -81,14 +81,10 @@
                 term.attachCustomKeyEventHandler((event) => {
                     if ((event.ctrlKey || event.metaKey) && event.code === "KeyV" && event.type === "keydown") {
                         event.preventDefault()
-                        navigator.clipboard
-                            .readText()
-                            .then((text) => {
-                                term.write(text)
-                            })
-                            .catch((err) => {
-                                console.error("Failed to read clipboard contents: ", err)
-                            })
+                        navigator.clipboard.readText().then((text) => {
+                            term.write(text)
+                        })
+
                         return false
                     }
 
