@@ -15,37 +15,9 @@
                 overflow: hidden;
                 background-color: #300a24;
             }
-            #terminal-container {
+            #terminal {
                 height: 100%;
                 width: 100%;
-                display: flex;
-                flex-direction: column;
-            }
-            #title-bar {
-                background: #3c3b37;
-                color: #fff;
-                padding: 5px;
-                font-family: Ubuntu, sans-serif;
-                font-size: 14px;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-            }
-            #title {
-                margin-left: 5px;
-            }
-            .title-bar-btn {
-                background: none;
-                border: none;
-                color: #fff;
-                font-size: 14px;
-                padding: 0 5px;
-                cursor: pointer;
-            }
-            #terminal {
-                height: calc(100% - 30px);
-                width: 100%;
-                padding: 5px;
             }
             .xterm-viewport {
                 overflow-y: auto;
@@ -66,17 +38,7 @@
         </style>
     </head>
     <body>
-        <div id="terminal-container">
-            <div id="title-bar">
-                <div id="title">Terminal</div>
-                <div id="title-bar-btns">
-                    <button class="title-bar-btn" id="min-btn">-</button>
-                    <button class="title-bar-btn" id="max-btn">□</button>
-                    <button class="title-bar-btn" id="close-btn">x</button>
-                </div>
-            </div>
-            <div id="terminal"></div>
-        </div>
+        <div id="terminal"></div>
         <script>
             let customCommands = {}
 
