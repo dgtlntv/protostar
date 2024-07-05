@@ -78,29 +78,29 @@
                 term.loadAddon(fitAddon)
                 term.open(document.getElementById("terminal"))
 
-                term.attachCustomKeyEventHandler((arg) => {
-                    if (arg.ctrlKey && arg.code === "KeyV" && arg.type === "keydown") {
+                term.attachCustomKeyEventHandler((event) => {
+                    console.log(`Key event detected: ${event.type}, Code: ${event.code}, CtrlKey: ${event.ctrlKey}`)
+                    if (event.ctrlKey && event.code === "KeyV" && event.type === "keydown") {
                         console.log("hello world")
-                        navigator.clipboard.readText().then((text) => {
-                            term.write(text)
-                        })
+                        event.preventDefault() // Prevent the default paste action
+                        navigator.clipboard
+                            .readText()
+                            .then((text) => {
+                                term.write(text)
+                            })
+                            .catch((err) => {
+                                console.error("Failed to read clipboard contents: ", err)
+                            })
+                        return false // Return false to indicate the event was handled
                     }
                     return true
                 })
 
-                term.attachCustomKeyEventHandler((event) => {
-                    if (event.ctrlKey && event.code === "KeyC" && event.type === "keydown") {
-                        event.preventDefault()
+                term.attachCustomKeyEventHandler((arg) => {
+                    if (arg.ctrlKey && arg.code === "KeyC" && arg.type === "keydown") {
                         const selection = term.getSelection()
                         if (selection) {
-                            navigator.clipboard
-                                .writeText(selection)
-                                .then(() => {
-                                    console.log("Text copied to clipboard")
-                                })
-                                .catch((err) => {
-                                    console.error("Failed to copy text to clipboard", err)
-                                })
+                            navigator.clipboard.writeText(selection)
                             return false
                         }
                     }
