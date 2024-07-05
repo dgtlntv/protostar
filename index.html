@@ -5,7 +5,7 @@
         <link href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
         <style>
-            @import url("https://fonts.googleapis.com/css2?family=Ubuntu+Sans+Mono:ital,wght@0,400..700;1,400..700&display=swap");
+            @import url("https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap");
 
             html,
             body {
@@ -30,8 +30,7 @@
             }
             .xterm {
                 padding: 20px;
-                font-family: "Ubuntu Sans Mono", monospace;
-                font-weight: "Light";
+                font-family: "Ubuntu Mono", monospace;
             }
             .xterm-screen {
                 width: 100% !important;
@@ -58,7 +57,7 @@
                 const term = new Terminal({
                     cursorBlink: true,
                     fontSize: 16,
-                    fontFamily: '"Ubuntu Sans Mono", monospace',
+                    fontFamily: '"Ubuntu Mono", monospace',
                     fontWeight: "Light",
                     theme: {
                         background: "#300a24",
