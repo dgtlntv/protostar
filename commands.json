@@ -1,6 +1,12 @@
 {
     "hello": {
         "description": "Prints a greeting",
-        "action": "Hello, world!"
+        "action": "Hello, world!\nWelcome to the terminal!",
+        "color": "green"
+    },
+    "welcome": {
+        "description": "Welcome message",
+        "action": "Welcome to the Ubuntu Terminal!\nType help to get a list of all available commands in this prototype.",
+        "color": "cyan"
     }
 }

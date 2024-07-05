@@ -185,8 +185,8 @@
                     const trimmedCmd = cmd.trim().toLowerCase()
                     if (trimmedCmd === "clear") {
                         term.clear()
-                        term.reset() // This resets the terminal state
-                        term.write("\x1b[H") // This moves the cursor to the top-left corner
+                        term.reset()
+                        term.write("\x1b[H")
                         writePrompt()
                     } else if (trimmedCmd === "help") {
                         term.writeln("Available commands:")
@@ -197,7 +197,8 @@
                         })
                         writePrompt()
                     } else if (customCommands[trimmedCmd]) {
-                        term.writeln(customCommands[trimmedCmd].action)
+                        writeColoredText(customCommands[trimmedCmd].action, customCommands[trimmedCmd].color)
+                        term.write("\r\n") // Add a new line after the command output
                         writePrompt()
                     } else {
                         term.writeln(`Unknown command: ${cmd}`)
@@ -209,8 +210,34 @@
                     term.write("\r\n\x1b[1;32muser@ubuntu\x1b[0m:\x1b[1;34m~\x1b[0m$ ")
                 }
 
-                term.writeln("\x1b[1;36mWelcome to the Ubuntu Terminal!\x1b[0m")
-                term.writeln('Type "help" for available commands.')
+                function writeColoredText(text, color) {
+                    const colorCodes = {
+                        black: "\x1b[30m",
+                        red: "\x1b[31m",
+                        green: "\x1b[32m",
+                        yellow: "\x1b[33m",
+                        blue: "\x1b[34m",
+                        magenta: "\x1b[35m",
+                        cyan: "\x1b[36m",
+                        white: "\x1b[37m",
+                    }
+                    const colorCode = color && colorCodes[color] ? colorCodes[color] : ""
+                    const resetCode = colorCode ? "\x1b[0m" : ""
+
+                    const lines = text.split("\n")
+                    for (let i = 0; i < lines.length; i++) {
+                        if (i > 0) term.write("\r\n")
+                        term.write(`${colorCode}${lines[i]}${resetCode}`)
+                    }
+                }
+
+                if (customCommands.welcome) {
+                    writeColoredText(customCommands.welcome.action, customCommands.welcome.color)
+                } else {
+                    term.writeln("Welcome to the Ubuntu Terminal!")
+                    term.writeln('Type "help" for available commands.')
+                }
+
                 writePrompt()
             }
         </script>
