@@ -78,10 +78,22 @@
                 term.loadAddon(fitAddon)
                 term.open(document.getElementById("terminal"))
 
-                // Allow Ctrl+V for paste
-                term.attachCustomKeyEventHandler((event) => {
-                    if (event.type === "keydown" && event.ctrlKey && event.key === "v") {
-                        return false // Let the browser handle the paste
+                term.attachCustomKeyEventHandler((arg) => {
+                    if (arg.ctrlKey && arg.code === "KeyV" && arg.type === "keydown") {
+                        navigator.clipboard.readText().then((text) => {
+                            term.write(text)
+                        })
+                    }
+                    return true
+                })
+
+                term.attachCustomKeyEventHandler((arg) => {
+                    if (arg.ctrlKey && arg.code === "KeyC" && arg.type === "keydown") {
+                        const selection = term.getSelection()
+                        if (selection) {
+                            navigator.clipboard.writeText(selection)
+                            return false
+                        }
                     }
                     return true
                 })
