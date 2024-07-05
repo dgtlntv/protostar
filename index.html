@@ -80,7 +80,6 @@
 
                 term.attachCustomKeyEventHandler((event) => {
                     if ((event.ctrlKey || event.metaKey) && event.code === "KeyV" && event.type === "keydown") {
-                        event.preventDefault()
                         navigator.clipboard.readText().then((text) => {
                             term.write(text)
                         })
@@ -88,8 +87,6 @@
                     }
 
                     if ((event.ctrlKey || event.metaKey) && event.code === "KeyC" && event.type === "keydown") {
-                        event.preventDefault()
-                        console.log("Copy")
                         const selection = term.getSelection()
                         if (selection) {
                             navigator.clipboard.writeText(selection)
@@ -100,11 +97,9 @@
                     return true
                 })
 
-                function fitTerminal() {
-                    fitAddon.fit()
-                }
-                window.addEventListener("resize", fitTerminal)
-                setTimeout(fitTerminal, 0)
+                fitAddon.fit()
+
+                window.addEventListener("resize", () => fitAddon.fit())
 
                 let input = ""
                 term.onKey(({ key, domEvent }) => {
