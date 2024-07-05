@@ -1,0 +1,14 @@
+{
+    "hello": {
+        "description": "Prints a greeting",
+        "action": "Hello, world!"
+    },
+    "help": {
+        "description": "Lists available commands",
+        "action": "help"
+    },
+    "clear": {
+        "description": "Clears the terminal",
+        "action": "clear"
+    }
+}

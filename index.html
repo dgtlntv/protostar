@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.min.js"></script>
+        <link href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" rel="stylesheet" />
+        <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
+        <style>
+            @import url("https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap");
+
+            html,
+            body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+                background-color: #1e1e1e;
+            }
+            #terminal {
+                height: 100%;
+                width: 100%;
+            }
+            .xterm-viewport {
+                overflow-y: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+            .xterm-viewport::-webkit-scrollbar {
+                width: 0;
+                height: 0;
+            }
+            .xterm {
+                padding: 20px;
+                font-family: "Ubuntu Mono", monospace;
+            }
+            .xterm-screen {
+                width: 100% !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="terminal"></div>
+        <script>
+            let commands = {}
+
+            fetch("commands.json")
+                .then((response) => response.json())
+                .then((data) => {
+                    commands = data
+                    initializeTerminal()
+                })
+                .catch((error) => console.error("Error loading commands:", error))
+
+            function initializeTerminal() {
+                const term = new Terminal({
+                    cursorBlink: true,
+                    fontSize: 16,
+                    fontFamily: '"Ubuntu Mono", monospace',
+                    theme: {
+                        background: "#1e1e1e",
+                        foreground: "#f0f0f0",
+                        cursor: "#f0f0f0",
+                        selection: "rgba(255, 255, 255, 0.3)",
+                        black: "#000000",
+                        red: "#e06c75",
+                        green: "#98c379",
+                        yellow: "#d19a66",
+                        blue: "#61afef",
+                        magenta: "#c678dd",
+                        cyan: "#56b6c2",
+                        white: "#abb2bf",
+                    },
+                })
+
+                const fitAddon = new FitAddon.FitAddon()
+                term.loadAddon(fitAddon)
+                term.open(document.getElementById("terminal"))
+
+                function fitTerminal() {
+                    fitAddon.fit()
+                }
+                window.addEventListener("resize", fitTerminal)
+                setTimeout(fitTerminal, 0)
+
+                let input = ""
+                term.onKey(({ key, domEvent }) => {
+                    const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey
+                    if (domEvent.keyCode === 13) {
+                        term.writeln("")
+                        handleCommand(input)
+                        input = ""
+                    } else if (domEvent.keyCode === 8) {
+                        if (input.length > 0) {
+                            input = input.slice(0, -1)
+                            term.write("\b \b")
+                        }
+                    } else if (printable) {
+                        input += key
+                        term.write(key)
+                    }
+                })
+
+                function handleCommand(cmd) {
+                    const trimmedCmd = cmd.trim().toLowerCase()
+                    if (commands[trimmedCmd]) {
+                        if (trimmedCmd === "clear") {
+                            term.clear()
+                        } else if (trimmedCmd === "help") {
+                            Object.keys(commands).forEach((command) => {
+                                term.writeln(`${command}: ${commands[command].description}`)
+                            })
+                        } else {
+                            term.writeln(commands[trimmedCmd].action)
+                        }
+                    } else {
+                        term.writeln(`Unknown command: ${cmd}`)
+                    }
+                    term.write("$ ")
+                }
+
+                term.writeln("\x1b[1;36mWelcome to the CLI prototype!\x1b[0m")
+                term.writeln('Type "help" for available commands.')
+                term.write("$ ")
+            }
+        </script>
+    </body>
+</html>
