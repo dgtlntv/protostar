@@ -80,6 +80,7 @@
 
                 term.attachCustomKeyEventHandler((arg) => {
                     if (arg.ctrlKey && arg.code === "KeyV" && arg.type === "keydown") {
+                        console.log("hello world")
                         navigator.clipboard.readText().then((text) => {
                             term.write(text)
                         })
@@ -96,13 +97,6 @@
                         }
                     }
                     return true
-                })
-
-                document.addEventListener("paste", (event) => {
-                    event.preventDefault()
-                    const text = event.clipboardData.getData("text/plain")
-                    term.write(text)
-                    input += text
                 })
 
                 function fitTerminal() {
