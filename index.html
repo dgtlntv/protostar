@@ -106,6 +106,8 @@
                     const trimmedCmd = cmd.trim().toLowerCase()
                     if (trimmedCmd === "clear") {
                         term.clear()
+                        term.reset()
+                        term.write("\x1b[H")
                         term.write("$ ")
                     } else if (trimmedCmd === "help") {
                         term.writeln("Available commands:")
