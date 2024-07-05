@@ -184,19 +184,13 @@
                 function handleCommand(cmd) {
                     const args = cmd.trim().split(/\s+/)
                     const command = args[0].toLowerCase()
-                    const flags = parseFlags(args.slice(1))
+                    const flags = parseFlags(args.slice(1), command)
 
                     if (command === "clear") {
                         term.clear()
                         term.reset()
                         term.write("\x1b[H")
                         writePrompt()
-                    } else if (command === "help") {
-                        if (args.length > 1) {
-                            showCommandHelp(args[1])
-                        } else {
-                            showGeneralHelp()
-                        }
                     } else if (customCommands[command]) {
                         executeCommand(command, flags)
                     } else {
@@ -205,39 +199,45 @@
                     }
                 }
 
-                function parseFlags(args) {
+                function parseFlags(args, command) {
                     const flags = {}
+                    const cmd = customCommands[command]
+                    if (!cmd) return flags
+
+                    const flagAliases = Object.entries(cmd.flags).reduce((acc, [flag, details]) => {
+                        acc[flag] = flag
+                        if (details.aliases) {
+                            details.aliases.forEach((alias) => {
+                                acc[alias] = flag
+                            })
+                        }
+                        return acc
+                    }, {})
+
                     for (let i = 0; i < args.length; i++) {
-                        if (args[i].startsWith("--")) {
-                            const flag = args[i]
-                            const value = args[i + 1] && !args[i + 1].startsWith("--") ? args[i + 1] : true
-                            flags[flag] = value
-                            if (value !== true) i++
+                        const arg = args[i]
+                        const flagName = flagAliases[arg]
+                        if (flagName) {
+                            const flagDetails = cmd.flags[flagName]
+                            if (flagDetails.requiresValue && i + 1 < args.length) {
+                                flags[flagName] = args[++i]
+                            } else {
+                                flags[flagName] = true
+                            }
                         }
                     }
                     return flags
                 }
 
-                function showGeneralHelp() {
-                    term.writeln("Available commands:")
-                    term.writeln("  help  - Show this help message")
-                    term.writeln("  clear - Clear the terminal")
-                    Object.keys(customCommands).forEach((command) => {
-                        term.writeln(`  ${command} - ${customCommands[command].description}`)
-                    })
-                    term.writeln("\nType 'help <command>' for more information on a specific command.")
-                    writePrompt()
-                }
-
                 function showCommandHelp(command) {
-                    if (customCommands[command]) {
-                        term.writeln(customCommands[command].help || `No detailed help available for '${command}'.`)
-                        if (customCommands[command].flags) {
-                            term.writeln("\nFlags:")
-                            Object.entries(customCommands[command].flags).forEach(([flag, details]) => {
-                                term.writeln(`  ${flag}: ${details.description}`)
-                            })
-                        }
+                    const cmd = customCommands[command]
+                    if (cmd) {
+                        term.writeln(`${command} - ${cmd.description}`)
+                        term.writeln("\nFlags:")
+                        Object.entries(cmd.flags).forEach(([flag, details]) => {
+                            const aliases = details.aliases ? ` (${details.aliases.join(", ")})` : ""
+                            term.writeln(`  ${flag}${aliases}: ${details.description}`)
+                        })
                     } else {
                         term.writeln(`No help available for '${command}'. It might not be a valid command.`)
                     }
@@ -246,19 +246,23 @@
 
                 function executeCommand(command, flags) {
                     const cmd = customCommands[command]
+                    if (flags["--help"]) {
+                        showCommandHelp(command)
+                        return
+                    }
+
                     let output = cmd.action
 
-                    if (cmd.flags) {
-                        Object.entries(flags).forEach(([flag, value]) => {
-                            if (cmd.flags[flag]) {
-                                if (cmd.flags[flag].requiresValue && value === true) {
-                                    output = `Error: ${flag} requires a value.`
-                                } else if (flag === "--name" && command === "hello") {
-                                    output = `Hello, ${value}!\nWelcome to the terminal!`
-                                }
+                    Object.entries(flags).forEach(([flag, value]) => {
+                        const flagDetails = cmd.flags[flag]
+                        if (flagDetails) {
+                            if (flagDetails.requiresValue && value === true) {
+                                output = `Error: ${flag} requires a value.`
+                            } else if (flag === "--name" && command === "hello") {
+                                output = `Hello, ${value}!\nWelcome to the terminal!`
                             }
-                        })
-                    }
+                        }
+                    })
 
                     writeColoredText(output, cmd.color)
                     term.write("\r\n")
@@ -294,7 +298,7 @@
                     writeColoredText(customCommands.welcome.action, customCommands.welcome.color)
                 } else {
                     term.writeln("Welcome to the Ubuntu Terminal!")
-                    term.writeln('Type "help" for available commands.')
+                    term.writeln("Type any command followed by --help to get more information.")
                 }
 
                 writePrompt()
