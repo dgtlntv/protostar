@@ -72,7 +72,7 @@
                         selection: "rgba(255, 255, 255, 0.3)",
                         black: "#2e3436",
                         red: "#cc0000",
-                        green: "#776294",
+                        green: "#00975F",
                         yellow: "#c4a000",
                         blue: "#00407C",
                         magenta: "#75507b",
@@ -290,6 +290,8 @@
                 }
 
                 function writePrompt() {
+                    const green = term.getOption("theme").green
+                    console.log("Green color code:", green)
                     term.write("\r\n\x1b[1;32muser@ubuntu\x1b[0m:\x1b[1;34m~\x1b[0m\x1b[37m$ \x1b[0m")
                 }
 
