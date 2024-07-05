@@ -31,6 +31,7 @@
             .xterm {
                 padding: 5px;
                 font-family: "Ubuntu Sans Mono", monospace;
+                font-weight: 350;
             }
             .xterm-screen {
                 width: 100% !important;
@@ -56,8 +57,9 @@
             function initializeTerminal() {
                 const term = new Terminal({
                     cursorBlink: true,
-                    fontSize: 18,
+                    fontSize: 16,
                     fontFamily: '"Ubuntu Sans Mono", monospace',
+                    fontWeight: 350,
                     theme: {
                         background: "#300a24",
                         foreground: "#ffffff",
