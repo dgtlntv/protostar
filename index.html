@@ -86,10 +86,11 @@
                     return true
                 })
 
-                // Handle paste events
-                term.onPaste((data) => {
-                    term.write(data)
-                    input += data
+                document.addEventListener("paste", (event) => {
+                    event.preventDefault()
+                    const text = event.clipboardData.getData("text/plain")
+                    term.write(text)
+                    input += text
                 })
 
                 function fitTerminal() {
