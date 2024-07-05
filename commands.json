@@ -1,30 +1,24 @@
 {
-    "hello": {
-        "description": "Prints a greeting",
-        "action": "Hello, world!\nWelcome to the terminal!",
-        "color": "green",
-        "flags": {
-            "--help": {
-                "description": "Show help for this command",
-                "action": "help",
-                "aliases": ["-h"]
-            },
-            "--name": {
-                "description": "Specify a name for a personalized greeting",
-                "requiresValue": true,
-                "aliases": ["-n"]
-            }
-        }
-    },
     "welcome": {
-        "description": "Welcome message",
-        "action": "Welcome to the Ubuntu Terminal!\nType any command followed by --help to get more information.",
-        "color": "cyan",
-        "flags": {
-            "--help": {
-                "description": "Show help for this command",
-                "action": "help",
-                "aliases": ["-h"]
+        "message": "Welcome to the Ubuntu Terminal!\nType 'help' to get a list of all available commands.",
+        "color": "cyan"
+    },
+    "commands": {
+        "hello": {
+            "description": "Prints a greeting",
+            "action": "Hello, world!\nWelcome to the terminal!",
+            "color": "green",
+            "flags": {
+                "--help": {
+                    "description": "Show help for this command",
+                    "action": "help",
+                    "aliases": ["-h"]
+                },
+                "--name": {
+                    "description": "Specify a name for a personalized greeting",
+                    "requiresValue": true,
+                    "aliases": ["-n"]
+                }
             }
         }
     }
