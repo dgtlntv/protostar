@@ -40,15 +40,18 @@
     <body>
         <div id="terminal"></div>
         <script>
-            let commands = {}
+            let customCommands = {}
 
             fetch("commands.json")
                 .then((response) => response.json())
                 .then((data) => {
-                    commands = data
+                    customCommands = data
                     initializeTerminal()
                 })
-                .catch((error) => console.error("Error loading commands:", error))
+                .catch((error) => {
+                    console.error("Error loading commands:", error)
+                    initializeTerminal()
+                })
 
             function initializeTerminal() {
                 const term = new Terminal({
@@ -101,16 +104,17 @@
 
                 function handleCommand(cmd) {
                     const trimmedCmd = cmd.trim().toLowerCase()
-                    if (commands[trimmedCmd]) {
-                        if (trimmedCmd === "clear") {
-                            term.clear()
-                        } else if (trimmedCmd === "help") {
-                            Object.keys(commands).forEach((command) => {
-                                term.writeln(`${command}: ${commands[command].description}`)
-                            })
-                        } else {
-                            term.writeln(commands[trimmedCmd].action)
-                        }
+                    if (trimmedCmd === "clear") {
+                        term.clear()
+                    } else if (trimmedCmd === "help") {
+                        term.writeln("Available commands:")
+                        term.writeln("  help  - Show this help message")
+                        term.writeln("  clear - Clear the terminal")
+                        Object.keys(customCommands).forEach((command) => {
+                            term.writeln(`  ${command} - ${customCommands[command].description}`)
+                        })
+                    } else if (customCommands[trimmedCmd]) {
+                        term.writeln(customCommands[trimmedCmd].action)
                     } else {
                         term.writeln(`Unknown command: ${cmd}`)
                     }

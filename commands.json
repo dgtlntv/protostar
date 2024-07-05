@@ -3,12 +3,8 @@
         "description": "Prints a greeting",
         "action": "Hello, world!"
     },
-    "help": {
-        "description": "Lists available commands",
-        "action": "help"
-    },
-    "clear": {
-        "description": "Clears the terminal",
-        "action": "clear"
+    "date": {
+        "description": "Displays the current date",
+        "action": "The current date is: "
     }
 }
