@@ -88,11 +88,19 @@
                     return true
                 })
 
-                term.attachCustomKeyEventHandler((arg) => {
-                    if (arg.ctrlKey && arg.code === "KeyC" && arg.type === "keydown") {
+                term.attachCustomKeyEventHandler((event) => {
+                    if (event.ctrlKey && event.code === "KeyC" && event.type === "keydown") {
+                        event.preventDefault()
                         const selection = term.getSelection()
                         if (selection) {
-                            navigator.clipboard.writeText(selection)
+                            navigator.clipboard
+                                .writeText(selection)
+                                .then(() => {
+                                    console.log("Text copied to clipboard")
+                                })
+                                .catch((err) => {
+                                    console.error("Failed to copy text to clipboard", err)
+                                })
                             return false
                         }
                     }
