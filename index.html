@@ -5,7 +5,7 @@
         <link href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.min.css" rel="stylesheet" />
         <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.min.js"></script>
         <style>
-            @import url("https://fonts.googleapis.com/css2?family=Ubuntu+Mono&display=swap");
+            @import url("https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap");
 
             html,
             body {
@@ -13,7 +13,7 @@
                 margin: 0;
                 padding: 0;
                 overflow: hidden;
-                background-color: #300a24;
+                background-color: #330f25;
             }
             #terminal {
                 height: 100%;
@@ -64,17 +64,17 @@
                     cursorBlink: true,
                     fontSize: 18,
                     fontFamily: '"Ubuntu Mono", monospace',
-                    fontWeight: "Light",
+                    fontWeight: 400,
                     theme: {
-                        background: "#300a24",
+                        background: "#330F25",
                         foreground: "#ffffff",
                         cursor: "#ffffff",
                         selection: "rgba(255, 255, 255, 0.3)",
                         black: "#2e3436",
                         red: "#cc0000",
-                        green: "#4e9a06",
+                        green: "#00975F",
                         yellow: "#c4a000",
-                        blue: "#3465a4",
+                        blue: "#00407C",
                         magenta: "#75507b",
                         cyan: "#06989a",
                         white: "#d3d7cf",
@@ -153,7 +153,9 @@
                         if (historyIndex < commandHistory.length - 1) {
                             historyIndex++
                             input = commandHistory[historyIndex]
-                            term.write("\x1b[2K\r\x1b[1;32muser@ubuntu\x1b[0m:\x1b[1;34m~\x1b[0m$ " + input)
+                            term.write(
+                                "\x1b[2K\r\x1b[1;32muser@ubuntu\x1b[0m:\x1b[1;34m~\x1b[0m\x1b[37m$ \x1b[0m" + input
+                            )
                             cursorPosition = input.length
                         }
                     } else if (domEvent.keyCode === 40) {
@@ -165,7 +167,9 @@
                             } else {
                                 input = commandHistory[historyIndex]
                             }
-                            term.write("\x1b[2K\r\x1b[1;32muser@ubuntu\x1b[0m:\x1b[1;34m~\x1b[0m$ " + input)
+                            term.write(
+                                "\x1b[2K\r\x1b[1;32muser@ubuntu\x1b[0m:\x1b[1;34m~\x1b[0m\x1b[37m$ \x1b[0m" + input
+                            )
                             cursorPosition = input.length
                         }
                     } else if (printable) {
@@ -286,7 +290,7 @@
                 }
 
                 function writePrompt() {
-                    term.write("\r\n\x1b[1;32muser@ubuntu\x1b[0m:\x1b[1;34m~\x1b[0m$ ")
+                    term.write("\r\n\x1b[1;32muser@ubuntu\x1b[0m:\x1b[1;34m~\x1b[0m\x1b[37m$ \x1b[0m")
                 }
 
                 function writeColoredText(text, color) {
