@@ -78,6 +78,20 @@
                 term.loadAddon(fitAddon)
                 term.open(document.getElementById("terminal"))
 
+                // Allow Ctrl+V for paste
+                term.attachCustomKeyEventHandler((event) => {
+                    if (event.type === "keydown" && event.ctrlKey && event.key === "v") {
+                        return false // Let the browser handle the paste
+                    }
+                    return true
+                })
+
+                // Handle paste events
+                term.onPaste((data) => {
+                    term.write(data)
+                    input += data
+                })
+
                 function fitTerminal() {
                     fitAddon.fit()
                 }
@@ -106,8 +120,8 @@
                     const trimmedCmd = cmd.trim().toLowerCase()
                     if (trimmedCmd === "clear") {
                         term.clear()
-                        term.reset()
-                        term.write("\x1b[H")
+                        term.reset() // This resets the terminal state
+                        term.write("\x1b[H") // This moves the cursor to the top-left corner
                         term.write("$ ")
                     } else if (trimmedCmd === "help") {
                         term.writeln("Available commands:")
