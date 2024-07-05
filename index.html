@@ -81,8 +81,8 @@
                 term.attachCustomKeyEventHandler((event) => {
                     console.log(`Key event detected: ${event.type}, Code: ${event.code}, CtrlKey: ${event.ctrlKey}`)
                     if (event.ctrlKey && event.code === "KeyV" && event.type === "keydown") {
-                        console.log("hello world")
-                        event.preventDefault() // Prevent the default paste action
+                        console.log("Paste")
+                        event.preventDefault()
                         navigator.clipboard
                             .readText()
                             .then((text) => {
@@ -91,19 +91,18 @@
                             .catch((err) => {
                                 console.error("Failed to read clipboard contents: ", err)
                             })
-                        return false // Return false to indicate the event was handled
+                        return false
                     }
-                    return true
-                })
 
-                term.attachCustomKeyEventHandler((arg) => {
                     if (arg.ctrlKey && arg.code === "KeyC" && arg.type === "keydown") {
+                        console.log("Copy")
                         const selection = term.getSelection()
                         if (selection) {
                             navigator.clipboard.writeText(selection)
                             return false
                         }
                     }
+
                     return true
                 })
 
