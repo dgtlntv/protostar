@@ -1,7 +1,6 @@
 {
     "welcome": {
-        "message": "Welcome to the Ubuntu Terminal!\nType 'help' to get a list of all available commands.",
-        "color": "cyan"
+        "message": "Welcome to the Ubuntu Terminal!\nType 'help' to get a list of all available commands."
     },
     "commands": {
         "hello": {
