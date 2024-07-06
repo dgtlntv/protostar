@@ -41,15 +41,16 @@
         <div id="terminal"></div>
         <script>
             let customCommands = {}
+            let term
+            let welcomeMessage = "Welcome to the Ubuntu Terminal!\nType 'help' to see a list of available commands."
+            let welcomeColor = "white"
 
             fetch("commands.json")
                 .then((response) => response.json())
                 .then((data) => {
                     if (data.welcome) {
-                        welcomeMessage =
-                            data.welcome.message ||
-                            "Welcome to the Ubuntu Terminal!\nType 'help' to see a list of available commands."
-                        welcomeColor = data.welcome.color || "white"
+                        welcomeMessage = data.welcome.message || welcomeMessage
+                        welcomeColor = data.welcome.color || welcomeColor
                     }
                     customCommands = data.commands || {}
                     initializeTerminal()
@@ -60,7 +61,7 @@
                 })
 
             function initializeTerminal() {
-                const term = new Terminal({
+                term = new Terminal({
                     cursorBlink: true,
                     fontSize: 18,
                     fontFamily: '"Ubuntu Mono", monospace',
@@ -183,43 +184,115 @@
                     }
                 })
 
-                function handleCommand(cmd) {
-                    const args = cmd.trim().split(/\s+/)
-                    const command = args[0].toLowerCase()
-                    const flags = parseFlags(args.slice(1), command)
+                writeColoredText(welcomeMessage, welcomeColor)
+                writePrompt()
+            }
 
-                    if (command === "clear") {
-                        term.clear()
-                        term.reset()
-                        term.write("\x1b[H")
+            async function handleCommand(cmd) {
+                const args = cmd.trim().split(/\s+/)
+                const command = args[0].toLowerCase()
+                const restArgs = args.slice(1)
+
+                if (command === "clear") {
+                    term.clear()
+                    term.reset()
+                    term.write("\x1b[H")
+                    writePrompt()
+                } else if (command === "help") {
+                    showGeneralHelp()
+                } else {
+                    await executeCommand(command, restArgs)
+                }
+            }
+
+            function showGeneralHelp() {
+                term.writeln("Available commands:")
+                term.writeln("  help - Show available commands")
+                Object.entries(customCommands).forEach(([command, details]) => {
+                    const aliases = details.aliases ? ` (${details.aliases.join(", ")})` : ""
+                    term.writeln(`  ${command}${aliases} - ${details.description}`)
+                })
+                term.writeln("\nType '<command> --help' for more information on a specific command.")
+                writePrompt()
+            }
+
+            function showCommandHelp(command) {
+                const cmd = getCommand(command)
+                if (cmd) {
+                    term.writeln(`${command} - ${cmd.description}`)
+                    if (cmd.args) {
+                        term.writeln("\nArguments:")
+                        cmd.args.forEach((arg) => {
+                            term.writeln(`  ${arg.name}: ${arg.description}`)
+                        })
+                    }
+                    if (cmd.flags) {
+                        term.writeln("\nFlags:")
+                        Object.entries(cmd.flags).forEach(([flag, details]) => {
+                            const aliases = details.aliases ? ` (${details.aliases.join(", ")})` : ""
+                            term.writeln(`  ${flag}${aliases}: ${details.description}`)
+                        })
+                    }
+                    if (cmd.subcommands) {
+                        term.writeln("\nSubcommands:")
+                        Object.entries(cmd.subcommands).forEach(([subcommand, details]) => {
+                            term.writeln(`  ${subcommand} - ${details.description}`)
+                        })
+                    }
+                } else {
+                    term.writeln(`No help available for '${command}'.`)
+                }
+            }
+
+            function getCommand(command) {
+                return (
+                    customCommands[command] ||
+                    Object.values(customCommands).find((cmd) => cmd.aliases && cmd.aliases.includes(command))
+                )
+            }
+
+            async function executeCommand(command, args) {
+                const cmd = getCommand(command)
+                if (!cmd) {
+                    term.writeln(`Unknown command: ${command}`)
+                    writePrompt()
+                    return
+                }
+
+                const { flags, positionalArgs } = parseArgs(args, cmd)
+
+                if (flags["--help"] || flags["-h"]) {
+                    showCommandHelp(command)
+                    writePrompt()
+                    return
+                }
+
+                if (cmd.subcommands && positionalArgs.length > 0) {
+                    const subcommand = cmd.subcommands[positionalArgs[0]]
+                    if (subcommand) {
+                        await executeAction(subcommand.action, flags, positionalArgs.slice(1))
                         writePrompt()
-                    } else if (command === "help") {
-                        showGeneralHelp()
-                    } else if (customCommands[command]) {
-                        executeCommand(command, flags)
-                    } else {
-                        term.writeln(`Unknown command: ${command}`)
-                        writePrompt()
+                        return
                     }
                 }
 
-                function parseFlags(args, command) {
-                    const flags = {}
-                    const cmd = customCommands[command]
-                    if (!cmd || !cmd.flags) return flags
+                if (cmd.prompts) {
+                    const promptResults = await handlePrompts(cmd.prompts)
+                    Object.assign(flags, promptResults)
+                }
 
-                    const flagAliases = Object.entries(cmd.flags).reduce((acc, [flag, details]) => {
-                        acc[flag] = flag
-                        if (details.aliases) {
-                            details.aliases.forEach((alias) => {
-                                acc[alias] = flag
-                            })
-                        }
-                        return acc
-                    }, {})
+                await executeAction(cmd.action, flags, positionalArgs)
+                writePrompt()
+            }
 
-                    for (let i = 0; i < args.length; i++) {
-                        const arg = args[i]
+            function parseArgs(args, cmd) {
+                const flags = {}
+                const positionalArgs = []
+                const flagAliases = createFlagAliasMap(cmd.flags)
+
+                for (let i = 0; i < args.length; i++) {
+                    const arg = args[i]
+                    if (arg.startsWith("-")) {
                         const flagName = flagAliases[arg]
                         if (flagName) {
                             const flagDetails = cmd.flags[flagName]
@@ -229,93 +302,165 @@
                                 flags[flagName] = true
                             }
                         }
-                    }
-                    return flags
-                }
-
-                function showGeneralHelp() {
-                    term.writeln("Available commands:")
-                    term.writeln("  help - Show available commands")
-                    Object.keys(customCommands).forEach((command) => {
-                        term.writeln(`  ${command} - ${customCommands[command].description}`)
-                    })
-                    term.writeln("\nType '<command> --help' for more information on a specific command.")
-                    writePrompt()
-                }
-
-                function showCommandHelp(command) {
-                    const cmd = customCommands[command]
-                    if (cmd) {
-                        term.writeln(`${command} - ${cmd.description}`)
-                        if (cmd.flags) {
-                            term.writeln("\nFlags:")
-                            Object.entries(cmd.flags).forEach(([flag, details]) => {
-                                const aliases = details.aliases ? ` (${details.aliases.join(", ")})` : ""
-                                term.writeln(`  ${flag}${aliases}: ${details.description}`)
-                            })
-                        }
                     } else {
-                        term.writeln(`No help available for '${command}'.`)
+                        positionalArgs.push(arg)
                     }
                 }
 
-                function executeCommand(command, flags) {
-                    const cmd = customCommands[command]
-                    if (flags["--help"]) {
-                        showCommandHelp(command)
-                        writePrompt()
-                        return
+                return { flags, positionalArgs }
+            }
+
+            function createFlagAliasMap(flags) {
+                const aliasMap = {}
+                if (!flags) return aliasMap
+
+                Object.entries(flags).forEach(([flag, details]) => {
+                    aliasMap[flag] = flag
+                    if (details.aliases) {
+                        details.aliases.forEach((alias) => {
+                            aliasMap[alias] = flag
+                        })
                     }
+                })
 
-                    let output = cmd.action
+                return aliasMap
+            }
 
-                    if (typeof output === "function") {
-                        output = output()
-                    }
-
-                    Object.entries(flags).forEach(([flag, value]) => {
-                        const flagDetails = cmd.flags && cmd.flags[flag]
-                        if (flagDetails) {
-                            if (flagDetails.requiresValue && value === true) {
-                                output = `Error: ${flag} requires a value.`
-                            } else if (flag === "--name" && command === "hello") {
-                                output = `Hello, ${value}!\nWelcome to the terminal!`
+            async function handlePrompts(prompts) {
+                const results = {}
+                for (const prompt of prompts) {
+                    term.write(`${prompt.message} `)
+                    const input = await new Promise((resolve) => {
+                        let inputBuffer = ""
+                        term.onData((data) => {
+                            if (data === "\r") {
+                                term.write("\r\n")
+                                resolve(inputBuffer)
+                            } else if (data === "\u007F") {
+                                // Backspace
+                                if (inputBuffer.length > 0) {
+                                    inputBuffer = inputBuffer.slice(0, -1)
+                                    term.write("\b \b")
+                                }
+                            } else {
+                                inputBuffer += data
+                                if (prompt.hidden) {
+                                    term.write("*")
+                                } else {
+                                    term.write(data)
+                                }
                             }
-                        }
+                        })
                     })
+                    results[prompt.name] = input
+                }
+                return results
+            }
 
-                    writeColoredText(output, cmd.color)
+            async function executeAction(action, flags, args) {
+                if (Array.isArray(action)) {
+                    for (const item of action) {
+                        await processActionItem(item, flags, args)
+                    }
+                } else if (typeof action === "object") {
+                    await processActionItem(action, flags, args)
+                } else if (typeof action === "string") {
+                    writeColoredText(interpolate(action, { flags, args }), "white")
                     term.write("\r\n")
-                    writePrompt()
                 }
+            }
 
-                function writePrompt() {
-                    term.write("\r\n\x1b[1;32muser@ubuntu\x1b[0m:\x1b[1;34m~\x1b[0m\x1b[37m$ \x1b[0m")
-                }
-
-                function writeColoredText(text, color) {
-                    const colorCodes = {
-                        black: "\x1b[30m",
-                        red: "\x1b[31m",
-                        green: "\x1b[32m",
-                        yellow: "\x1b[33m",
-                        blue: "\x1b[34m",
-                        magenta: "\x1b[35m",
-                        cyan: "\x1b[36m",
-                        white: "\x1b[37m",
+            async function processActionItem(item, flags, args) {
+                if (typeof item === "string") {
+                    writeColoredText(interpolate(item, { flags, args }), "white")
+                    term.write("\r\n")
+                } else if (typeof item === "object") {
+                    if (item.if) {
+                        const condition = interpolate(item.if, { flags, args })
+                        if (eval(condition)) {
+                            await executeAction(item.then, flags, args)
+                        } else if (item.else) {
+                            await executeAction(item.else, flags, args)
+                        }
+                    } else if (item.command) {
+                        await executeCommand(item.command, [])
+                    } else if (item.text) {
+                        writeColoredText(interpolate(item.text, { flags, args }), item.color || "white")
+                        term.write("\r\n")
+                        if (item.delay) {
+                            await new Promise((resolve) => setTimeout(resolve, item.delay))
+                        }
+                    } else if (item.type === "progressBar") {
+                        await showProgressBar(item.text, item.duration)
+                    } else if (item.type === "spinner") {
+                        await showSpinner(item.text, item.duration)
                     }
-                    const colorCode = color && colorCodes[color] ? colorCodes[color] : ""
-                    const resetCode = colorCode ? "\x1b[0m" : ""
+                }
+            }
 
-                    const lines = text.split("\n")
-                    for (let i = 0; i < lines.length; i++) {
-                        if (i > 0) term.write("\r\n")
-                        term.write(`${colorCode}${lines[i]}${resetCode}`)
+            function interpolate(text, context) {
+                return text.replace(/\{\{([^}]+)\}\}/g, (_, expr) => {
+                    return eval(`with (context) { ${expr} }`)
+                })
+            }
+
+            async function showProgressBar(text, duration) {
+                const width = 20
+                const frameDuration = 100
+                const frames = duration / frameDuration
+
+                for (let i = 0; i <= frames; i++) {
+                    const progress = i / frames
+                    const filled = Math.round(width * progress)
+                    const empty = width - filled
+                    const bar = `[${"=".repeat(filled)}${" ".repeat(empty)}]`
+                    const percentage = Math.round(progress * 100)
+
+                    term.write(`\r${text} ${bar} ${percentage}%`)
+
+                    if (i < frames) {
+                        await new Promise((resolve) => setTimeout(resolve, frameDuration))
                     }
                 }
+                term.write("\r\n")
+            }
 
-                writeColoredText(welcomeMessage, welcomeColor)
-                writePrompt()
+            async function showSpinner(text, duration) {
+                const spinnerFrames = ["|", "/", "-", "\\"]
+                const frameDuration = 100
+                const frames = duration / frameDuration
+
+                for (let i = 0; i < frames; i++) {
+                    const frame = spinnerFrames[i % spinnerFrames.length]
+                    term.write(`\r${text} ${frame}`)
+                    await new Promise((resolve) => setTimeout(resolve, frameDuration))
+                }
+                term.write("\r\n")
+            }
+
+            function writePrompt() {
+                term.write("\r\n\x1b[1;32muser@ubuntu\x1b[0m:\x1b[1;34m~\x1b[0m\x1b[37m$ \x1b[0m")
+            }
+
+            function writeColoredText(text, color) {
+                const colorCodes = {
+                    black: "\x1b[30m",
+                    red: "\x1b[31m",
+                    green: "\x1b[32m",
+                    yellow: "\x1b[33m",
+                    blue: "\x1b[34m",
+                    magenta: "\x1b[35m",
+                    cyan: "\x1b[36m",
+                    white: "\x1b[37m",
+                }
+                const colorCode = color && colorCodes[color] ? colorCodes[color] : ""
+                const resetCode = colorCode ? "\x1b[0m" : ""
+
+                const lines = text.split("\n")
+                for (let i = 0; i < lines.length; i++) {
+                    if (i > 0) term.write("\r\n")
+                    term.write(`${colorCode}${lines[i]}${resetCode}`)
+                }
             }
         </script>
     </body>

@@ -1,6 +1,7 @@
 {
     "welcome": {
-        "message": "Welcome to the Ubuntu Terminal!\nType 'help' to get a list of all available commands.\n"
+        "message": "Welcome to the Enhanced CLI Prototype!\nType 'help' to get a list of all available commands.\n",
+        "color": "green"
     },
     "commands": {
         "hello": {
@@ -8,17 +9,151 @@
             "action": "Hello, world!\nWelcome to the terminal!",
             "color": "green",
             "flags": {
-                "--help": {
-                    "description": "Show help for this command",
-                    "action": "help",
-                    "aliases": ["-h"]
-                },
                 "--name": {
                     "description": "Specify a name for a personalized greeting",
                     "requiresValue": true,
                     "aliases": ["-n"]
                 }
+            },
+            "action": [
+                {
+                    "if": "flags['--name']",
+                    "then": "Hello, {{flags['--name']}}!\nWelcome to the terminal!",
+                    "else": "Hello, world!\nWelcome to the terminal!"
+                }
+            ]
+        },
+        "git": {
+            "description": "Version control system",
+            "subcommands": {
+                "commit": {
+                    "description": "Record changes to the repository",
+                    "action": "Changes committed successfully.",
+                    "flags": {
+                        "--message": {
+                            "description": "Commit message",
+                            "requiresValue": true,
+                            "aliases": ["-m"]
+                        }
+                    }
+                },
+                "push": {
+                    "description": "Update remote refs along with associated objects",
+                    "action": "Changes pushed to remote repository."
+                }
             }
+        },
+        "echo": {
+            "description": "Display a line of text",
+            "args": [
+                {
+                    "name": "text",
+                    "description": "The text to display"
+                }
+            ],
+            "action": "{{args[0]}}"
+        },
+        "login": {
+            "description": "Log in to the system",
+            "prompts": [
+                {
+                    "name": "username",
+                    "message": "Enter your username:"
+                },
+                {
+                    "name": "password",
+                    "message": "Enter your password:",
+                    "hidden": true
+                }
+            ],
+            "action": "Welcome, {{flags.username}}!"
+        },
+        "deploy": {
+            "description": "Deploy the application",
+            "flags": {
+                "--environment": {
+                    "description": "Deployment environment",
+                    "requiresValue": true
+                }
+            },
+            "action": [
+                {
+                    "if": "flags['--environment'] === 'production'",
+                    "then": "Deploying to production...",
+                    "else": "Deploying to {{flags['--environment']}}..."
+                }
+            ]
+        },
+        "list": {
+            "description": "List files and directories",
+            "aliases": ["ls", "dir"],
+            "action": "Listing files and directories..."
+        },
+        "status": {
+            "description": "Show system status",
+            "action": {
+                "data": {
+                    "cpu": "25%",
+                    "memory": "4GB",
+                    "disk": "120GB"
+                },
+                "format": "table"
+            }
+        },
+        "setup": {
+            "description": "Set up the development environment",
+            "action": [
+                "Installing dependencies...",
+                { "command": "echo", "args": ["Dependencies installed."] },
+                {
+                    "text": "Configuring settings...",
+                    "delay": 1000
+                },
+                "Setup complete!"
+            ]
+        },
+        "build": {
+            "description": "Build the project",
+            "action": [
+                {
+                    "text": "Compiling source files...",
+                    "delay": 2000
+                },
+                {
+                    "text": "Optimizing...",
+                    "delay": 1500
+                },
+                {
+                    "text": "Generating output...",
+                    "delay": 1000
+                },
+                {
+                    "text": "Build complete!",
+                    "delay": 500
+                }
+            ]
+        },
+        "download": {
+            "description": "Download a large file",
+            "action": [
+                {
+                    "type": "progressBar",
+                    "text": "Downloading:",
+                    "duration": 5000
+                },
+                "Download complete!"
+            ]
+        },
+        "process": {
+            "description": "Process data",
+            "action": [
+                {
+                    "type": "spinner",
+                    "text": "Processing data",
+                    "duration": 3000
+                },
+                "Processing complete!"
+            ]
         }
     }
 }
