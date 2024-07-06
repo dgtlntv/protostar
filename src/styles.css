@@ -1,0 +1,30 @@
+@import url("https://fonts.googleapis.com/css2?family=Ubuntu+Mono:wght@400;700&display=swap");
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #330f25;
+}
+#terminal {
+    height: 100%;
+    width: 100%;
+}
+.xterm-viewport {
+    overflow-y: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+.xterm-viewport::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+.xterm {
+    padding: 20px;
+    font-family: "Ubuntu Mono", monospace;
+}
+.xterm-screen {
+    width: 100% !important;
+}
