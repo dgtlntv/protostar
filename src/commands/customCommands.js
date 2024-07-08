@@ -8,7 +8,7 @@ export let customCommands = {}
 
 export async function loadCommands() {
     try {
-        const response = await fetch("/commands.json")
+        const response = await fetch("./commands.json")
         const data = await response.json()
         customCommands = data.commands || {}
     } catch (error) {
