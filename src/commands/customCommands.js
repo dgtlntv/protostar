@@ -3,14 +3,13 @@ import { writeColoredText } from "../utils/textFormatting.js"
 import { showProgressBar } from "../components/ProgressBar.js"
 import { showSpinner } from "../components/Spinner.js"
 import { handlePrompts } from "../components/Prompt.js"
+import commandsData from "../commands.json"
 
 export let customCommands = {}
 
-export async function loadCommands() {
+export function loadCommands() {
     try {
-        const response = await fetch("./commands.json")
-        const data = await response.json()
-        customCommands = data.commands || {}
+        customCommands = commandsData.commands || {}
     } catch (error) {
         console.error("Error loading commands:", error)
     }

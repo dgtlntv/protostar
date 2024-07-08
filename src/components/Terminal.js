@@ -8,8 +8,8 @@ let term
 let welcomeMessage = "Welcome to the CLI Prototype!\nType 'help' to see a list of available commands."
 let welcomeColor = "white"
 
-export async function initializeTerminal() {
-    await loadCommands()
+export function initializeTerminal() {
+    loadCommands()
     setupTerminal()
     writeColoredText(term, welcomeMessage, welcomeColor)
     writePrompt()
