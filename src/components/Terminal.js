@@ -13,6 +13,7 @@ export function initializeTerminal() {
     loadCommands()
     setupTerminal()
     writeColoredText(term, welcomeMessage, welcomeColor)
+    term.write("\r\n")
     writeCommandLine(term)
 }
 

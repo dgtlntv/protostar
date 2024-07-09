@@ -5,6 +5,9 @@ import { showProgressBar } from "../components/ProgressBar.js"
 import { showSpinner } from "../components/Spinner.js"
 import { handleUserPrompts } from "../components/Prompt.js"
 import commandsData from "../commands.json"
+import sleep from "../utils/sleep.js"
+import CancellableOperation from "../utils/CancellableOperation.js"
+import { setCurrentOperation } from "../components/KeyboardHandler.js"
 
 export let customCommands = {}
 
@@ -23,40 +26,47 @@ export async function executeCustomCommand(term, command, args) {
         return
     }
 
-    const { flags, positionalArgs, errors } = parseArgs(args, cmd)
+    let subcommand = null
+    let subcommandName = null
+    if (cmd.subcommands && args.length > 0) {
+        const subcommandArg = parseQuotedString(args)
+        subcommandName = subcommandArg.text
+        subcommand = cmd.subcommands[subcommandName]
+        if (subcommand) {
+            args = args.slice(subcommandArg.consumed) // Remove the subcommand from args
+        }
+    }
+
+    const { flags, positionalArgs, errors } = parseArgs(args, subcommand || cmd)
 
     if (flags["--help"] || flags["-h"]) {
-        showCommandHelp(term, command)
+        showCommandHelp(term, command, subcommandName)
         return
     }
 
     if (errors.length > 0) {
         errors.forEach((error) => term.writeln(`\x1b[31m${error}\x1b[0m`))
-        term.writeln(`Type '${command} --help' for usage information.`)
+        term.writeln(`Type '${command}${subcommandName ? " " + subcommandName : ""} --help' for usage information.`)
         return
     }
 
     const context = { flags, args: positionalArgs }
 
-    if (cmd.subcommands && positionalArgs.length > 0) {
-        const subcommand = cmd.subcommands[positionalArgs[0]]
-        if (subcommand) {
-            await executeAction(term, subcommand.action, context)
+    const activeCmd = subcommand || cmd
+
+    if (activeCmd.prompts) {
+        const promptResults = await handleUserPrompts(term, activeCmd.prompts)
+        if (promptResults === null) {
             return
         }
+        Object.assign(context, promptResults)
     }
 
-    if (cmd.prompts) {
-        const promptResults = await handleUserPrompts(term, cmd.prompts)
-        Object.assign(context.flags, promptResults)
+    if (activeCmd.action) {
+        await executeAction(term, activeCmd.action, context)
+    } else {
+        showCommandHelp(term, command, subcommandName)
     }
-
-    if (cmd.action === undefined) {
-        showCommandHelp(term, command)
-        return
-    }
-
-    await executeAction(term, cmd.action, context)
 }
 
 function getCommand(command) {
@@ -86,7 +96,9 @@ function parseArgs(args, cmd) {
                     flags[flagName] = true
                 } else if (flagDef.type === "string") {
                     if (i + 1 < args.length) {
-                        flags[flagName] = args[++i]
+                        const value = parseQuotedString(args.slice(i + 1))
+                        flags[flagName] = value.text
+                        i += value.consumed
                     } else {
                         errors.push(`Error: Flag ${arg} expects a value but none was provided.`)
                     }
@@ -95,7 +107,9 @@ function parseArgs(args, cmd) {
                 errors.push(`Error: Unknown flag ${arg}`)
             }
         } else {
-            positionalArgs.push(arg)
+            const value = parseQuotedString(args.slice(i))
+            positionalArgs.push(value.text)
+            i += value.consumed - 1
         }
     }
 
@@ -107,6 +121,27 @@ function parseArgs(args, cmd) {
     })
 
     return { flags, positionalArgs, errors }
+}
+
+function parseQuotedString(args) {
+    let text = args[0]
+    let consumed = 1
+
+    if (text.startsWith('"') || text.startsWith("'")) {
+        const quote = text[0]
+        let endIndex = args.findIndex((arg, index) => index > 0 && arg.endsWith(quote) && !arg.endsWith("\\" + quote))
+
+        if (endIndex === -1) {
+            // If no closing quote is found, treat it as a single argument
+            text = text.slice(1)
+        } else {
+            text = args.slice(0, endIndex + 1).join(" ")
+            text = text.slice(1, -1) // Remove surrounding quotes
+            consumed = endIndex + 1
+        }
+    }
+
+    return { text, consumed }
 }
 
 function createFlagAliasMap(flags) {
@@ -122,28 +157,51 @@ function createFlagAliasMap(flags) {
     return aliasMap
 }
 
-function showCommandHelp(term, command) {
+function showCommandHelp(term, command, subcommandName = null) {
     const cmd = getCommand(command)
     if (cmd) {
-        term.writeln(`${command} - ${cmd.description}`)
-        if (cmd.args) {
-            term.writeln("\nArguments:")
-            cmd.args.forEach((arg) => {
-                term.writeln(`  ${arg.name}: ${arg.description}`)
-            })
-        }
-        if (cmd.flags) {
-            term.writeln("\nFlags:")
-            Object.entries(cmd.flags).forEach(([flag, details]) => {
-                const aliases = details.aliases ? ` (${details.aliases.join(", ")})` : ""
-                term.writeln(`  ${flag}${aliases}: ${details.description}`)
-            })
-        }
-        if (cmd.subcommands) {
-            term.writeln("\nSubcommands:")
-            Object.entries(cmd.subcommands).forEach(([subcommand, details]) => {
-                term.writeln(`  ${subcommand} - ${details.description}`)
-            })
+        if (subcommandName) {
+            const subcmd = cmd.subcommands[subcommandName]
+            if (subcmd) {
+                term.writeln(`${command} ${subcommandName} - ${subcmd.description}`)
+                if (subcmd.args) {
+                    term.writeln("\nArguments:")
+                    subcmd.args.forEach((arg) => {
+                        term.writeln(`  ${arg.name}: ${arg.description}`)
+                    })
+                }
+                if (subcmd.flags) {
+                    term.writeln("\nFlags:")
+                    Object.entries(subcmd.flags).forEach(([flag, details]) => {
+                        const aliases = details.aliases ? ` (${details.aliases.join(", ")})` : ""
+                        term.writeln(`  ${flag}${aliases}: ${details.description}`)
+                    })
+                }
+            } else {
+                term.writeln(`Unknown subcommand: ${subcommandName}`)
+            }
+        } else {
+            term.writeln(`${command} - ${cmd.description}`)
+            if (cmd.args) {
+                term.writeln("\nArguments:")
+                cmd.args.forEach((arg) => {
+                    term.writeln(`  ${arg.name}: ${arg.description}`)
+                })
+            }
+            if (cmd.flags) {
+                term.writeln("\nFlags:")
+                Object.entries(cmd.flags).forEach(([flag, details]) => {
+                    const aliases = details.aliases ? ` (${details.aliases.join(", ")})` : ""
+                    term.writeln(`  ${flag}${aliases}: ${details.description}`)
+                })
+            }
+            if (cmd.subcommands) {
+                term.writeln("\nSubcommands:")
+                Object.entries(cmd.subcommands).forEach(([subcommand, details]) => {
+                    term.writeln(`  ${subcommand} - ${details.description}`)
+                })
+                term.writeln("\nUse '<command> <subcommand> --help' for more information on a specific subcommand.")
+            }
         }
     } else {
         term.writeln(`No help available for '${command}'.`)
@@ -151,19 +209,26 @@ function showCommandHelp(term, command) {
 }
 
 async function executeAction(term, action, context) {
-    if (Array.isArray(action)) {
-        for (const item of action) {
-            await processActionItem(term, item, context)
+    const operation = new CancellableOperation()
+    setCurrentOperation(operation)
+    try {
+        if (Array.isArray(action)) {
+            for (const item of action) {
+                if (operation.isCancelled()) {
+                    return
+                }
+                await processActionItem(term, item, context, operation)
+                term.write("\r\n")
+            }
+        } else {
+            await processActionItem(term, action, context, operation)
         }
-    } else if (typeof action === "object") {
-        await processActionItem(term, action, context)
-    } else if (typeof action === "string") {
-        writeColoredText(term, interpolate(action, context), "white")
-        term.write("\r\n")
+    } finally {
+        setCurrentOperation(null)
     }
 }
 
-async function processActionItem(term, item, context) {
+async function processActionItem(term, item, context, operation) {
     if (typeof item === "string") {
         writeColoredText(term, interpolate(item, context), "white")
         term.write("\r\n")
@@ -187,16 +252,15 @@ async function processActionItem(term, item, context) {
             const parsedData = JSON.parse(data)
             writeTable(term, parsedData)
         } else if (item.type === "progressBar") {
-            await showProgressBar(term, interpolate(item.text, context), item.duration)
+            await showProgressBar(term, interpolate(item.text, context), item.duration, operation)
         } else if (item.type === "spinner") {
-            await showSpinner(term, interpolate(item.text, context), item.duration)
+            await showSpinner(term, interpolate(item.text, context), item.duration, operation)
         } else if (item.command) {
             await executeCustomCommand(term, item.command, [])
         } else if (item.text) {
             writeColoredText(term, interpolate(item.text, context), item.color || "white")
-            term.write("\r\n")
             if (item.delay) {
-                await new Promise((resolve) => setTimeout(resolve, item.delay))
+                await sleep(item.delay, operation)
             }
         }
     }

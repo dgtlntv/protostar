@@ -85,7 +85,7 @@
                     "hidden": true
                 }
             ],
-            "action": "Welcome, {{flags.username}}!"
+            "action": "Welcome, {{prompt.username}}!"
         },
         "deploy": {
             "description": "Deploy the application",

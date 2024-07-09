@@ -1,18 +1,35 @@
-import handleBackspace from "../utils/keyboard/handleBackspace.js"
-import handleArrowLeft from "../utils/keyboard/handleArrowLeft.js"
-import handleArrowRight from "../utils/keyboard/handleArrowRight.js"
-import handleArrowUp from "../utils/keyboard/handleArrowUp.js"
-import handleArrowDown from "../utils/keyboard/handleArrowDown.js"
 import writeCommandLine from "../utils/writeToTerminal/writeCommandLine.js"
 import { getCommandLinePrefixLength } from "../config/commandLineConfig.js"
-import { handleCommand } from "../commands/index.js"
+import { handleCommand } from "./CommandHandler.js"
 
+// States
 let commandHistory = []
 let historyIndex = -1
 let isUserPromptActive = false
+let isInputDisabled = false
+let currentOperation = null
+let currentInput = ""
+let cursorPosition = 0
+
+// setStates
+export function setInputDisabled(disabled) {
+    isInputDisabled = disabled
+}
 
 export function setUserPromptActive(active) {
     isUserPromptActive = active
+}
+
+export function setCurrentOperation(operation) {
+    currentOperation = operation
+}
+
+function renderInput(term) {
+    const prefixLength = getCommandLinePrefixLength()
+    term.write("\r" + " ".repeat(term.cols))
+    writeCommandLine(term)
+    term.write(currentInput)
+    term.write("\x1b[" + (prefixLength + cursorPosition + 1) + "G")
 }
 
 export function setupKeyboardHandler(term) {
@@ -21,48 +38,82 @@ export function setupKeyboardHandler(term) {
             return
         }
 
+        if (isInputDisabled) {
+            if (domEvent.ctrlKey && domEvent.key === "c") {
+                term.write("\r\n")
+                term.writeln("^C")
+                if (currentOperation) {
+                    currentOperation.cancel()
+                }
+                setInputDisabled(false)
+                currentInput = ""
+                cursorPosition = 0
+            }
+            return
+        }
+
         const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey
-        const prefixLength = getCommandLinePrefixLength()
-        const currentLine = term.buffer.active.getLine(term.buffer.active.cursorY)
-        const lineLength = currentLine.length
 
         switch (domEvent.keyCode) {
             case 13: // Enter
-                const input = currentLine.translateToString().slice(prefixLength).trim()
-                term.write("\r\n")
-
-                if (input !== "") {
-                    commandHistory.unshift(input)
+                if (currentInput.trim() !== "") {
+                    commandHistory.unshift(currentInput)
                     historyIndex = -1
-                    handleCommand(term, input)
+                    term.writeln("")
+                    handleCommand(term, currentInput)
                 } else {
+                    term.writeln("")
                     writeCommandLine(term)
                 }
+                currentInput = ""
+                cursorPosition = 0
                 break
 
             case 8: // Backspace
-                handleBackspace(term, term.buffer.active.cursorX, prefixLength)
+                if (cursorPosition > 0) {
+                    currentInput = currentInput.slice(0, cursorPosition - 1) + currentInput.slice(cursorPosition)
+                    cursorPosition--
+                    renderInput(term)
+                }
                 break
 
             case 37: // Left arrow
-                handleArrowLeft(term, term.buffer.active.cursorX, prefixLength)
+                if (cursorPosition > 0) {
+                    cursorPosition--
+                    renderInput(term)
+                }
                 break
 
             case 39: // Right arrow
-                handleArrowRight(term, term.buffer.active.cursorX, lineLength)
+                if (cursorPosition < currentInput.length) {
+                    cursorPosition++
+                    renderInput(term)
+                }
                 break
 
             case 38: // Up arrow
-                historyIndex = handleArrowUp(term, historyIndex, commandHistory, prefixLength)
+                if (historyIndex < commandHistory.length - 1) {
+                    historyIndex++
+                    currentInput = commandHistory[historyIndex]
+                    cursorPosition = currentInput.length
+                    renderInput(term)
+                }
                 break
 
             case 40: // Down arrow
-                historyIndex = handleArrowDown(term, historyIndex, commandHistory, prefixLength)
+                if (historyIndex > -1) {
+                    historyIndex--
+                    currentInput = historyIndex >= 0 ? commandHistory[historyIndex] : ""
+                    cursorPosition = currentInput.length
+                    renderInput(term)
+                }
                 break
 
             default:
                 if (printable) {
-                    term.write(key)
+                    currentInput = currentInput.slice(0, cursorPosition) + key + currentInput.slice(cursorPosition)
+                    cursorPosition++
+                    renderInput(term)
                 }
                 break
         }
