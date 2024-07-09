@@ -15,6 +15,7 @@ export function initializeTerminal() {
     writeColoredText(term, welcomeMessage, welcomeColor)
     term.write("\r\n")
     writeCommandLine(term)
+    term.focus()
 }
 
 function setupTerminal() {
@@ -22,8 +23,9 @@ function setupTerminal() {
         cursorBlink: true,
         fontSize: 18,
         fontFamily: '"Ubuntu Mono", monospace',
-        fontWeight: 400,
-        lineHeight: "24px",
+        fontWeight: "normal",
+        fontWeightBold: "bold",
+        lineHeight: "27px",
         theme: {
             background: "#330F25",
             foreground: "#ffffff",
@@ -33,10 +35,10 @@ function setupTerminal() {
             red: "#cc0000",
             green: "#00975F",
             yellow: "#c4a000",
-            blue: "#00407C",
+            blue: "#00407D",
             magenta: "#75507b",
             cyan: "#06989a",
-            white: "#d3d7cf",
+            white: "#ffffff",
         },
     })
 
