@@ -1,5 +1,5 @@
 export async function showProgressBar(term, text, duration) {
-    const width = 20
+    const width = 50
     const frameDuration = 100
     const frames = duration / frameDuration
 

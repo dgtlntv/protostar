@@ -2,7 +2,7 @@ import { interpolate } from "../utils/interpolation.js"
 import { writeColoredText } from "../utils/textFormatting.js"
 import { showProgressBar } from "../components/ProgressBar.js"
 import { showSpinner } from "../components/Spinner.js"
-import { handlePrompts } from "../components/Prompt.js"
+import { handleUserPrompts } from "../components/Prompt.js"
 import commandsData from "../commands.json"
 
 export let customCommands = {}
@@ -38,8 +38,10 @@ export async function executeCustomCommand(term, command, args) {
     }
 
     if (cmd.prompts) {
-        const promptResults = await handlePrompts(term, cmd.prompts)
+        const promptResults = await handleUserPrompts(term, cmd.prompts)
         Object.assign(flags, promptResults)
+        await executeAction(term, cmd.action, flags, positionalArgs)
+        return
     }
 
     await executeAction(term, cmd.action, flags, positionalArgs)
@@ -122,42 +124,43 @@ function showCommandHelp(term, command) {
 }
 
 async function executeAction(term, action, flags, args) {
+    const context = { flags, args }
     if (Array.isArray(action)) {
         for (const item of action) {
-            await processActionItem(term, item, flags, args)
+            await processActionItem(term, item, context)
         }
     } else if (typeof action === "object") {
-        await processActionItem(term, action, flags, args)
+        await processActionItem(term, action, context)
     } else if (typeof action === "string") {
-        writeColoredText(term, interpolate(action, { flags, args }), "white")
+        writeColoredText(term, interpolate(action, context), "white")
         term.write("\r\n")
     }
 }
 
-async function processActionItem(term, item, flags, args) {
+async function processActionItem(term, item, context) {
     if (typeof item === "string") {
-        writeColoredText(term, interpolate(item, { flags, args }), "white")
+        writeColoredText(term, interpolate(item, context), "white")
         term.write("\r\n")
     } else if (typeof item === "object") {
         if (item.if) {
-            const condition = interpolate(item.if, { flags, args })
+            const condition = interpolate(item.if, context)
             if (eval(condition)) {
-                await executeAction(term, item.then, flags, args)
+                await executeAction(term, item.then, context.flags, context.args)
             } else if (item.else) {
-                await executeAction(term, item.else, flags, args)
+                await executeAction(term, item.else, context.flags, context.args)
             }
+        } else if (item.type === "progressBar") {
+            await showProgressBar(term, interpolate(item.text, context), item.duration)
+        } else if (item.type === "spinner") {
+            await showSpinner(term, interpolate(item.text, context), item.duration)
         } else if (item.command) {
             await executeCustomCommand(term, item.command, [])
         } else if (item.text) {
-            writeColoredText(term, interpolate(item.text, { flags, args }), item.color || "white")
+            writeColoredText(term, interpolate(item.text, context), item.color || "white")
             term.write("\r\n")
             if (item.delay) {
                 await new Promise((resolve) => setTimeout(resolve, item.delay))
             }
-        } else if (item.type === "progressBar") {
-            await showProgressBar(term, item.text, item.duration)
-        } else if (item.type === "spinner") {
-            await showSpinner(term, item.text, item.duration)
         }
     }
 }

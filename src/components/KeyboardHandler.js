@@ -1,79 +1,93 @@
 import { handleCommand } from "../commands/index.js"
-import { writePrompt } from "./Terminal.js"
+import { writeCommandLine } from "./Terminal.js"
+import { getCommandLinePrefixLength } from "../config/commandLineConfig.js"
+
+let isUserPromptActive = false
+
+export function setUserPromptActive(active) {
+    isUserPromptActive = active
+}
 
 export function setupKeyboardHandler(term) {
-    let input = ""
     let commandHistory = []
     let historyIndex = -1
-    let cursorPosition = 0
+
+    term.attachCustomKeyEventHandler((event) => {
+        if (isUserPromptActive || event.type !== "keydown") {
+            return true
+        }
+
+        if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
+            handleArrowKeys(term, event.key, commandHistory, historyIndex)
+            return false
+        }
+
+        return true
+    })
 
     term.onKey(({ key, domEvent }) => {
+        if (isUserPromptActive) {
+            return
+        }
+
         const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey
 
         if (domEvent.keyCode === 13) {
-            // Enter key
-            term.writeln("")
-            if (input.trim() !== "") {
+            // Enter
+            const input = term.buffer.active.getLine(term.buffer.active.cursorY).translateToString().trim()
+            term.write("\r\n")
+
+            if (input !== "") {
                 commandHistory.unshift(input)
                 historyIndex = -1
+                handleCommand(term, input)
+            } else {
+                writeCommandLine()
             }
-            handleCommand(term, input)
-            input = ""
-            cursorPosition = 0
         } else if (domEvent.keyCode === 8) {
             // Backspace
-            if (cursorPosition > 0) {
-                input = input.slice(0, cursorPosition - 1) + input.slice(cursorPosition)
-                cursorPosition--
+            if (term.buffer.active.cursorX > getCommandLinePrefixLength()) {
                 term.write("\b \b")
-                term.write(input.slice(cursorPosition))
-                term.write("\x1b[K")
-                term.write("\x1b[" + (input.length - cursorPosition) + "D")
-            }
-        } else if (domEvent.keyCode === 37) {
-            // Left arrow
-            if (cursorPosition > 0) {
-                cursorPosition--
-                term.write(key)
-            }
-        } else if (domEvent.keyCode === 39) {
-            // Right arrow
-            if (cursorPosition < input.length) {
-                cursorPosition++
-                term.write(key)
-            }
-        } else if (domEvent.keyCode === 38) {
-            // Up arrow
-            if (historyIndex < commandHistory.length - 1) {
-                historyIndex++
-                input = commandHistory[historyIndex]
-                term.write("\x1b[2K\r")
-                writePrompt()
-                term.write(input)
-                cursorPosition = input.length
-            }
-        } else if (domEvent.keyCode === 40) {
-            // Down arrow
-            if (historyIndex > -1) {
-                historyIndex--
-                if (historyIndex === -1) {
-                    input = ""
-                } else {
-                    input = commandHistory[historyIndex]
-                }
-                term.write("\x1b[2K\r")
-                writePrompt()
-                term.write(input)
-                cursorPosition = input.length
             }
         } else if (printable) {
-            input = input.slice(0, cursorPosition) + key + input.slice(cursorPosition)
-            cursorPosition++
             term.write(key)
-            if (cursorPosition < input.length) {
-                term.write(input.slice(cursorPosition))
-                term.write("\x1b[" + (input.length - cursorPosition) + "D")
-            }
         }
     })
+}
+
+function handleArrowKeys(term, key, commandHistory, historyIndex) {
+    const currentLine = term.buffer.active.getLine(term.buffer.active.cursorY).translateToString()
+    const prefixLength = getCommandLinePrefixLength()
+
+    switch (key) {
+        case "ArrowUp":
+            if (historyIndex < commandHistory.length - 1) {
+                historyIndex++
+                writeHistoryLine(term, commandHistory[historyIndex])
+            }
+            break
+        case "ArrowDown":
+            if (historyIndex > -1) {
+                historyIndex--
+                const newInput = historyIndex >= 0 ? commandHistory[historyIndex] : ""
+                writeHistoryLine(term, newInput)
+            }
+            break
+        case "ArrowLeft":
+            if (term.buffer.active.cursorX > prefixLength) {
+                term.write(key)
+            }
+            break
+        case "ArrowRight":
+            if (term.buffer.active.cursorX < currentLine.length) {
+                term.write(key)
+            }
+            break
+    }
+}
+
+function writeHistoryLine(term, input) {
+    term.write("\x1b[2K\r")
+    writeCommandLine()
+    term.write(input)
 }

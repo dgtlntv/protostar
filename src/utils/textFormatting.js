@@ -1,4 +1,4 @@
-export function writeColoredText(term, text, color) {
+export function writeColoredText(term, text, color, noNewLine = false) {
     const colorCodes = {
         black: "\x1b[30m",
         red: "\x1b[31m",
@@ -14,7 +14,7 @@ export function writeColoredText(term, text, color) {
 
     const lines = text.split("\n")
     for (let i = 0; i < lines.length; i++) {
-        if (i > 0) term.write("\r\n")
+        if (i > 0 && !noNewLine) term.write("\r\n")
         term.write(`${colorCode}${lines[i]}${resetCode}`)
     }
 }
