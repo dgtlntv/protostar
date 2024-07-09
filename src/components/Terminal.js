@@ -23,6 +23,7 @@ function setupTerminal() {
         fontSize: 18,
         fontFamily: '"Ubuntu Mono", monospace',
         fontWeight: 400,
+        lineHeight: "24px",
         theme: {
             background: "#330F25",
             foreground: "#ffffff",
