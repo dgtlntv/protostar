@@ -33,6 +33,27 @@ function renderInput(term) {
 }
 
 export function setupKeyboardHandler(term) {
+    term.attachCustomKeyEventHandler((event) => {
+        if ((event.ctrlKey || event.metaKey) && event.code === "KeyV" && event.type === "keydown") {
+            navigator.clipboard.readText().then((text) => {
+                currentInput = currentInput.slice(0, cursorPosition) + text + currentInput.slice(cursorPosition)
+                cursorPosition = cursorPosition + text.length
+                renderInput(term)
+            })
+            return false
+        }
+
+        if ((event.ctrlKey || event.metaKey) && event.code === "KeyC" && event.type === "keydown") {
+            const selection = term.getSelection()
+            if (selection) {
+                navigator.clipboard.writeText(selection)
+                return false
+            }
+        }
+
+        return true
+    })
+
     term.onKey(({ key, domEvent }) => {
         if (isUserPromptActive) {
             return
