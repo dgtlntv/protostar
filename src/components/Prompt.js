@@ -8,7 +8,6 @@ export async function handleUserPrompts(term, userPrompts) {
     for (const userPrompt of userPrompts) {
         results[userPrompt.name] = await getUserInput(term, userPrompt)
     }
-    console.log(results)
     return results
 }
 

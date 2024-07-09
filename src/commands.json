@@ -6,20 +6,33 @@
     "commands": {
         "hello": {
             "description": "Prints a greeting",
-            "action": "Hello, world!\nWelcome to the terminal!",
             "color": "green",
             "flags": {
                 "--name": {
                     "description": "Specify a name for a personalized greeting",
-                    "requiresValue": true,
-                    "aliases": ["-n"]
+                    "type": "string",
+                    "aliases": ["-n"],
+                    "required": true
+                },
+                "--uppercase": {
+                    "description": "Print the greeting in uppercase",
+                    "type": "boolean",
+                    "aliases": ["-u"]
                 }
             },
             "action": [
                 {
                     "if": "flags['--name']",
-                    "then": "Hello, {{flags['--name']}}!\nWelcome to the terminal!",
-                    "else": "Hello, world!\nWelcome to the terminal!"
+                    "then": "Hello, {{flags['--name']}}{{flags['--uppercase'] ? '!' : '.'}}",
+                    "else": "Hello, world{{flags['--uppercase'] ? '!' : '.'}}"
+                },
+                {
+                    "if": "flags['--uppercase']",
+                    "then": {
+                        "text": "WELCOME TO THE TERMINAL!",
+                        "color": "green"
+                    },
+                    "else": "Welcome to the terminal."
                 }
             ]
         },
@@ -28,12 +41,18 @@
             "subcommands": {
                 "commit": {
                     "description": "Record changes to the repository",
-                    "action": "Changes committed successfully.",
+                    "action": [
+                        {
+                            "if": "flags['--message']",
+                            "then": "Changes commited successfully: {{flags['--message']}}.",
+                            "else": "Changes commited successfully."
+                        }
+                    ],
                     "flags": {
                         "--message": {
                             "description": "Commit message",
-                            "requiresValue": true,
-                            "aliases": ["-m"]
+                            "aliases": ["-m"],
+                            "type": "string"
                         }
                     }
                 },
@@ -73,7 +92,9 @@
             "flags": {
                 "--environment": {
                     "description": "Deployment environment",
-                    "requiresValue": true
+                    "required": true,
+                    "type": "string",
+                    "aliases": ["-e"]
                 }
             },
             "action": [
@@ -91,20 +112,29 @@
         },
         "status": {
             "description": "Show system status",
-            "action": {
-                "data": {
-                    "cpu": "25%",
-                    "memory": "4GB",
-                    "disk": "120GB"
-                },
-                "format": "table"
-            }
+            "action": [
+                "You have the following system status:",
+                {
+                    "data": [
+                        ["cpu", "memory", "disk"],
+                        ["25%", "4GB", "120GB"],
+                        ["25%", "4GB", "120GB"],
+                        ["25%", "4GB", "120GB"],
+                        ["25%", "412312312GB", "120GB"]
+                    ],
+                    "format": "table"
+                }
+            ]
         },
         "setup": {
             "description": "Set up the development environment",
             "action": [
-                "Installing dependencies...",
-                { "command": "echo", "args": ["Dependencies installed."] },
+                {
+                    "type": "spinner",
+                    "text": "Installing dependencies...",
+                    "duration": 5000
+                },
+                "Dependencies installed.",
                 {
                     "text": "Configuring settings...",
                     "delay": 1000

@@ -1,5 +1,6 @@
 import { interpolate } from "../utils/interpolation.js"
 import { writeColoredText } from "../utils/writeToTerminal/writeColoredText.js"
+import writeTable from "../utils/writeToTerminal/writeTable.js"
 import { showProgressBar } from "../components/ProgressBar.js"
 import { showSpinner } from "../components/Spinner.js"
 import { handleUserPrompts } from "../components/Prompt.js"
@@ -22,29 +23,40 @@ export async function executeCustomCommand(term, command, args) {
         return
     }
 
-    const { flags, positionalArgs } = parseArgs(args, cmd)
+    const { flags, positionalArgs, errors } = parseArgs(args, cmd)
 
     if (flags["--help"] || flags["-h"]) {
         showCommandHelp(term, command)
         return
     }
 
+    if (errors.length > 0) {
+        errors.forEach((error) => term.writeln(`\x1b[31m${error}\x1b[0m`))
+        term.writeln(`Type '${command} --help' for usage information.`)
+        return
+    }
+
+    const context = { flags, args: positionalArgs }
+
     if (cmd.subcommands && positionalArgs.length > 0) {
         const subcommand = cmd.subcommands[positionalArgs[0]]
         if (subcommand) {
-            await executeAction(term, subcommand.action, flags, positionalArgs.slice(1))
+            await executeAction(term, subcommand.action, context)
             return
         }
     }
 
     if (cmd.prompts) {
         const promptResults = await handleUserPrompts(term, cmd.prompts)
-        Object.assign(flags, promptResults)
-        await executeAction(term, cmd.action, flags, positionalArgs)
+        Object.assign(context.flags, promptResults)
+    }
+
+    if (cmd.action === undefined) {
+        showCommandHelp(term, command)
         return
     }
 
-    await executeAction(term, cmd.action, flags, positionalArgs)
+    await executeAction(term, cmd.action, context)
 }
 
 function getCommand(command) {
@@ -57,32 +69,48 @@ function getCommand(command) {
 function parseArgs(args, cmd) {
     const flags = {}
     const positionalArgs = []
-    const flagAliases = createFlagAliasMap(cmd.flags)
+    const flagDefs = {
+        "--help": { type: "boolean", description: "Show help for this command", aliases: ["-h"] },
+        ...(cmd.flags || {}),
+    }
+    const aliasMap = createFlagAliasMap(flagDefs)
+    const errors = []
 
     for (let i = 0; i < args.length; i++) {
         const arg = args[i]
         if (arg.startsWith("-")) {
-            const flagName = flagAliases[arg]
+            const flagName = aliasMap[arg]
             if (flagName) {
-                const flagDetails = cmd.flags[flagName]
-                if (flagDetails.requiresValue && i + 1 < args.length) {
-                    flags[flagName] = args[++i]
-                } else {
+                const flagDef = flagDefs[flagName]
+                if (flagDef.type === "boolean") {
                     flags[flagName] = true
+                } else if (flagDef.type === "string") {
+                    if (i + 1 < args.length) {
+                        flags[flagName] = args[++i]
+                    } else {
+                        errors.push(`Error: Flag ${arg} expects a value but none was provided.`)
+                    }
                 }
+            } else {
+                errors.push(`Error: Unknown flag ${arg}`)
             }
         } else {
             positionalArgs.push(arg)
         }
     }
 
-    return { flags, positionalArgs }
+    // Check for required flags
+    Object.entries(flagDefs).forEach(([flagName, flagDef]) => {
+        if (flagDef.required && !(flagName in flags)) {
+            errors.push(`Error: Required flag ${flagName} was not provided.`)
+        }
+    })
+
+    return { flags, positionalArgs, errors }
 }
 
 function createFlagAliasMap(flags) {
     const aliasMap = {}
-    if (!flags) return aliasMap
-
     Object.entries(flags).forEach(([flag, details]) => {
         aliasMap[flag] = flag
         if (details.aliases) {
@@ -91,7 +119,6 @@ function createFlagAliasMap(flags) {
             })
         }
     })
-
     return aliasMap
 }
 
@@ -123,9 +150,7 @@ function showCommandHelp(term, command) {
     }
 }
 
-async function executeAction(term, action, flags, args) {
-    const context = { flags, args }
-
+async function executeAction(term, action, context) {
     if (Array.isArray(action)) {
         for (const item of action) {
             await processActionItem(term, item, context)
@@ -145,11 +170,22 @@ async function processActionItem(term, item, context) {
     } else if (typeof item === "object") {
         if (item.if) {
             const condition = interpolate(item.if, context)
-            if (eval(condition)) {
-                await executeAction(term, item.then, context.flags, context.args)
-            } else if (item.else) {
-                await executeAction(term, item.else, context.flags, context.args)
+            let result
+            try {
+                result = new Function("context", `with(context) { return ${condition}; }`)(context)
+            } catch (error) {
+                console.error("Error evaluating condition:", error)
+                result = false
             }
+            if (result) {
+                await executeAction(term, item.then, context)
+            } else if (item.else) {
+                await executeAction(term, item.else, context)
+            }
+        } else if (item.format === "table") {
+            const data = interpolate(JSON.stringify(item.data), context)
+            const parsedData = JSON.parse(data)
+            writeTable(term, parsedData)
         } else if (item.type === "progressBar") {
             await showProgressBar(term, interpolate(item.text, context), item.duration)
         } else if (item.type === "spinner") {

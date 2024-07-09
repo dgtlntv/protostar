@@ -1,6 +1,11 @@
-export default function writeHistoryCommand(term, command, prefixLength) {
+import { getCommandLinePrefix } from "../../config/commandLineConfig.js"
+import { writeColoredText } from "./writeColoredText.js"
+
+export default function writeHistoryCommand(term, command) {
     term.write("\x1b[2K\r")
-    term.write(" ".repeat(prefixLength))
-    term.write("\r")
-    term.write(" ".repeat(prefixLength) + command)
+    const prefix = getCommandLinePrefix()
+    prefix.forEach((part) => {
+        writeColoredText(term, part.text, part.color, true)
+    })
+    term.write(command)
 }
