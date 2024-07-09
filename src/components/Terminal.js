@@ -2,8 +2,8 @@ import { Terminal } from "xterm"
 import { FitAddon } from "xterm-addon-fit"
 import { setupKeyboardHandler } from "./KeyboardHandler.js"
 import { loadCommands } from "../commands/customCommands.js"
-import { writeColoredText } from "../utils/textFormatting.js"
-import { getCommandLinePrefix } from "../config/commandLineConfig.js"
+import { writeColoredText } from "../utils/writeToTerminal/writeColoredText.js"
+import writeCommandLine from "../utils/writeToTerminal/writeCommandLine.js"
 
 let term
 let welcomeMessage = "Welcome to the CLI Prototype!\nType 'help' to see a list of available commands."
@@ -13,7 +13,7 @@ export function initializeTerminal() {
     loadCommands()
     setupTerminal()
     writeColoredText(term, welcomeMessage, welcomeColor)
-    writeCommandLine()
+    writeCommandLine(term)
 }
 
 function setupTerminal() {
@@ -46,14 +46,6 @@ function setupTerminal() {
     window.addEventListener("resize", () => fitAddon.fit())
 
     setupKeyboardHandler(term)
-}
-
-export function writeCommandLine() {
-    term.write("\r\n")
-    const prefix = getCommandLinePrefix()
-    prefix.forEach((part) => {
-        writeColoredText(term, part.text, part.color)
-    })
 }
 
 export { term }

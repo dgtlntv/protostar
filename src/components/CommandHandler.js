@@ -1,4 +1,4 @@
-import { writeCommandLine } from "./Terminal.js"
+import writeCommandLine from "../utils/writeToTerminal/writeCommandLine.js"
 import { clearCommand } from "../commands/clearCommand.js"
 import { helpCommand } from "../commands/helpCommand.js"
 import { executeCustomCommand } from "../commands/customCommands.js"
@@ -15,5 +15,5 @@ export async function handleCommand(term, cmd) {
     } else {
         await executeCustomCommand(term, command, restArgs)
     }
-    writeCommandLine()
+    writeCommandLine(term)
 }

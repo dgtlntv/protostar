@@ -1,5 +1,5 @@
 import { interpolate } from "../utils/interpolation.js"
-import { writeColoredText } from "../utils/textFormatting.js"
+import { writeColoredText } from "../utils/writeToTerminal/writeColoredText.js"
 import { showProgressBar } from "../components/ProgressBar.js"
 import { showSpinner } from "../components/Spinner.js"
 import { handleUserPrompts } from "../components/Prompt.js"
@@ -125,6 +125,7 @@ function showCommandHelp(term, command) {
 
 async function executeAction(term, action, flags, args) {
     const context = { flags, args }
+
     if (Array.isArray(action)) {
         for (const item of action) {
             await processActionItem(term, item, context)
