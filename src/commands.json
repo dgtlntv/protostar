@@ -1,256 +1,191 @@
 {
     "welcome": {
-        "message": "Welcome to the Enhanced CLI Prototype!\nType 'help' to get a list of all available commands.\n",
-        "color": "green"
+        "message": "This is a CLI prototype for MAAS Anvil. This is a dummy terminal with fake data - only predetermined commands will work.  \nType 'help' to get a list of all available commands.\n"
     },
     "globalVariables": {
-        "username": "",
-        "isLoggedIn": false,
-        "currentProject": ""
+        "isVaultDeployed": "false",
+        "isVaultEnabled": "false",
+        "isSnapDaemonSet": "false"
     },
     "commands": {
-        "hello": {
-            "description": "Prints a greeting",
-            "color": "green",
-            "flags": {
-                "--name": {
-                    "description": "Specify a name for a personalized greeting",
-                    "type": "string",
-                    "aliases": ["-n"],
-                    "required": true
-                },
-                "--uppercase": {
-                    "description": "Print the greeting in uppercase",
-                    "type": "boolean",
-                    "aliases": ["-u"]
-                }
-            },
-            "action": [
-                {
-                    "if": "flags['--name']",
-                    "then": "Hello, {{flags['--name']}}{{flags['--uppercase'] ? '!' : '.'}}",
-                    "else": "Hello, world{{flags['--uppercase'] ? '!' : '.'}}"
-                },
-                {
-                    "if": "flags['--uppercase']",
-                    "then": {
-                        "text": "WELCOME TO THE TERMINAL!",
-                        "color": "green"
-                    },
-                    "else": "Welcome to the terminal."
-                }
-            ]
-        },
-        "git": {
-            "description": "Version control system",
+        "maas-anvil": {
+            "description": "Anvil is a MAAS installer for MAAS charms.\r\nTo get started with a single node, all-in-one MAAS installation, start with initializing the local node. Once the local node has been initialized, run the bootstrap process to get a live MAAS deployment.",
             "subcommands": {
-                "commit": {
-                    "description": "Record changes to the repository",
+                "cluster": {
+                    "description": "Manage the MAAS Cluster",
                     "action": [
                         {
-                            "if": "flags['--message']",
-                            "then": "Changes commited successfully: {{flags['--message']}}.",
-                            "else": "Changes commited successfully."
+                            "if": "globalVariables.isSnapDaemonSet === 'false'",
+                            "then": [
+                                "Error: Insufficient permissions to run anvil commands\r\nAdd the user 'ubuntu' to the 'snap_daemon' group:\r\n\n    sudo usermod -a -G snap_daemon ubuntu\r\n\nAfter this, reload the user groups either via a reboot or by running 'newgrp snap_daemon'.\r\n"
+                            ]
+                        },
+                        {
+                            "if": "globalVariables.isSnapDaemonSet === 'true' && args[0] === 'vault'",
+                            "then": [
+                                {
+                                    "setVariable": "isVaultEnabled",
+                                    "value": "true"
+                                },
+                                "Vault has been enabled!"
+                            ],
+                            "else": "Unknown plugin {{args[0]}}."
                         }
-                    ],
-                    "flags": {
-                        "--message": {
-                            "description": "Commit message",
-                            "aliases": ["-m"],
-                            "type": "string"
-                        }
-                    }
+                    ]
                 },
-                "push": {
-                    "description": "Update remote refs along with associated objects",
-                    "action": "Changes pushed to remote repository."
+                "inspect": {
+                    "description": "Inspect the maas-anvil installation.",
+                    "action": [
+                        {
+                            "if": "args[0] === 'vault'",
+                            "then": [
+                                {
+                                    "setVariable": "isVaultEnabled",
+                                    "value": "true"
+                                },
+                                "Vault has been enabled!"
+                            ],
+                            "else": "Unknown plugin {{args[0]}}."
+                        }
+                    ]
+                },
+                "manifest": {
+                    "description": "Manage manifests (read-only commands)",
+                    "action": [
+                        {
+                            "if": "args[0] === 'vault'",
+                            "then": [
+                                {
+                                    "setVariable": "isVaultEnabled",
+                                    "value": "true"
+                                },
+                                "Vault has been enabled!"
+                            ],
+                            "else": "Unknown plugin {{args[0]}}."
+                        }
+                    ]
+                },
+                "prepare-node-script": {
+                    "description": "Generate script to prepare a node for Anvil use.",
+                    "action": [
+                        {
+                            "text": "++ lsb_release -sc\n+ '[' jammy '!=' jammy ']'\n++ whoami\n+ USER=ubuntu\n++ id -u",
+                            "delay": 100
+                        },
+                        {
+                            "text": "+ '[' 1000 -eq 0 -o ubuntu = root ']\n+ SUDO_ASKPASS=/bin/false\n+ sudo -A whoami\n+ sudo grep -r ubuntu /etc/sudoers /etc/sudoers.d\n+ grep NOPASSWD:ALL",
+                            "delay": 100
+                        },
+                        {
+                            "text": "+ dpkg -s openssh-server\n+ sudo snap connect maas-anvil:ssh-keys\n+ sudo addgroup ubuntu snap_daemon\nAdding user `ubuntu' to group `snap_daemon' ...\nAdding user ubuntu to group snap_daemon",
+                            "delay": 100
+                        },
+                        {
+                            "text": "Done.\n+ '[' -f /home/ubuntu/.ssh/id_rsa ']'\n+ ssh-keygen -b 4096 -f /home/ubuntu/.ssh/id_rsa -t rsa -N ''\nGenerating public/private rsa key pair.\nYour identification has been saved in /home/ubuntu/.ssh/id_rsa",
+                            "delay": 100
+                        },
+                        {
+                            "text": "Your public key has been saved in /home/ubuntu/.ssh/id_rsa.pub\nThe key fingerprint is:\nSHA256:VN1zDgkihF3D2wF83UP2vk+ar3j65+7tF1OfIw3+aCU ubuntu@anvil1\nThe key's randomart image is:",
+                            "delay": 100
+                        },
+                        {
+                            "text": "+---[RSA 4096]----+\n|       +o+*o.+.= |\n|      . .ooo+ B.+|\n|        .  + . =o|\n|       .  . .. .o|\n|        S   . o =|\n|             E Bo|\n|              *.=|\n|             +.==|\n|            ++=OX|\n+----[SHA256]-----+",
+                            "delay": 100
+                        },
+                        {
+                            "text": "+ cat /home/ubuntu/.ssh/id_rsa.pub\n++ hostname --all-ip-addresses\n+ ssh-keyscan -H 10.54.236.238 192.168.1.195 \nfd42:f6d7:a67c:f870:5054:ff:fec6:c08a fd1f:7d2:6b56:2344:5054:ff:febf:f423\n192.168.1.195: Connection closed by remote host\nfd1f:7d2:6b56:2344:5054:ff:febf:f423: Connection closed by remote host\n# 10.54.236.238:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# 10.54.236.238:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# 10.54.236.238:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# 192.168.1.195:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# 192.168.1.195:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10",
+                            "delay": 100
+                        },
+                        {
+                            "text": "# fd42:f6d7:a67c:f870:5054:ff:fec6:c08a:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# fd42:f6d7:a67c:f870:5054:ff:fec6:c08a:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# fd42:f6d7:a67c:f870:5054:ff:fec6:c08a:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# fd42:f6d7:a67c:f870:5054:ff:fec6:c08a:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# fd1f:7d2:6b56:2344:5054:ff:febf:f423:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# fd1f:7d2:6b56:2344:5054:ff:febf:f423:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# 10.54.236.238:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n## 10.54.236.238:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# 192.168.1.195:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# 192.168.1.195:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# fd42:f6d7:a67c:f870:5054:ff:fec6:c08a:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10",
+                            "delay": 100
+                        },
+                        {
+                            "text": "# fd1f:7d2:6b56:2344:5054:ff:febf:f423:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n# fd1f:7d2:6b56:2344:5054:ff:febf:f423:22 SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.10\n+ sudo snap install --channel 3.4/stable juju",
+                            "delay": 5000
+                        },
+                        {
+                            "text": "juju (3.4/stable) 3.4.4 from Canonical✓ installed\n+ mkdir -p /home/ubuntu/.local/share\n+ mkdir -p /home/ubuntu/.config/anvil\n+ sudo snap connect maas-anvil:juju-bin juju:juju-bin\n+ sudo snap connect maas-anvil:dot-local-share-juju\n+ sudo snap connect maas-anvil:dot-config-anvil",
+                            "delay": 100
+                        }
+                    ]
+                },
+                "enable": {
+                    "description": "Enable plugins for MAAS Anvil to use.",
+                    "action": [
+                        {
+                            "if": "args[0] === 'vault'",
+                            "then": [
+                                {
+                                    "setVariable": "isVaultEnabled",
+                                    "value": "true"
+                                },
+                                "Vault has been enabled!"
+                            ],
+                            "else": "Unknown plugin {{args[0]}}."
+                        }
+                    ]
+                }
+            },
+            "flags": {
+                "--quiet": {
+                    "type": "boolean",
+                    "aliases": ["-q"]
+                },
+                "--verbose": {
+                    "type": "boolean",
+                    "aliases": ["-v"]
                 }
             }
         },
-        "echo": {
-            "description": "Display a line of text",
+        "juju": {
+            "description": "Juju",
+            "subcommands": {
+                "deploy": {
+                    "description": "Deploy a charm.",
+                    "action": [
+                        {
+                            "if": "args[0] === 'vault'",
+                            "then": [
+                                {
+                                    "setVariable": "isVaultDeployed",
+                                    "value": "true"
+                                },
+                                "Vault is being deployed."
+                            ],
+                            "else": "Unknown charm {{args[0]}}."
+                        }
+                    ]
+                },
+                "relate": {
+                    "description": "Relate two charms.",
+                    "action": [
+                        {
+                            "if": "globalVariables.isVaultEnabled === 'true' && globalVariables.isVaultDeployed === 'true' && args[0] === 'vault:secrets' && args[1] === 'maas-anvil:secrets'",
+                            "then": "Successfully related vault secrets with MAAS Anvil secrets.",
+                            "else": "Unable to relate."
+                        }
+                    ]
+                }
+            }
+        },
+        "newgrp": {
+            "description": "Add user to a group",
             "args": [
                 {
-                    "name": "text",
-                    "description": "The text to display"
+                    "name": "groupname",
+                    "description": "The group to add to."
                 }
             ],
-            "action": "{{args[0]}}"
-        },
-        "login": {
-            "description": "Log in to the system",
-            "prompts": [
-                {
-                    "name": "username",
-                    "message": "Enter your username:"
-                },
-                {
-                    "name": "password",
-                    "message": "Enter your password:",
-                    "hidden": true
-                }
-            ],
-            "action": [
-                {
-                    "setVariable": "username",
-                    "value": "{{prompt.username}}"
-                },
-                {
-                    "setVariable": "isLoggedIn",
-                    "value": "true"
-                },
-                "Welcome, {{globalVariables.username}}! You are now logged in."
-            ]
-        },
-        "logout": {
-            "description": "Log out from the system",
-            "action": [
-                {
-                    "if": "globalVariables.isLoggedIn",
-                    "then": [
-                        {
-                            "setVariable": "username",
-                            "value": ""
-                        },
-                        {
-                            "setVariable": "isLoggedIn",
-                            "value": "false"
-                        },
-                        "You have been logged out."
-                    ],
-                    "else": "You are not currently logged in."
-                }
-            ]
-        },
-        "start-project": {
-            "description": "Start a new project",
-            "args": [
-                {
-                    "name": "projectName",
-                    "description": "The name of the project to start"
-                }
-            ],
-            "action": [
-                {
-                    "if": "globalVariables.isLoggedIn",
-                    "then": [
-                        {
-                            "setVariable": "currentProject",
-                            "value": "{{args[0]}}"
-                        },
-                        "Started project: {{globalVariables.currentProject}}"
-                    ],
-                    "else": "You need to be logged in to start a project."
-                }
-            ]
-        },
-        "project-info": {
-            "description": "Show current project information",
-            "action": [
-                {
-                    "if": "globalVariables.currentProject",
-                    "then": "Current project: {{globalVariables.currentProject}}",
-                    "else": "No project is currently active."
-                }
-            ]
-        },
-        "deploy": {
-            "description": "Deploy the application",
-            "flags": {
-                "--environment": {
-                    "description": "Deployment environment",
-                    "required": true,
-                    "type": "string",
-                    "aliases": ["-e"]
-                }
-            },
-            "action": [
-                {
-                    "if": "flags['--environment'] === 'production'",
-                    "then": "Deploying to production...",
-                    "else": "Deploying to {{flags['--environment']}}..."
-                }
-            ]
-        },
-        "list": {
-            "description": "List files and directories",
-            "aliases": ["ls", "dir"],
-            "action": "Listing files and directories..."
-        },
-        "status": {
-            "description": "Show system status",
-            "action": [
-                "You have the following system status:",
-                {
-                    "data": [
-                        ["cpu", "memory", "disk"],
-                        ["25%", "4GB", "120GB"],
-                        ["25%", "4GB", "120GB"],
-                        ["25%", "4GB", "120GB"],
-                        ["25%", "412312312GB", "120GB"]
-                    ],
-                    "format": "table"
-                }
-            ]
-        },
-        "setup": {
-            "description": "Set up the development environment",
-            "action": [
-                {
-                    "type": "spinner",
-                    "text": "Installing dependencies...",
-                    "duration": 5000
-                },
-                "Dependencies installed.",
-                {
-                    "text": "Configuring settings...",
-                    "delay": 1000
-                },
-                "Setup complete!"
-            ]
-        },
-        "build": {
-            "description": "Build the project",
-            "action": [
-                {
-                    "text": "Compiling source files...",
-                    "delay": 2000
-                },
-                {
-                    "text": "Optimizing...",
-                    "delay": 1500
-                },
-                {
-                    "text": "Generating output...",
-                    "delay": 1000
-                },
-                {
-                    "text": "Build complete!",
-                    "delay": 500
-                }
-            ]
-        },
-        "download": {
-            "description": "Download a large file",
-            "action": [
-                {
-                    "type": "progressBar",
-                    "text": "Downloading:",
-                    "duration": 5000
-                },
-                "Download complete!"
-            ]
-        },
-        "process": {
-            "description": "Process data",
-            "action": [
-                {
-                    "type": "spinner",
-                    "text": "Processing data",
-                    "duration": 3000
-                },
-                "Processing complete!"
-            ]
+            "action": {
+                "if": "args[0] === 'snap_daemon'",
+                "then": [
+                    {
+                        "setVariable": "isSnapDaemonSet",
+                        "value": "true"
+                    }
+                ]
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 import { interpolate } from "../utils/interpolation.js"
 import { writeColoredText } from "../utils/writeToTerminal/writeColoredText.js"
 import writeTable from "../utils/writeToTerminal/writeTable.js"
+import writeAlignedText from "../utils/writeToTerminal/writeAlignedText.js"
 import { showProgressBar } from "../components/ProgressBar.js"
 import { showSpinner } from "../components/Spinner.js"
 import { handleUserPrompts } from "../components/Prompt.js"
@@ -14,8 +15,11 @@ export let globalVariables = {}
 
 export function loadCommands() {
     try {
+        let welcomeMessage = commandsData.welcome || false
         customCommands = commandsData.commands || {}
         globalVariables = commandsData.globalVariables || {}
+
+        if (welcomeMessage) return welcomeMessage
     } catch (error) {
         console.error("Error loading commands and global variables:", error)
     }
@@ -165,44 +169,72 @@ function showCommandHelp(term, command, subcommandName = null) {
         if (subcommandName) {
             const subcmd = cmd.subcommands[subcommandName]
             if (subcmd) {
-                term.writeln(`${command} ${subcommandName} - ${subcmd.description}`)
+                term.writeln(
+                    `Usage: ${command} ${subcommandName} ${subcmd.flags ? "[OPTIONS]" : ""} ${
+                        subcmd.args ? "[ARGS]..." : ""
+                    }\n`
+                )
+                term.writeln(`${subcmd.description}\n`)
+
                 if (subcmd.args) {
-                    term.writeln("\nArguments:")
-                    subcmd.args.forEach((arg) => {
-                        term.writeln(`  ${arg.name}: ${arg.description}`)
-                    })
+                    term.writeln("Arguments:")
+                    const argData = subcmd.args.map((arg) => [`  ${arg.name}`, arg.description])
+                    writeAlignedText(term, argData)
+                    term.writeln("")
                 }
+
                 if (subcmd.flags) {
-                    term.writeln("\nFlags:")
-                    Object.entries(subcmd.flags).forEach(([flag, details]) => {
-                        const aliases = details.aliases ? ` (${details.aliases.join(", ")})` : ""
-                        term.writeln(`  ${flag}${aliases}: ${details.description}`)
-                    })
+                    term.writeln("Options:")
+                    const flagData = [
+                        ["  -h, --help", "Show this message and exit."],
+                        ...Object.entries(subcmd.flags || {}).map(([flag, details]) => {
+                            const aliases = details.aliases ? details.aliases.map((a) => `${a}`).join(", ") : ""
+                            const flagStr = aliases ? `${aliases}, --${flag}` : `--${flag}`
+                            return [`  ${flagStr}`, details.description || ""]
+                        }),
+                    ]
+                    writeAlignedText(term, flagData)
+                    term.writeln("")
                 }
             } else {
                 term.writeln(`Unknown subcommand: ${subcommandName}`)
             }
         } else {
-            term.writeln(`${command} - ${cmd.description}`)
+            term.writeln(
+                `Usage: ${command} ${cmd.subcommands ? "COMMAND" : ""} ${cmd.flags ? "[OPTIONS]" : ""} ${
+                    cmd.args ? "[ARGS]..." : ""
+                }\n`
+            )
+            term.writeln(`${cmd.description}\n`)
+
             if (cmd.args) {
-                term.writeln("\nArguments:")
-                cmd.args.forEach((arg) => {
-                    term.writeln(`  ${arg.name}: ${arg.description}`)
-                })
+                term.writeln("Arguments:")
+                const argData = cmd.args.map((arg) => [`  ${arg.name}`, arg.description])
+                writeAlignedText(term, argData)
+                term.writeln("")
             }
+
             if (cmd.flags) {
-                term.writeln("\nFlags:")
-                Object.entries(cmd.flags).forEach(([flag, details]) => {
-                    const aliases = details.aliases ? ` (${details.aliases.join(", ")})` : ""
-                    term.writeln(`  ${flag}${aliases}: ${details.description}`)
-                })
+                term.writeln("Options:")
+                const flagData = [
+                    ["  -h, --help", "Show this message and exit."],
+                    ...Object.entries(cmd.flags || {}).map(([flag, details]) => {
+                        const aliases = details.aliases ? details.aliases.map((a) => `${a}`).join(", ") : ""
+                        const flagStr = aliases ? `${aliases}, --${flag}` : `--${flag}`
+                        return [`  ${flagStr}`, details.description || ""]
+                    }),
+                ]
+                writeAlignedText(term, flagData)
+                term.writeln("")
             }
+
             if (cmd.subcommands) {
-                term.writeln("\nSubcommands:")
-                Object.entries(cmd.subcommands).forEach(([subcommand, details]) => {
-                    term.writeln(`  ${subcommand} - ${details.description}`)
-                })
-                term.writeln("\nUse '<command> <subcommand> --help' for more information on a specific subcommand.")
+                term.writeln("Commands:")
+                const subcommandData = Object.entries(cmd.subcommands).map(([subcommand, details]) => [
+                    `  ${subcommand}`,
+                    details.description,
+                ])
+                writeAlignedText(term, subcommandData)
             }
         }
     } else {

@@ -7,12 +7,11 @@ import writeCommandLine from "../utils/writeToTerminal/writeCommandLine.js"
 
 let term
 let welcomeMessage = "Welcome to the CLI Prototype!\nType 'help' to see a list of available commands."
-let welcomeColor = "white"
 
 export function initializeTerminal() {
-    loadCommands()
+    const customWelcomeMessage = loadCommands()
     setupTerminal()
-    writeColoredText(term, welcomeMessage, welcomeColor)
+    writeColoredText(term, customWelcomeMessage ? customWelcomeMessage.message : welcomeMessage, "white")
     term.write("\r\n")
     writeCommandLine(term)
     term.focus()
