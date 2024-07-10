@@ -10,12 +10,14 @@ import CancellableOperation from "../utils/CancellableOperation.js"
 import { setCurrentOperation } from "../components/KeyboardHandler.js"
 
 export let customCommands = {}
+export let globalVariables = {}
 
 export function loadCommands() {
     try {
         customCommands = commandsData.commands || {}
+        globalVariables = commandsData.globalVariables || {}
     } catch (error) {
-        console.error("Error loading commands:", error)
+        console.error("Error loading commands and global variables:", error)
     }
 }
 
@@ -63,6 +65,7 @@ export async function executeCustomCommand(term, command, args) {
     }
 
     if (activeCmd.action) {
+        console.log("trying action")
         await executeAction(term, activeCmd.action, context)
     } else {
         showCommandHelp(term, command, subcommandName)
@@ -230,14 +233,29 @@ async function executeAction(term, action, context) {
 
 async function processActionItem(term, item, context, operation) {
     if (typeof item === "string") {
-        writeColoredText(term, interpolate(item, context), "white")
+        writeColoredText(term, interpolate(item, { ...context, globalVariables }), "white")
         term.write("\r\n")
     } else if (typeof item === "object") {
-        if (item.if) {
-            const condition = interpolate(item.if, context)
+        if (item.setVariable) {
+            const variableName = item.setVariable
+            console.log(variableName)
+            console.log(item.value)
+
+            if (variableName in globalVariables) {
+                const value = interpolate(item.value, { ...context, globalVariables })
+                globalVariables[variableName] = value
+                console.log("global variables", globalVariables)
+            } else {
+                console.error(`Error: Attempt to set undefined global variable '${variableName}'`)
+            }
+        } else if (item.if) {
+            const condition = interpolate(item.if, { ...context, globalVariables })
             let result
             try {
-                result = new Function("context", `with(context) { return ${condition}; }`)(context)
+                result = new Function("context", `with(context) { return ${condition}; }`)({
+                    ...context,
+                    globalVariables,
+                })
             } catch (error) {
                 console.error("Error evaluating condition:", error)
                 result = false
@@ -248,17 +266,22 @@ async function processActionItem(term, item, context, operation) {
                 await executeAction(term, item.else, context)
             }
         } else if (item.format === "table") {
-            const data = interpolate(JSON.stringify(item.data), context)
+            const data = interpolate(JSON.stringify(item.data), { ...context, globalVariables })
             const parsedData = JSON.parse(data)
             writeTable(term, parsedData)
         } else if (item.type === "progressBar") {
-            await showProgressBar(term, interpolate(item.text, context), item.duration, operation)
+            await showProgressBar(
+                term,
+                interpolate(item.text, { ...context, globalVariables }),
+                item.duration,
+                operation
+            )
         } else if (item.type === "spinner") {
-            await showSpinner(term, interpolate(item.text, context), item.duration, operation)
+            await showSpinner(term, interpolate(item.text, { ...context, globalVariables }), item.duration, operation)
         } else if (item.command) {
             await executeCustomCommand(term, item.command, [])
         } else if (item.text) {
-            writeColoredText(term, interpolate(item.text, context), item.color || "white")
+            writeColoredText(term, interpolate(item.text, { ...context, globalVariables }), item.color || "white")
             if (item.delay) {
                 await sleep(item.delay, operation)
             }

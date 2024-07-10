@@ -3,6 +3,11 @@
         "message": "Welcome to the Enhanced CLI Prototype!\nType 'help' to get a list of all available commands.\n",
         "color": "green"
     },
+    "globalVariables": {
+        "username": "",
+        "isLoggedIn": false,
+        "currentProject": ""
+    },
     "commands": {
         "hello": {
             "description": "Prints a greeting",
@@ -85,7 +90,69 @@
                     "hidden": true
                 }
             ],
-            "action": "Welcome, {{prompt.username}}!"
+            "action": [
+                {
+                    "setVariable": "username",
+                    "value": "{{prompt.username}}"
+                },
+                {
+                    "setVariable": "isLoggedIn",
+                    "value": "true"
+                },
+                "Welcome, {{globalVariables.username}}! You are now logged in."
+            ]
+        },
+        "logout": {
+            "description": "Log out from the system",
+            "action": [
+                {
+                    "if": "globalVariables.isLoggedIn",
+                    "then": [
+                        {
+                            "setVariable": "username",
+                            "value": ""
+                        },
+                        {
+                            "setVariable": "isLoggedIn",
+                            "value": "false"
+                        },
+                        "You have been logged out."
+                    ],
+                    "else": "You are not currently logged in."
+                }
+            ]
+        },
+        "start-project": {
+            "description": "Start a new project",
+            "args": [
+                {
+                    "name": "projectName",
+                    "description": "The name of the project to start"
+                }
+            ],
+            "action": [
+                {
+                    "if": "globalVariables.isLoggedIn",
+                    "then": [
+                        {
+                            "setVariable": "currentProject",
+                            "value": "{{args[0]}}"
+                        },
+                        "Started project: {{globalVariables.currentProject}}"
+                    ],
+                    "else": "You need to be logged in to start a project."
+                }
+            ]
+        },
+        "project-info": {
+            "description": "Show current project information",
+            "action": [
+                {
+                    "if": "globalVariables.currentProject",
+                    "then": "Current project: {{globalVariables.currentProject}}",
+                    "else": "No project is currently active."
+                }
+            ]
         },
         "deploy": {
             "description": "Deploy the application",
