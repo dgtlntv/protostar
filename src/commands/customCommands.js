@@ -65,7 +65,6 @@ export async function executeCustomCommand(term, command, args) {
     }
 
     if (activeCmd.action) {
-        console.log("trying action")
         await executeAction(term, activeCmd.action, context)
     } else {
         showCommandHelp(term, command, subcommandName)
@@ -238,13 +237,9 @@ async function processActionItem(term, item, context, operation) {
     } else if (typeof item === "object") {
         if (item.setVariable) {
             const variableName = item.setVariable
-            console.log(variableName)
-            console.log(item.value)
-
             if (variableName in globalVariables) {
                 const value = interpolate(item.value, { ...context, globalVariables })
                 globalVariables[variableName] = value
-                console.log("global variables", globalVariables)
             } else {
                 console.error(`Error: Attempt to set undefined global variable '${variableName}'`)
             }
