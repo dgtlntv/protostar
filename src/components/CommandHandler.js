@@ -5,15 +5,15 @@ import { executeCustomCommand } from "../commands/customCommands.js"
 
 export async function handleCommand(term, cmd) {
     const args = cmd.trim().split(/\s+/)
-    const command = args[0].toLowerCase()
+    const commandPath = args[0]
     const restArgs = args.slice(1)
 
-    if (command === "clear") {
+    if (commandPath === "clear") {
         clearCommand(term)
-    } else if (command === "help") {
+    } else if (commandPath === "help") {
         helpCommand(term)
     } else {
-        await executeCustomCommand(term, command, restArgs)
+        await executeCustomCommand(term, cmd.trim(), [])
     }
     writeCommandLine(term)
 }

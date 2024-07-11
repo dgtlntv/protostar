@@ -25,53 +25,62 @@ export function loadCommands() {
     }
 }
 
-export async function executeCustomCommand(term, command, args) {
-    const cmd = getCommand(command)
+export async function executeCustomCommand(term, commandPath, args) {
+    const commandParts = commandPath.split(" ")
+    const rootCommand = commandParts[0]
+    let cmd = getCommand(rootCommand)
+
     if (!cmd) {
-        term.writeln(`Unknown command: ${command}`)
+        term.writeln(`Unknown command: ${rootCommand}`)
         return
     }
 
-    let subcommand = null
-    let subcommandName = null
-    if (cmd.subcommands && args.length > 0) {
-        const subcommandArg = parseQuotedString(args)
-        subcommandName = subcommandArg.text
-        subcommand = cmd.subcommands[subcommandName]
-        if (subcommand) {
-            args = args.slice(subcommandArg.consumed) // Remove the subcommand from args
+    let currentPath = [rootCommand]
+
+    // Traverse subcommands
+    for (let i = 1; i < commandParts.length; i++) {
+        const part = commandParts[i]
+        if (cmd.subcommands && cmd.subcommands[part]) {
+            cmd = cmd.subcommands[part]
+            currentPath.push(part)
+        } else {
+            // We've reached the end of the valid command path
+            break
         }
     }
 
-    const { flags, positionalArgs, errors } = parseArgs(args, subcommand || cmd)
+    // Any remaining parts in commandParts are treated as arguments
+    const remainingArgs = commandParts.slice(currentPath.length).concat(args)
+
+    const { flags, positionalArgs, errors } = parseArgs(remainingArgs, cmd)
 
     if (flags["--help"] || flags["-h"]) {
-        showCommandHelp(term, command, subcommandName)
+        showCommandHelp(term, currentPath.join(" "))
         return
     }
 
     if (errors.length > 0) {
         errors.forEach((error) => term.writeln(`\x1b[31m${error}\x1b[0m`))
-        term.writeln(`Type '${command}${subcommandName ? " " + subcommandName : ""} --help' for usage information.`)
+        term.writeln(`Type '${currentPath.join(" ")} --help' for usage information.`)
         return
     }
 
     const context = { flags, args: positionalArgs }
 
-    const activeCmd = subcommand || cmd
-
-    if (activeCmd.prompts) {
-        const promptResults = await handleUserPrompts(term, activeCmd.prompts)
+    if (cmd.prompts) {
+        const promptResults = await handleUserPrompts(term, cmd.prompts)
         if (promptResults === null) {
             return
         }
         Object.assign(context, promptResults)
     }
 
-    if (activeCmd.action) {
-        await executeAction(term, activeCmd.action, context)
+    if (cmd.action) {
+        await executeAction(term, cmd.action, context)
+    } else if (cmd.subcommands && Object.keys(cmd.subcommands).length > 0) {
+        showCommandHelp(term, currentPath.join(" "))
     } else {
-        showCommandHelp(term, command, subcommandName)
+        term.writeln(`Command '${currentPath.join(" ")}' is not properly configured.`)
     }
 }
 
@@ -163,82 +172,62 @@ function createFlagAliasMap(flags) {
     return aliasMap
 }
 
-function showCommandHelp(term, command, subcommandName = null) {
-    const cmd = getCommand(command)
-    if (cmd) {
-        if (subcommandName) {
-            const subcmd = cmd.subcommands[subcommandName]
-            if (subcmd) {
-                term.writeln(
-                    `Usage: ${command} ${subcommandName} ${subcmd.flags ? "[OPTIONS]" : ""} ${
-                        subcmd.args ? "[ARGS]..." : ""
-                    }\n`
-                )
-                term.writeln(`${subcmd.description}\n`)
+function showCommandHelp(term, commandPath) {
+    const commandParts = commandPath.split(" ")
+    const rootCommand = commandParts[0]
+    let cmd = getCommand(rootCommand)
 
-                if (subcmd.args) {
-                    term.writeln("Arguments:")
-                    const argData = subcmd.args.map((arg) => [`  ${arg.name}`, arg.description])
-                    writeAlignedText(term, argData)
-                    term.writeln("")
-                }
+    if (!cmd) {
+        term.writeln(`Unknown command: ${rootCommand}`)
+        return
+    }
 
-                if (subcmd.flags) {
-                    term.writeln("Options:")
-                    const flagData = [
-                        ["  -h, --help", "Show this message and exit."],
-                        ...Object.entries(subcmd.flags || {}).map(([flag, details]) => {
-                            const aliases = details.aliases ? details.aliases.map((a) => `${a}`).join(", ") : ""
-                            const flagStr = aliases ? `${aliases}, --${flag}` : `--${flag}`
-                            return [`  ${flagStr}`, details.description || ""]
-                        }),
-                    ]
-                    writeAlignedText(term, flagData)
-                    term.writeln("")
-                }
-            } else {
-                term.writeln(`Unknown subcommand: ${subcommandName}`)
-            }
+    // Traverse subcommands
+    for (let i = 1; i < commandParts.length; i++) {
+        const part = commandParts[i]
+        if (cmd.subcommands && cmd.subcommands[part]) {
+            cmd = cmd.subcommands[part]
         } else {
-            term.writeln(
-                `Usage: ${command} ${cmd.subcommands ? "COMMAND" : ""} ${cmd.flags ? "[OPTIONS]" : ""} ${
-                    cmd.args ? "[ARGS]..." : ""
-                }\n`
-            )
-            term.writeln(`${cmd.description}\n`)
-
-            if (cmd.args) {
-                term.writeln("Arguments:")
-                const argData = cmd.args.map((arg) => [`  ${arg.name}`, arg.description])
-                writeAlignedText(term, argData)
-                term.writeln("")
-            }
-
-            if (cmd.flags) {
-                term.writeln("Options:")
-                const flagData = [
-                    ["  -h, --help", "Show this message and exit."],
-                    ...Object.entries(cmd.flags || {}).map(([flag, details]) => {
-                        const aliases = details.aliases ? details.aliases.map((a) => `${a}`).join(", ") : ""
-                        const flagStr = aliases ? `${aliases}, --${flag}` : `--${flag}`
-                        return [`  ${flagStr}`, details.description || ""]
-                    }),
-                ]
-                writeAlignedText(term, flagData)
-                term.writeln("")
-            }
-
-            if (cmd.subcommands) {
-                term.writeln("Commands:")
-                const subcommandData = Object.entries(cmd.subcommands).map(([subcommand, details]) => [
-                    `  ${subcommand}`,
-                    details.description,
-                ])
-                writeAlignedText(term, subcommandData)
-            }
+            term.writeln(`Unknown subcommand: ${commandPath}`)
+            return
         }
-    } else {
-        term.writeln(`No help available for '${command}'.`)
+    }
+
+    term.writeln(
+        `Usage: ${commandPath} ${cmd.subcommands ? "SUBCOMMAND" : ""} ${cmd.flags ? "[OPTIONS]" : ""} ${
+            cmd.args ? "[ARGS]..." : ""
+        }\n`
+    )
+    term.writeln(`${cmd.description}\n`)
+
+    if (cmd.args) {
+        term.writeln("Arguments:")
+        const argData = cmd.args.map((arg) => [`  ${arg.name}`, arg.description])
+        writeAlignedText(term, argData)
+        term.writeln("")
+    }
+
+    if (cmd.flags) {
+        term.writeln("Options:")
+        const flagData = [
+            ["  -h, --help", "Show this message and exit."],
+            ...Object.entries(cmd.flags || {}).map(([flag, details]) => {
+                const aliases = details.aliases ? details.aliases.map((a) => `${a}`).join(", ") : ""
+                const flagStr = aliases ? `${aliases}, ${flag}` : `${flag}`
+                return [`  ${flagStr}`, details.description || ""]
+            }),
+        ]
+        writeAlignedText(term, flagData)
+        term.writeln("")
+    }
+
+    if (cmd.subcommands) {
+        term.writeln("Commands:")
+        const subcommandData = Object.entries(cmd.subcommands).map(([subcommand, details]) => [
+            `  ${subcommand}`,
+            details.description,
+        ])
+        writeAlignedText(term, subcommandData)
     }
 }
 
@@ -304,7 +293,12 @@ async function processActionItem(term, item, context, operation) {
                 operation
             )
         } else if (item.type === "spinner") {
-            await showSpinner(term, interpolate(item.text, { ...context, globalVariables }), item.duration, operation)
+            await showSpinner(
+                term,
+                item.texts.map((text) => interpolate(text, { ...context, globalVariables })),
+                item.duration,
+                operation
+            )
         } else if (item.command) {
             await executeCustomCommand(term, item.command, [])
         } else if (item.text) {

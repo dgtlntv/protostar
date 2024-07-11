@@ -20,9 +20,9 @@ export function initializeTerminal() {
 function setupTerminal() {
     term = new Terminal({
         cursorBlink: true,
-        fontSize: 18,
+        fontSize: 16,
         fontFamily: '"Ubuntu Mono", monospace',
-        fontWeight: "normal",
+        fontWeight: "100",
         fontWeightBold: "bold",
         theme: {
             background: "#330F25",
