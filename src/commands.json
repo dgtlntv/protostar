@@ -246,8 +246,8 @@
             "action": [
                 {
                     "type": "spinner",
-                    "text": "Processing data",
-                    "duration": 3000
+                    "texts": ["Processing data", "Processing more data", "Processing EVEN MORE DATA"],
+                    "duration": 4000
                 },
                 "Processing complete!"
             ]
