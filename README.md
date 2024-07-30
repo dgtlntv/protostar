@@ -60,6 +60,21 @@ The general schema of the `commands.json` is:
 }
 ```
 
+If you want to enable command completion for the commands.json file (it's likely you do), copy the following into .vscode/settings.json
+
+```json
+{
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "commands.json"
+            ],
+            "url": "command.schema.json"
+        }
+    ]
+}
+```
+
 Welcome is optional. It defines a welcome message that is output when the CLI is loaded for the first time.
 globalVariables is optipnal as well and can be used to define variables that can be set and checked by commands. For example, through them we can prescribe a specific command sequence.
 The commands of the CLI are defined in the commands object.
