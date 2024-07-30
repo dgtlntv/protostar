@@ -2,23 +2,69 @@
 
 This tool allows you to create interactive CLI prototypes using a simple JSON configuration file. It's designed to be easy to use, even for those with limited coding experience.
 
-## Usage
+## Prerequisites
 
-Usage
+You have to have [git](https://git-scm.com/downloads) and [node](https://nodejs.org/en/download/package-manager) installed.
 
-Define your CLI prototype in the commands.json file using the features described below.
-Open the HTML file in a web browser to interact with your CLI prototype.
+## Setup and Usage
 
-## Limitations
+1. Fork this repository to your GitHub account.
+2. Clone your forked repository:
 
-This is a simulation tool and does not execute actual system commands.
-Some features (like custom output formatting) may require additional implementation in the JavaScript code.
+```bash
+git clone https://github.com/your-username/cli-prototype.git
+cd cli-prototype
+```
 
-## Features
+3. Install dependencies:
 
-The CLI prototype is configured using a `commands.json` file. Here are the features available:
+```bash
+npm install
+```
 
-### Basic Command Structure
+4. Run the development server:
+
+```bash
+npm run dev
+```
+
+5. Open the provided URL in your web browser to interact with your CLI prototype.
+
+## Deployment
+
+This project is set up to deploy automatically to GitHub Pages using GitHub Actions:
+
+1. In your forked repository, go to Settings > Pages.
+2. Under "Source", select "GitHub Actions".
+3. The site will deploy automatically on pushes to the main branch.
+4. You can find the deployed site URL in the GitHub Actions workflow runs.
+
+## Customizing Your CLI
+
+This prototyping tool is build in a way so that the only file you need to change to customize your CLI prototype is the `src/commands.json` file.
+The general schema of the `commands.json` is:
+
+```json
+{
+    "welcome": {
+        "message": "Welcome to My CLI! Type 'help' for available commands.",
+        "color": "green"
+    },
+    "globalVariables": {
+        "username": "",
+        "isLoggedIn": "false"
+    },
+    "commands": {
+        // We'll add commands here
+    }
+}
+```
+
+Welcome is optional. It defines a welcome message that is output when the CLI is loaded for the first time.
+globalVariables is optipnal as well and can be used to define variables that can be set and checked by commands. For example, through them we can prescribe a specific command sequence.
+The commands of the CLI are defined in the commands object.
+
+A basic command structure looks the following way:
 
 ```json
 "commandName": {
@@ -26,6 +72,10 @@ The CLI prototype is configured using a `commands.json` file. Here are the featu
   "action": "Output of the command"
 }
 ```
+
+So the key is the name of the command like it will be typed in the terminal. It has a description which will be used in help commands and an action object. The action object is where it is defined what the reaction will be if the user types the command.
+
+## Features
 
 ### Colored Output
 
@@ -43,11 +93,15 @@ Available colors: black, red, green, yellow, blue, magenta, cyan, white.
 Add flags to your commands:
 
 ```json
-"flags": {
-  "--flagName": {
-    "description": "Description of the flag",
-    "requiresValue": true,
-    "aliases": ["-f"]
+"commandName": {
+  "description": "Description of the command",
+  "action": "Output of the command",
+  "flags": {
+    "--flagName": {
+      "description": "Description of the flag",
+      "requiresValue": true,
+      "aliases": ["-f"]
+    }
   }
 }
 ```
@@ -123,15 +177,14 @@ Create alternative names for your commands:
 
 ### Custom Output Formatting
 
-Specify custom data and format (formatting to be implemented in JavaScript):
+Specify custom data and format:
 
 ```json
 "action": {
-  "data": {
-    "cpu": "25%",
-    "memory": "4GB",
-    "disk": "120GB"
-  },
+  "data": [
+    ["cpu", "memory", "disk"],
+    ["25%", "4GB", "120GB"]
+  ],
   "format": "table"
 }
 ```
@@ -188,9 +241,40 @@ Display a spinner for indeterminate progress:
 "action": [
   {
     "type": "spinner",
-    "text": "Processing data",
+    "texts": ["Processing data", "Processing more data"],
     "duration": 3000
   },
   "Processing complete!"
 ]
 ```
+
+### Global Variables
+
+Set and use global variables:
+
+```json
+"globalVariables": {
+  "username": "",
+  "isLoggedIn": "false"
+},
+"commands": {
+  "login": {
+    "action": [
+      {
+        "setVariable": "username",
+        "value": "{{prompt.username}}"
+      },
+      {
+        "setVariable": "isLoggedIn",
+        "value": "true"
+      },
+      "Welcome, {{globalVariables.username}}!"
+    ]
+  }
+}
+```
+
+## Limitations
+
+This is a simulation tool and does not execute actual system commands.
+Some advanced features may require additional implementation in the JavaScript code.
