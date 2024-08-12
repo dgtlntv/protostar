@@ -1,5 +1,3 @@
-import { setInputDisabled, setCurrentOperation } from "./KeyboardHandler.js"
-
 export async function showSpinner(term, texts, duration, operation) {
     setInputDisabled(true)
 

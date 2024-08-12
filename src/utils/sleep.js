@@ -1,5 +1,3 @@
-import { setInputDisabled, setCurrentOperation } from "../components/KeyboardHandler.js"
-
 export default async function sleep(duration, operation) {
     setInputDisabled(true)
     try {

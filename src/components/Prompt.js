@@ -1,5 +1,3 @@
-import { setUserPromptActive } from "./KeyboardHandler.js"
-
 export async function handleUserPrompts(term, userPrompts) {
     const results = {}
     for (const userPrompt of userPrompts) {

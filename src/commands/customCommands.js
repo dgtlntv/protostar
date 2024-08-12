@@ -1,5 +1,5 @@
 import { interpolate } from "../utils/interpolation.js"
-import { writeColoredText } from "../utils/writeToTerminal/writeColoredText.js"
+import { writeColoredText } from "../utils/writeToTerminal/getColoredText.js"
 import writeTable from "../utils/writeToTerminal/writeTable.js"
 import writeAlignedText from "../utils/writeToTerminal/writeAlignedText.js"
 import { showProgressBar } from "../components/ProgressBar.js"
@@ -8,7 +8,6 @@ import { handleUserPrompts } from "../components/Prompt.js"
 import commandsData from "../commands.json"
 import sleep from "../utils/sleep.js"
 import CancellableOperation from "../utils/CancellableOperation.js"
-import { setCurrentOperation } from "../components/KeyboardHandler.js"
 
 export let customCommands = {}
 export let globalVariables = {}

@@ -1,5 +1,3 @@
-import { setInputDisabled, setCurrentOperation } from "./KeyboardHandler.js"
-
 export async function showProgressBar(term, text, duration, operation) {
     setInputDisabled(true)
 

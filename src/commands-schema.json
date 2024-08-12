@@ -1,0 +1,243 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "description": "Configuration schema for a yargs-based CLI application",
+    "properties": {
+        "$schema": {
+            "type": "string",
+            "description": "The URI of the JSON Schema to validate against"
+        },
+        "welcome": {
+            "type": "string",
+            "description": "A welcome message displayed when the CLI is invoked without commands"
+        },
+        "variables": {
+            "type": "object",
+            "additionalProperties": {
+                "type": "string"
+            },
+            "description": "Key-value pairs of variables that can be used throughout the CLI configuration"
+        },
+        "commands": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/command"
+            },
+            "description": "Definitions of all available CLI commands"
+        }
+    },
+    "required": ["welcome", "variables", "commands"],
+    "additionalProperties": false,
+    "definitions": {
+        "command": {
+            "type": "object",
+            "description": "Definition of a single CLI command",
+            "properties": {
+                "description": {
+                    "type": "string",
+                    "description": "A short description of the command."
+                },
+                "desc": {
+                    "type": "string",
+                    "description": "A short description of the command (alias for 'description')"
+                },
+                "describe": {
+                    "type": "string",
+                    "description": "A short description of the command (alias for 'description')"
+                },
+                "alias": {
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "description": "One or more aliases for the command"
+                },
+                "example": {
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            },
+                            "minItems": 2,
+                            "maxItems": 2
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "minItems": 2,
+                                "maxItems": 2
+                            }
+                        }
+                    ],
+                    "description": "Example usage of the command. Can be a single example [command, description] or an array of such examples"
+                },
+                "positional": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/positionalOptions"
+                    },
+                    "description": "Definitions of positional arguments for the command"
+                },
+                "options": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/options"
+                    },
+                    "description": "Definitions of options (flags) for the command"
+                },
+                "commands": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "$ref": "#/definitions/command"
+                    },
+                    "description": "Subcommands of this command, allowing for nested command structures"
+                }
+            },
+            "additionalProperties": false
+        },
+        "positionalOptions": {
+            "type": "object",
+            "description": "Configuration for a positional argument",
+            "properties": {
+                "alias": {
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "description": "Alternative name(s) for the positional argument"
+                },
+                "choices": {
+                    "type": "array",
+                    "items": {},
+                    "description": "An array of valid values for this positional argument"
+                },
+                "default": {
+                    "description": "The default value for this positional argument if not provided"
+                },
+                "demandOption": {
+                    "oneOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "Marks the argument as required. If true, the command will fail without it. If a string, it will be used as the error message"
+                },
+                "desc": {
+                    "type": "string",
+                    "description": "A short description of the positional argument (alias for 'description')"
+                },
+                "describe": {
+                    "type": "string",
+                    "description": "A short description of the positional argument (alias for 'description')"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "A short description of the positional argument."
+                },
+                "type": {
+                    "enum": ["boolean", "number", "string"],
+                    "description": "The expected data type of the positional argument"
+                }
+            },
+            "additionalProperties": false
+        },
+        "options": {
+            "type": "object",
+            "description": "Configuration for a command option (flag)",
+            "properties": {
+                "alias": {
+                    "oneOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "string"
+                            }
+                        }
+                    ],
+                    "description": "Alternative name(s) for the option"
+                },
+                "choices": {
+                    "type": "array",
+                    "items": {},
+                    "description": "An array of valid values for this option"
+                },
+                "default": {
+                    "description": "The default value for this option if not provided"
+                },
+                "defaultDescription": {
+                    "type": "string",
+                    "description": "A description of the default value, useful when the default value is computed"
+                },
+                "demandOption": {
+                    "oneOf": [
+                        {
+                            "type": "boolean"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "description": "Marks the option as required. If true, the command will fail without it. If a string, it will be used as the error message"
+                },
+                "desc": {
+                    "type": "string",
+                    "description": "A short description of the option (alias for 'description')"
+                },
+                "describe": {
+                    "type": "string",
+                    "description": "A short description of the option (alias for 'description')"
+                },
+                "description": {
+                    "type": "string",
+                    "description": "A detailed description of the option"
+                },
+                "group": {
+                    "type": "string",
+                    "description": "The group to which this option belongs, used for grouping related options in help output"
+                },
+                "hidden": {
+                    "type": "boolean",
+                    "description": "If true, the option will not be shown in help output"
+                },
+                "nargs": {
+                    "type": "number",
+                    "description": "The number of arguments to be consumed by this option"
+                },
+                "requiresArg": {
+                    "type": "boolean",
+                    "description": "If true, the option must be specified with a value"
+                },
+                "type": {
+                    "enum": ["array", "count", "boolean", "number", "string"],
+                    "description": "The expected data type of the option"
+                }
+            },
+            "additionalProperties": false
+        }
+    }
+}

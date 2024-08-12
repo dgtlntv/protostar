@@ -12,7 +12,14 @@
     "vite": "^5.3.1"
   },
   "dependencies": {
+    "@xterm/addon-fit": "^0.10.0",
+    "ansi-regex": "^6.0.1",
+    "chalk": "^5.3.0",
+    "command-line-usage": "^7.0.3",
+    "shell-quote": "^1.8.1",
+    "string-argv": "^0.3.2",
     "xterm": "^5.3.0",
-    "xterm-addon-fit": "^0.8.0"
-  }
+    "yargs": "patch:yargs@npm%3A17.7.2#~/.yarn/patches/yargs-npm-17.7.2-80b62638e1.patch"
+  },
+  "packageManager": "yarn@4.4.0"
 }
