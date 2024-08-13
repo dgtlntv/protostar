@@ -94,6 +94,13 @@
                     "output": {
                         "variable": "value"
                     }
+                },
+                {
+                    "component": "prompt",
+                    "output": {
+                        "username": "Enter your username:",
+                        "password": "Enter your password:"
+                    }
                 }
             ]
         }

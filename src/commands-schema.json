@@ -107,16 +107,16 @@
                 "handler": {
                     "oneOf": [
                         {
-                            "type": "object"
+                            "$ref": "#/definitions/component"
                         },
                         {
                             "type": "array",
                             "items": {
-                                "type": "object"
+                                "$ref": "#/definitions/component"
                             }
                         }
                     ],
-                    "description": "Handler for the command, can be an object or an array of objects"
+                    "description": "Handler for the command, can be a single component or an array of components"
                 }
             },
             "additionalProperties": false
@@ -249,6 +249,130 @@
                 "type": {
                     "enum": ["array", "count", "boolean", "number", "string"],
                     "description": "The expected data type of the option"
+                }
+            },
+            "additionalProperties": false
+        },
+        "component": {
+            "oneOf": [
+                { "$ref": "#/definitions/textComponent" },
+                { "$ref": "#/definitions/progressBarComponent" },
+                { "$ref": "#/definitions/spinnerComponent" },
+                { "$ref": "#/definitions/tableComponent" },
+                { "$ref": "#/definitions/conditionalComponent" },
+                { "$ref": "#/definitions/variableComponent" },
+                { "$ref": "#/definitions/promptComponent" }
+            ]
+        },
+        "textComponent": {
+            "type": "object",
+            "required": ["component", "output"],
+            "properties": {
+                "component": {
+                    "const": "text"
+                },
+                "output": {
+                    "type": "string"
+                },
+                "duration": {
+                    "oneOf": [{ "type": "number" }, { "const": "random" }]
+                }
+            },
+            "additionalProperties": false
+        },
+        "progressBarComponent": {
+            "type": "object",
+            "required": ["component", "output", "duration"],
+            "properties": {
+                "component": {
+                    "const": "progressBar"
+                },
+                "output": {
+                    "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+                },
+                "duration": {
+                    "oneOf": [{ "type": "number" }, { "const": "random" }]
+                }
+            },
+            "additionalProperties": false
+        },
+        "spinnerComponent": {
+            "type": "object",
+            "required": ["component", "output", "duration"],
+            "properties": {
+                "component": {
+                    "const": "spinner"
+                },
+                "output": {
+                    "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+                },
+                "duration": {
+                    "oneOf": [{ "type": "number" }, { "const": "random" }]
+                }
+            },
+            "additionalProperties": false
+        },
+        "tableComponent": {
+            "type": "object",
+            "required": ["component", "output"],
+            "properties": {
+                "component": {
+                    "const": "table"
+                },
+                "output": {
+                    "type": "array",
+                    "items": {
+                        "type": "array",
+                        "items": { "type": "string" }
+                    }
+                }
+            },
+            "additionalProperties": false
+        },
+        "conditionalComponent": {
+            "type": "object",
+            "required": ["component", "output"],
+            "properties": {
+                "component": {
+                    "const": "conditional"
+                },
+                "output": {
+                    "type": "object",
+                    "required": ["if", "then"],
+                    "properties": {
+                        "if": { "type": "string" },
+                        "then": { "$ref": "#/definitions/component" },
+                        "else": { "$ref": "#/definitions/component" }
+                    },
+                    "additionalProperties": false
+                }
+            },
+            "additionalProperties": false
+        },
+        "variableComponent": {
+            "type": "object",
+            "required": ["component", "output"],
+            "properties": {
+                "component": {
+                    "const": "variable"
+                },
+                "output": {
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
+                }
+            },
+            "additionalProperties": false
+        },
+        "promptComponent": {
+            "type": "object",
+            "required": ["component", "output"],
+            "properties": {
+                "component": {
+                    "const": "prompt"
+                },
+                "output": {
+                    "type": "object",
+                    "additionalProperties": { "type": "string" }
                 }
             },
             "additionalProperties": false
