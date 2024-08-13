@@ -1,7 +1,9 @@
 {
     "$schema": "./commands-schema.json",
     "welcome": "Welcome to the Enhanced CLI Prototype!\nType 'help' to get a list of all available commands.\n",
-    "variables": {},
+    "variables": {
+        "test": "test"
+    },
     "commands": {
         "hello <name> [day]": {
             "describe": "Prints a greeting",
@@ -30,7 +32,70 @@
                     "type": "boolean",
                     "default": "false"
                 }
-            }
+            },
+            "handler": [
+                {
+                    "component": "text",
+                    "output": "Hello {{name}}",
+                    "duration": 500
+                },
+                {
+                    "component": "text",
+                    "output": "Hello {{name}} {{day}}",
+                    "duration": "random"
+                },
+                {
+                    "component": "text",
+                    "output": "Hello world {{variable.test}}"
+                },
+                {
+                    "component": "progressBar",
+                    "output": "Hello world",
+                    "duration": "random"
+                },
+                {
+                    "component": "progressBar",
+                    "output": "Hello world",
+                    "duration": 300
+                },
+                {
+                    "component": "spinner",
+                    "output": ["Processing data", "Processing more data"],
+                    "duration": "random"
+                },
+                {
+                    "component": "spinner",
+                    "output": "Hello world",
+                    "duration": 300
+                },
+                {
+                    "component": "table",
+                    "output": [
+                        ["cpu", "memory", "disk"],
+                        ["25%", "4GB", "120GB"]
+                    ]
+                },
+                {
+                    "component": "conditional",
+                    "output": {
+                        "if": "{{uppercase}}",
+                        "then": {
+                            "component": "text",
+                            "output": "HELLO WORLD"
+                        },
+                        "else": {
+                            "component": "text",
+                            "output": "Hello world"
+                        }
+                    }
+                },
+                {
+                    "component": "variable",
+                    "output": {
+                        "variable": "value"
+                    }
+                }
+            ]
         }
     }
 }

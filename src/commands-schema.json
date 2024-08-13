@@ -103,6 +103,20 @@
                         "$ref": "#/definitions/command"
                     },
                     "description": "Subcommands of this command, allowing for nested command structures"
+                },
+                "handler": {
+                    "oneOf": [
+                        {
+                            "type": "object"
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "object"
+                            }
+                        }
+                    ],
+                    "description": "Handler for the command, can be an object or an array of objects"
                 }
             },
             "additionalProperties": false

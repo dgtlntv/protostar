@@ -6,6 +6,7 @@ import inputHandler from "./io/inputHandler.js"
 export default function App() {
     const term = new Terminal({
         cursorBlink: true,
+        convertEol: true,
         fontSize: 16,
         fontFamily: '"Ubuntu Mono", monospace',
         fontWeight: "100",

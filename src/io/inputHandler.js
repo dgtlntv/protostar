@@ -16,12 +16,14 @@ export default function inputHandler(localEcho, term) {
         const argv = stringArgv(input)
 
         const yargs = Yargs()
+        yargs.usageConfiguration({ "hide-types": true })
         commandsToYarg(yargs, commandsData)
-        const parsedArgs = yargs.parse(argv)
+        const parsedArgs = yargs.parse(argv, function (err, argv, output) {
+            if (output) term.write(output)
+            console.log(output)
+        })
         console.log(parsedArgs)
-
         term.write(input)
-
         term.write("\r\n")
         inputHandler(localEcho, term)
     })
