@@ -119,6 +119,7 @@
                     "description": "Handler for the command, can be a single component or an array of components"
                 }
             },
+            "required": ["handler"],
             "additionalProperties": false
         },
         "positionalOptions": {

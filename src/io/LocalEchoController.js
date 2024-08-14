@@ -48,6 +48,8 @@ export default class LocalEchoController {
 
         this._autocompleteHandlers = []
         this._active = false
+        this._streamActive = false
+        this._currentStream = null
         this._input = ""
         this._cursor = 0
         this._activePrompt = null
@@ -195,8 +197,7 @@ export default class LocalEchoController {
      * Prints a message and properly handles new-lines
      */
     print(message) {
-        const normInput = message.replace(/[\r\n]+/g, "\n")
-        this.term.write(normInput.replace(/\n/g, "\r\n"))
+        this.term.write(message)
     }
 
     /**
@@ -224,6 +225,34 @@ export default class LocalEchoController {
                 }
             }
             this.println(rowStr)
+        }
+    }
+
+    /**
+     * Start a new output stream
+     */
+    startStream() {
+        this._streamActive = true
+        this._currentStream = new WritableStream({
+            write: (chunk) => {
+                const str = typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk)
+                this.print(str)
+            },
+        })
+        this._writer = this._currentStream.getWriter()
+        return this._writer
+    }
+
+    /**
+     * End the current output stream
+     */
+    async endStream() {
+        if (this._streamActive && this._writer) {
+            this._streamActive = false
+            await this._writer.close()
+            this._writer.releaseLock()
+            this._currentStream = null
+            this._writer = null
         }
     }
 
@@ -448,7 +477,7 @@ export default class LocalEchoController {
      * Handle terminal input
      */
     handleTermData(data) {
-        if (!this._active) return
+        if (!this._active || this._streamActive) return
 
         // If we have an active character prompt, satisfy it in priority
         if (this._activeCharPrompt != null) {
@@ -471,7 +500,7 @@ export default class LocalEchoController {
      * Handle a single piece of information from the terminal.
      */
     handleData(data) {
-        if (!this._active) return
+        if (!this._active || this._streamActive) return
         const ord = data.charCodeAt(0)
         let ofs
 
