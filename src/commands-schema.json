@@ -289,7 +289,7 @@
                     "const": "progressBar"
                 },
                 "output": {
-                    "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+                    "type": "string"
                 },
                 "duration": {
                     "oneOf": [{ "type": "number" }, { "const": "random" }]
@@ -309,6 +309,10 @@
                 },
                 "duration": {
                     "oneOf": [{ "type": "number" }, { "const": "random" }]
+                },
+                "conclusion": {
+                    "enum": ["stop", "success", "fail"],
+                    "description": "Specifies how the spinner should conclude its animation"
                 }
             },
             "additionalProperties": false

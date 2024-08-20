@@ -65,6 +65,7 @@ class Ora {
 
         this._initialInterval = this._options.interval
         this._stream = this._options.stream
+        this._localEcho = this._options.localEcho
         this._isEnabled = typeof this._options.isEnabled === "boolean" ? this._options.isEnabled : true
         this._isSilent = typeof this._options.isSilent === "boolean" ? this._options.isSilent : false
 
@@ -281,7 +282,7 @@ class Ora {
         }
 
         if (this._options.hideCursor) {
-            await this._stream.write("\x1b[?25l")
+            this._localEcho.cursorHide()
         }
 
         await this.render()
@@ -300,7 +301,7 @@ class Ora {
         this._frameIndex = 0
         await this.clear()
         if (this._options.hideCursor) {
-            await this._stream.write("\x1b[?25h")
+            this._localEcho.cursorShow()
         }
 
         return this
@@ -338,7 +339,7 @@ class Ora {
         const suffixText = options.suffixText ?? this._suffixText
         const fullSuffixText = this._getFullSuffixText(suffixText, " ")
 
-        const textToWrite = fullPrefixText + symbolText + fullText + fullSuffixText + "\n"
+        const textToWrite = fullPrefixText + symbolText + " " + fullText + fullSuffixText + "\n"
 
         await this.stop()
         await this._stream.write(textToWrite)

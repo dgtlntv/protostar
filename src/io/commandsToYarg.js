@@ -1,77 +1,15 @@
-import ora from "../components/ora"
+import convertComponentToYargsHandler from "../components/convertComponentToYargsHandler"
 
-function interpolateVariables(text, argv) {
-    return text.replace(/\{\{(\w+)\}\}/g, (match, variable) => {
-        return argv[variable] || match
-    })
-}
-
-async function convertComponentToHandler(handlerComponents, argv, localEcho) {
-    const handler = Array.isArray(handlerComponents) ? handlerComponents : [handlerComponents]
-
-    for (const component of handler) {
-        switch (component.component) {
-            case "text":
-                const output = interpolateVariables(component.output, argv)
-                localEcho.print(output + "\n")
-                if (component.duration) {
-                    if (component.duration === "random") {
-                        // Simulate random duration between 100ms and 1000ms
-                        const randomDuration = Math.floor(Math.random() * 900) + 100
-                        await new Promise((resolve) => setTimeout(resolve, randomDuration))
-                    } else {
-                        await new Promise((resolve) => setTimeout(resolve, component.duration))
-                    }
-                }
-                break
-            case "progressBar":
-                // Implement progress bar logic
-                break
-            case "spinner":
-                const stream = localEcho.startStream()
-                var duration = 0
-
-                if (component.duration === "random") {
-                    // Simulate random duration between 100ms and 1000ms
-                    duration = Math.floor(Math.random() * 900) + 100
-                } else {
-                    duration = component.duration
-                }
-
-                const spinner = await ora({
-                    text: "Loading...",
-                    stream: stream,
-                }).start()
-
-                await new Promise((resolve) =>
-                    setTimeout(async () => {
-                        await spinner.succeed("Operation complete!")
-                        await localEcho.endStream()
-                        resolve()
-                    }, component.duration)
-                )
-
-                break
-            case "table":
-                // Implement table logic
-                break
-            case "conditional":
-                // Implement conditional logic
-                break
-            case "variable":
-                // Implement variable logic
-                break
-            case "prompt":
-                // Implement prompt logic
-                break
-            default:
-                break
-        }
-    }
-}
+const globalVariables = {}
 
 export default function commandsToYarg(yargs, config, localEcho) {
-    // Process commands
+    // Set global Variables
+    // TODO: We need to restructure how this method is run. So it doesn't run everytime
+    // A command is run. It needs to run once and then just yargs parse is called with every new command
+    // So the variabels are not overwritten by the default variables.
+    globalVariables = config.variables
+
+    // Process custom commands
     Object.entries(config.commands).forEach(([commandName, commandConfig]) => {
         yargs.command(
             commandName,
@@ -102,7 +40,7 @@ export default function commandsToYarg(yargs, config, localEcho) {
             // Add async handler function
             async (argv) => {
                 try {
-                    await convertComponentToHandler(commandConfig.handler, argv, localEcho)
+                    await convertComponentToYargsHandler(commandConfig.handler, argv, localEcho, globalVariables)
                 } catch (error) {
                     console.error("Error in command handler:", error)
                 }
@@ -125,4 +63,12 @@ export default function commandsToYarg(yargs, config, localEcho) {
             })
         }
     })
+
+    // Add default commands
+    yargs.command(
+        "clear",
+        "Clears the terminal",
+        () => {},
+        () => localEcho.clearTerminal()
+    )
 }
