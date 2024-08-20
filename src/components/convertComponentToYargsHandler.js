@@ -103,10 +103,23 @@ export default async function convertComponentToYargsHandler(handlerComponents, 
                 break
 
             case "conditional":
-                // Implement conditional logic
+                // TODO: We need to check this actually works
+                const condition = component.output.if
+                const context = { ...argv, ...globalVariables }
+
+                const evaluatedCondition = new Function(...Object.keys(context), `return ${condition}`)(
+                    ...Object.values(context)
+                )
+
+                if (evaluatedCondition) {
+                    await convertComponentToYargsHandler([component.output.then], argv, localEcho, globalVariables)
+                } else if (component.output.else) {
+                    await convertComponentToYargsHandler([component.output.else], argv, localEcho, globalVariables)
+                }
                 break
 
             case "variable":
+                // TODO: We need to check this actually works
                 for (var variableName in component.output) {
                     if (variableName in globalVariables) {
                         globalVariables[variableName] = component.output[variableName]
