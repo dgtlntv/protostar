@@ -109,6 +109,7 @@ export default class LocalEchoController {
             cols: this.term.cols,
             rows: this.term.rows,
         }
+        this.monkeyPatchStdout()
     }
 
     /**
@@ -129,6 +130,65 @@ export default class LocalEchoController {
         if (idx === -1) return
 
         this._autocompleteHandlers.splice(idx, 1)
+    }
+
+    monkeyPatchStdout() {
+        if (typeof process !== "undefined" && !process.stdout) {
+            const self = this
+
+            // Create a proxy object that forwards method calls to the LocalEchoController
+            const controllerProxy = new Proxy(
+                {},
+                {
+                    get(target, prop) {
+                        if (typeof self[prop] === "function") {
+                            return function (...args) {
+                                return self[prop].apply(self, args)
+                            }
+                        }
+                        return self[prop]
+                    },
+                }
+            )
+
+            // Create mockStdout with the proxy as its prototype
+            const mockStdout = Object.create(controllerProxy, {
+                write: {
+                    value: function (data) {
+                        self.print(data)
+                    },
+                    writable: true,
+                    configurable: true,
+                },
+                isTTY: {
+                    value: true,
+                    writable: true,
+                    configurable: true,
+                },
+                columns: {
+                    get: function () {
+                        return self._termSize.cols || 80
+                    },
+                    configurable: true,
+                },
+                rows: {
+                    get: function () {
+                        return self._termSize.rows || 24
+                    },
+                    configurable: true,
+                },
+            })
+
+            // Ensure process.stdout and process.stderr both point to our mock
+            process.stdout = process.stdin = process.stderr = mockStdout
+
+            // Update columns and rows when terminal is resized
+            this.term.onResize(({ cols, rows }) => {
+                self._termSize.cols = cols
+                self._termSize.rows = rows
+            })
+        }
+        console.log(process.stdout)
     }
 
     /**
@@ -438,7 +498,7 @@ export default class LocalEchoController {
     /**
      * Set the cursor position relative to its current position
      */
-    cursorMove(x = null, y = null) {
+    moveCursor(x = null, y = null) {
         if (x !== null && y !== null) {
             this.term.write(ansiEscapes.cursorMove(x, y))
         } else if (x !== null) {
@@ -552,42 +612,53 @@ export default class LocalEchoController {
     /**
      * Erase from the current cursor position up the specified amount of rows.
      */
-    eraseLines(count) {
+    clearLines(count) {
         this.term.write(ansiEscapes.eraseLines(count))
     }
 
     /**
      * Erase from the current cursor position to the end of the current line
      */
-    eraseEndLine() {
+    clearEndLine() {
         this.term.write(ansiEscapes.eraseEndLine)
     }
 
     /**
      * Erase from the current cursor position to the start of the current line
      */
-    eraseStartLine() {
+    clearStartLine() {
         this.term.write(ansiEscapes.eraseStartLine)
     }
 
     /**
      * Erase the entire current line
      */
-    eraseLine() {
-        this.term.write(ansiEscapes.eraseLine)
+    clearLine(direction = 0) {
+        switch (direction) {
+            case -1:
+                this.term.write(ansiEscapes.eraseStartLine)
+                break
+            case 1:
+                this.term.write(ansiEscapes.eraseEndLine)
+                break
+            case 0:
+            default:
+                this.term.write(ansiEscapes.eraseLine)
+                break
+        }
     }
 
     /**
      * Erase the screen from the current line down to the bottom of the screen
      */
-    eraseDown() {
+    clearScreenDown() {
         this.term.write(ansiEscapes.eraseDown)
     }
 
     /**
      * Erase the screen from the current line up to the top of the screen
      */
-    eraseUp() {
+    clearScreenUp() {
         this.term.write(ansiEscapes.eraseUp)
     }
 
@@ -615,7 +686,7 @@ export default class LocalEchoController {
     /**
      * Clear the terminal screen. (Viewport)
      */
-    eraseScreen() {
+    clearScreen() {
         this.term.write(ansiEscapes.clearScreen)
     }
 

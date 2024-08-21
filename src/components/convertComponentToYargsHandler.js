@@ -1,8 +1,8 @@
 import interpolateVariables from "./text/interpolateVariables"
 import sleep from "../utils/sleep"
-import ora from "./spinner/ora"
+import ora from "ora"
 import stopSpinner from "./spinner/stopSpinner"
-import SingleBar from "./progressBar/lib/single-bar"
+import { SingleBar } from "cli-progress"
 import chalk from "chalk"
 
 export default async function convertComponentToYargsHandler(handlerComponents, argv, localEcho, globalVariables) {
@@ -24,7 +24,7 @@ export default async function convertComponentToYargsHandler(handlerComponents, 
             case "progressBar":
                 await new Promise((resolve) => {
                     const progressBar = new SingleBar(
-                        { localEchoController: localEcho, notTTYSchedule: 20, hideCursor: true },
+                        { hideCursor: true },
                         {
                             format: component.output + " | " + chalk.cyan("{bar}") + " | {percentage}% | ETA: {eta}s",
                             barCompleteChar: "\u2588",
@@ -69,30 +69,29 @@ export default async function convertComponentToYargsHandler(handlerComponents, 
                 break
 
             case "spinner":
-                const spinnerStream = localEcho.startStream()
                 var duration =
                     component.duration === "random" ? Math.floor(Math.random() * 2900) + 100 : component.duration
-                const streamOutput = Array.isArray(component.output) ? component.output : [component.output]
+                const spinnerOutput = Array.isArray(component.output) ? component.output : [component.output]
 
-                const spinner = await ora({
-                    text: streamOutput[0],
-                    stream: spinnerStream,
-                    localEcho: localEcho,
+                const spinner = ora({
+                    text: spinnerOutput[0],
+                    stream: process.stdout,
+                    discardStdin: false,
                 }).start()
 
-                if (streamOutput.length > 1) {
-                    for (const [index, streamOutputElement] of streamOutput.entries()) {
-                        await sleep(duration / streamOutput.length, async () => {
-                            if (index !== 0) spinner.text = streamOutputElement
+                if (spinnerOutput.length > 1) {
+                    for (const [index, spinnerOutputElement] of spinnerOutput.entries()) {
+                        await sleep(duration / spinnerOutput.length, async () => {
+                            if (index !== 0) spinner.text = spinnerOutputElement
                         })
                     }
 
-                    await sleep(duration / streamOutput.length, async () => {
-                        await stopSpinner(spinner, localEcho, component)
+                    await sleep(duration / spinnerOutput.length, async () => {
+                        await stopSpinner(spinner, component)
                     })
                 } else {
                     await sleep(duration, async () => {
-                        await stopSpinner(spinner, localEcho, component)
+                        await stopSpinner(spinner, component)
                     })
                 }
 

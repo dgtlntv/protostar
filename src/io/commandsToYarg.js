@@ -1,6 +1,6 @@
 import convertComponentToYargsHandler from "../components/convertComponentToYargsHandler"
 
-const globalVariables = {}
+var globalVariables = {}
 
 export default function commandsToYarg(yargs, config, localEcho) {
     // Set global Variables

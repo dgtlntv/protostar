@@ -1,4 +1,4 @@
-export default async function stopSpinner(spinner, localEcho, component) {
+export default async function stopSpinner(spinner, component) {
     switch (component.conclusion ? component.conclusion : "succeed") {
         case "succeed":
             await spinner.succeed()
@@ -12,6 +12,4 @@ export default async function stopSpinner(spinner, localEcho, component) {
         default:
             break
     }
-
-    await localEcho.endStream()
 }
