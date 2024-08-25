@@ -4,6 +4,9 @@ import ora from "ora"
 import stopSpinner from "./spinner/stopSpinner"
 import { SingleBar } from "cli-progress"
 import chalk from "chalk"
+import Table from "cli-table3"
+import stringWidth from "string-width"
+//import { input } from "@inquirer/prompts"
 
 export default async function convertComponentToYargsHandler(handlerComponents, argv, localEcho, globalVariables) {
     const handler = Array.isArray(handlerComponents) ? handlerComponents : [handlerComponents]
@@ -98,7 +101,60 @@ export default async function convertComponentToYargsHandler(handlerComponents, 
                 break
 
             case "table":
-                // Implement table logic
+                const maxWidth = process.stdout.columns || 80
+                const cellPadding = 2 // Assuming 1 space padding on each side of the cell content
+                const borderWidth = 1 // Width of vertical border character
+                const cornerWidth = 1 // Width of corner characters
+                const minColumnWidth = 3 // Minimum width for each column
+
+                function scaleColumnWidths(colWidths, maxWidth, columnCount) {
+                    const totalPadding = cellPadding * columnCount
+                    const totalBorderWidth = borderWidth * (columnCount + 1)
+                    const availableWidth = maxWidth - totalPadding - totalBorderWidth - 2 * cornerWidth
+                    const totalContentWidth = colWidths.reduce((sum, width) => sum + width, 0)
+
+                    if (totalContentWidth > availableWidth) {
+                        const scaleFactor = availableWidth / totalContentWidth
+                        return colWidths.map((width) => Math.max(minColumnWidth, Math.floor(width * scaleFactor)))
+                    }
+
+                    // Ensure minimum width even when not scaling down
+                    return colWidths.map((width) => Math.max(minColumnWidth, width))
+                }
+
+                let colWidths
+                const columnCount = component.output[0].length
+
+                if (component.colWidths) {
+                    // Scenario 1: User provided colWidths
+                    colWidths = scaleColumnWidths([...component.colWidths], maxWidth, columnCount)
+                } else {
+                    // Scenario 2: Calculate colWidths based on content
+                    colWidths = component.output[0].map(() => 0)
+
+                    component.output.forEach((row) => {
+                        row.forEach((cell, index) => {
+                            const cellWidth = stringWidth(cell.toString())
+                            if (cellWidth > colWidths[index]) {
+                                colWidths[index] = cellWidth
+                            }
+                        })
+                    })
+
+                    colWidths = scaleColumnWidths(colWidths, maxWidth, columnCount)
+                }
+
+                const tableOptions = {
+                    head: component.output[0],
+                    colWidths: colWidths,
+                    wordWrap: true,
+                    wrapOnWordBoundary: false,
+                }
+
+                const table = new Table(tableOptions)
+                table.push(...component.output.slice(1))
+
+                localEcho.println(table.toString())
                 break
 
             case "conditional":
@@ -130,7 +186,6 @@ export default async function convertComponentToYargsHandler(handlerComponents, 
                 break
 
             case "prompt":
-                // Implement prompt logic
                 break
 
             default:

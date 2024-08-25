@@ -49,8 +49,6 @@ export default class LocalEchoController {
 
         this._autocompleteHandlers = []
         this._active = false
-        this._streamActive = false
-        this._currentStream = null
         this._input = ""
         this._cursor = 0
         this._activePrompt = null
@@ -182,13 +180,36 @@ export default class LocalEchoController {
             // Ensure process.stdout and process.stderr both point to our mock
             process.stdout = process.stdin = process.stderr = mockStdout
 
+            // Add process.binding method
+            process.binding = (name) => {
+                if (name === "constants") {
+                    return {
+                        O_RDONLY: 0,
+                        O_WRONLY: 1,
+                        O_RDWR: 2,
+                        S_IFMT: 61440,
+                        S_IFREG: 32768,
+                        S_IFDIR: 16384,
+                        S_IFCHR: 8192,
+                        S_IFBLK: 24576,
+                        S_IFIFO: 4096,
+                        S_IFLNK: 40960,
+                        S_IFSOCK: 49152,
+                        // Add more constants as needed
+                    }
+                }
+                // Add other bindings if necessary
+                return {}
+            }
+
+            console.log(process.binding("constants"))
+
             // Update columns and rows when terminal is resized
             this.term.onResize(({ cols, rows }) => {
                 self._termSize.cols = cols
                 self._termSize.rows = rows
             })
         }
-        console.log(process.stdout)
     }
 
     /**
@@ -286,34 +307,6 @@ export default class LocalEchoController {
                 }
             }
             this.println(rowStr)
-        }
-    }
-
-    /**
-     * Start a new output stream
-     */
-    startStream() {
-        this._streamActive = true
-        this._currentStream = new WritableStream({
-            write: (chunk) => {
-                const str = typeof chunk === "string" ? chunk : new TextDecoder().decode(chunk)
-                this.print(str)
-            },
-        })
-        this._writer = this._currentStream.getWriter()
-        return this._writer
-    }
-
-    /**
-     * End the current output stream
-     */
-    async endStream() {
-        if (this._streamActive && this._writer) {
-            this._streamActive = false
-            await this._writer.close()
-            this._writer.releaseLock()
-            this._currentStream = null
-            this._writer = null
         }
     }
 
@@ -747,7 +740,7 @@ export default class LocalEchoController {
      * Handle terminal input
      */
     handleTermData(data) {
-        if (!this._active || this._streamActive) return
+        if (!this._active) return
 
         // If we have an active character prompt, satisfy it in priority
         if (this._activeCharPrompt != null) {
@@ -770,7 +763,7 @@ export default class LocalEchoController {
      * Handle a single piece of information from the terminal.
      */
     handleData(data) {
-        if (!this._active || this._streamActive) return
+        if (!this._active) return
         const ord = data.charCodeAt(0)
         let ofs
 

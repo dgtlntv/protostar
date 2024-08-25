@@ -6,7 +6,7 @@ export default defineConfig({
     base: "/cli-prototype/",
     plugins: [
         nodePolyfills({
-            include: ["path", "process"],
+            include: ["path", "process", "stream"],
             globals: {
                 Buffer: true,
                 global: true,
@@ -21,6 +21,7 @@ export default defineConfig({
     resolve: {
         alias: {
             readline: path.resolve(__dirname, "./src/shims/readlineShim.js"),
+            "node:async_hooks": path.resolve(__dirname, "./src/shims/asyncHooksShim.js"),
         },
     },
 })

@@ -35,9 +35,8 @@
             },
             "handler": [
                 {
-                    "component": "progressBar",
-                    "output": "Processing a huge amount of data",
-                    "duration": 5000
+                    "component": "prompt",
+                    "output": { "hello": "world" }
                 }
             ]
         }

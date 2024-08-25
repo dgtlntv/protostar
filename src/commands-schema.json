@@ -330,6 +330,11 @@
                         "type": "array",
                         "items": { "type": "string" }
                     }
+                },
+                "colWidths": {
+                    "type": "array",
+                    "items": { "type": "number" },
+                    "description": "An array of numbers representing the width of each column in the table"
                 }
             },
             "additionalProperties": false
