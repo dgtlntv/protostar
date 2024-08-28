@@ -16,18 +16,27 @@
                 "name": {
                     "describe": "The name to give a greeting to.",
                     "type": "string",
-                    "default": "Max"
+                    "default": "Max",
+                    "demandOption": true
                 },
                 "day": {
                     "describe": "The day of the week to give a greeting on.",
                     "type": "string",
-                    "choices": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+                    "choices": [
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday",
+                        "sunday"
+                    ],
+                    "demandOption": true
                 }
             },
             "options": {
                 "uppercase": {
                     "alias": "u",
-                    "demandOption": true,
                     "describe": "Print everything in uppercase.",
                     "type": "boolean",
                     "default": "false"
@@ -35,8 +44,18 @@
             },
             "handler": [
                 {
-                    "component": "prompt",
-                    "output": { "hello": "world" }
+                    "component": "conditional",
+                    "output": {
+                        "if": "uppercase === false",
+                        "then": {
+                            "component": "text",
+                            "output": "Hello {{name}}. Today is {{day}}!"
+                        },
+                        "else": {
+                            "component": "text",
+                            "output": "HELLO {{name}}. TODAY IS {{day}}!"
+                        }
+                    }
                 }
             ]
         }

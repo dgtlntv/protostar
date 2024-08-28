@@ -1,36 +1,40 @@
 {
-  "name": "cli-prototype",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "vite": "^5.3.1"
-  },
-  "dependencies": {
-    "@inquirer/prompts": "^5.3.8",
-    "@xterm/addon-fit": "^0.10.0",
-    "ansi-escapes": "^7.0.0",
-    "ansi-regex": "^6.0.1",
-    "chalk": "^5.3.0",
-    "cli-progress": "^3.12.0",
-    "cli-spinners": "^3.1.0",
-    "cli-table3": "^0.6.5",
-    "command-line-usage": "^7.0.3",
-    "log-symbols": "^6.0.0",
-    "ora": "^8.0.1",
-    "path": "^0.12.7",
-    "shell-quote": "^1.8.1",
-    "string-argv": "^0.3.2",
-    "string-width": "^7.2.0",
-    "strip-ansi": "^7.1.0",
-    "vite-plugin-node-polyfills": "^0.22.0",
-    "xterm": "^5.3.0",
-    "yargs": "patch:yargs@npm%3A17.7.2#~/.yarn/patches/yargs-npm-17.7.2-80b62638e1.patch"
-  },
-  "packageManager": "yarn@4.4.0"
+    "name": "cli-prototype",
+    "private": true,
+    "version": "0.0.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "devDependencies": {
+        "vite": "^5.3.1"
+    },
+    "dependencies": {
+        "@inquirer/prompts": "^5.3.8",
+        "@xterm/addon-fit": "^0.10.0",
+        "ansi-escapes": "^7.0.0",
+        "ansi-regex": "^6.0.1",
+        "chalk": "^5.3.0",
+        "cli-progress": "^3.12.0",
+        "cli-spinners": "^3.1.0",
+        "cli-table3": "^0.6.5",
+        "command-line-usage": "^7.0.3",
+        "log-symbols": "^6.0.0",
+        "ora": "^8.0.1",
+        "path": "^0.12.7",
+        "readline-browser": "^0.0.3",
+        "shell-quote": "^1.8.1",
+        "string-argv": "^0.3.2",
+        "string-width": "^7.2.0",
+        "strip-ansi": "^7.1.0",
+        "vite-plugin-node-polyfills": "patch:vite-plugin-node-polyfills@npm%3A0.22.0#~/.yarn/patches/vite-plugin-node-polyfills-npm-0.22.0-b49f4f8ad0.patch",
+        "xterm": "^5.3.0",
+        "yargs": "patch:yargs@npm%3A17.7.2#~/.yarn/patches/yargs-npm-17.7.2-80b62638e1.patch"
+    },
+    "packageManager": "yarn@4.4.0",
+    "resolutions": {
+        "iconv-lite@npm:^0.4.24": "patch:iconv-lite@npm%3A0.4.24#~/.yarn/patches/iconv-lite-npm-0.4.24-c5c4ac6695.patch"
+    }
 }

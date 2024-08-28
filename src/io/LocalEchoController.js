@@ -60,6 +60,8 @@ export default class LocalEchoController {
 
         this._disposables = []
 
+        this.writable = false
+
         if (term) {
             if (term.loadAddon) term.loadAddon(this)
             else this.attach()
@@ -90,6 +92,7 @@ export default class LocalEchoController {
             this._disposables.forEach((d) => d.dispose())
             this._disposables = []
         }
+        this.writable = false
     }
 
     /**
@@ -107,6 +110,7 @@ export default class LocalEchoController {
             cols: this.term.cols,
             rows: this.term.rows,
         }
+        this.writable = true
         this.monkeyPatchStdout()
     }
 
@@ -154,6 +158,7 @@ export default class LocalEchoController {
                 write: {
                     value: function (data) {
                         self.print(data)
+                        return true
                     },
                     writable: true,
                     configurable: true,
@@ -179,30 +184,6 @@ export default class LocalEchoController {
 
             // Ensure process.stdout and process.stderr both point to our mock
             process.stdout = process.stdin = process.stderr = mockStdout
-
-            // Add process.binding method
-            process.binding = (name) => {
-                if (name === "constants") {
-                    return {
-                        O_RDONLY: 0,
-                        O_WRONLY: 1,
-                        O_RDWR: 2,
-                        S_IFMT: 61440,
-                        S_IFREG: 32768,
-                        S_IFDIR: 16384,
-                        S_IFCHR: 8192,
-                        S_IFBLK: 24576,
-                        S_IFIFO: 4096,
-                        S_IFLNK: 40960,
-                        S_IFSOCK: 49152,
-                        // Add more constants as needed
-                    }
-                }
-                // Add other bindings if necessary
-                return {}
-            }
-
-            console.log(process.binding("constants"))
 
             // Update columns and rows when terminal is resized
             this.term.onResize(({ cols, rows }) => {
@@ -289,7 +270,9 @@ export default class LocalEchoController {
         if (items.length == 0) return println("")
 
         // Compute item sizes and matrix row/cols
-        const itemWidth = items.reduce((width, item) => Math.max(width, item.length), 0) + padding
+        const itemWidth =
+            items.reduce((width, item) => Math.max(width, item.length), 0) +
+            padding
         const wideCols = Math.floor(this._termSize.cols / itemWidth)
         const wideRows = Math.ceil(items.length / wideCols)
 
@@ -319,7 +302,8 @@ export default class LocalEchoController {
      */
     applyPrompts(input) {
         const prompt = (this._activePrompt || {}).prompt || ""
-        const continuationPrompt = (this._activePrompt || {}).continuationPrompt || ""
+        const continuationPrompt =
+            (this._activePrompt || {}).continuationPrompt || ""
 
         return prompt + input.replace(/\n/g, "\n" + continuationPrompt)
     }
@@ -347,15 +331,23 @@ export default class LocalEchoController {
 
         // Get the line we are currently in
         const promptCursor = this.applyPromptOffset(this._input, this._cursor)
-        const { col, row } = offsetToColRow(currentPrompt, promptCursor, this._termSize.cols)
+        const { col, row } = offsetToColRow(
+            currentPrompt,
+            promptCursor,
+            this._termSize.cols
+        )
 
         // First move on the last line
         const moveRows = allRows - row - 1
-        for (var i = 0; i < moveRows; ++i) this.term.write(ansiEscapes.cursorNextLine)
+        for (var i = 0; i < moveRows; ++i)
+            this.term.write(ansiEscapes.cursorNextLine)
 
         // Clear current input line(s)
         this.term.write(ansiEscapes.cursorLeft + ansiEscapes.eraseEndLine)
-        for (var i = 1; i < allRows; ++i) this.term.write(ansiEscapes.cursorPrevLine + ansiEscapes.eraseEndLine)
+        for (var i = 1; i < allRows; ++i)
+            this.term.write(
+                ansiEscapes.cursorPrevLine + ansiEscapes.eraseEndLine
+            )
     }
 
     clearTerminal() {
@@ -384,11 +376,16 @@ export default class LocalEchoController {
         // Move the cursor to the appropriate row/col
         const newCursor = this.applyPromptOffset(newInput, this._cursor)
         const newLines = countLines(newPrompt, this._termSize.cols)
-        const { col, row } = offsetToColRow(newPrompt, newCursor, this._termSize.cols)
+        const { col, row } = offsetToColRow(
+            newPrompt,
+            newCursor,
+            this._termSize.cols
+        )
         const moveUpRows = newLines - row - 1
 
         this.term.write(ansiEscapes.cursorLeft)
-        for (var i = 0; i < moveUpRows; ++i) this.term.write(ansiEscapes.cursorPrevLine)
+        for (var i = 0; i < moveUpRows; ++i)
+            this.term.write(ansiEscapes.cursorPrevLine)
         this.term.write(ansiEscapes.cursorForward(col))
 
         // Replace input
@@ -437,25 +434,40 @@ export default class LocalEchoController {
         const inputLines = countLines(inputWithPrompt, this._termSize.cols)
 
         // Estimate previous cursor position
-        const prevPromptOffset = this.applyPromptOffset(this._input, this._cursor)
-        const { col: prevCol, row: prevRow } = offsetToColRow(inputWithPrompt, prevPromptOffset, this._termSize.cols)
+        const prevPromptOffset = this.applyPromptOffset(
+            this._input,
+            this._cursor
+        )
+        const { col: prevCol, row: prevRow } = offsetToColRow(
+            inputWithPrompt,
+            prevPromptOffset,
+            this._termSize.cols
+        )
 
         // Estimate next cursor position
         const newPromptOffset = this.applyPromptOffset(this._input, newCursor)
-        const { col: newCol, row: newRow } = offsetToColRow(inputWithPrompt, newPromptOffset, this._termSize.cols)
+        const { col: newCol, row: newRow } = offsetToColRow(
+            inputWithPrompt,
+            newPromptOffset,
+            this._termSize.cols
+        )
 
         // Adjust vertically
         if (newRow > prevRow) {
-            for (let i = prevRow; i < newRow; ++i) this.term.write(ansiEscapes.cursorDown())
+            for (let i = prevRow; i < newRow; ++i)
+                this.term.write(ansiEscapes.cursorDown())
         } else {
-            for (let i = newRow; i < prevRow; ++i) this.term.write(ansiEscapes.cursorUp())
+            for (let i = newRow; i < prevRow; ++i)
+                this.term.write(ansiEscapes.cursorUp())
         }
 
         // Adjust horizontally
         if (newCol > prevCol) {
-            for (let i = prevCol; i < newCol; ++i) this.term.write(ansiEscapes.cursorForward())
+            for (let i = prevCol; i < newCol; ++i)
+                this.term.write(ansiEscapes.cursorForward())
         } else {
-            for (let i = newCol; i < prevCol; ++i) this.term.write(ansiEscapes.cursorBackward())
+            for (let i = newCol; i < prevCol; ++i)
+                this.term.write(ansiEscapes.cursorBackward())
         }
 
         // Set new offset
@@ -592,12 +604,14 @@ export default class LocalEchoController {
         const { _cursor, _input } = this
         if (backspace) {
             if (_cursor <= 0) return
-            const newInput = _input.substr(0, _cursor - 1) + _input.substr(_cursor)
+            const newInput =
+                _input.substr(0, _cursor - 1) + _input.substr(_cursor)
             this.clearInput()
             this._cursor -= 1
             this.setInput(newInput, false)
         } else {
-            const newInput = _input.substr(0, _cursor) + _input.substr(_cursor + 1)
+            const newInput =
+                _input.substr(0, _cursor) + _input.substr(_cursor + 1)
             this.setInput(newInput)
         }
     }
@@ -697,12 +711,59 @@ export default class LocalEchoController {
         return ansiEscapes.link(text, url)
     }
 
+    on(event, callback) {
+        console.log("on called")
+        console.log("event", event)
+
+        switch (event) {
+            case "drain":
+                break
+
+            case "error":
+                break
+
+            case "close":
+                break
+
+            case "keypress":
+                console.log(callback)
+                callback()
+            default:
+                break
+        }
+    }
+
+    end() {
+        console.log("end called")
+    }
+
+    destroy() {
+        console.log("destroy called")
+    }
+
+    removeListener() {
+        console.log("removelistener called")
+    }
+
+    emit() {
+        console.log("emit called")
+    }
+
+    pause() {
+        console.log("pause called")
+    }
+
+    resume() {
+        console.log("resume called")
+    }
+
     /**
      * Insert character at cursor location
      */
     handleCursorInsert(data) {
         const { _cursor, _input } = this
-        const newInput = _input.substr(0, _cursor) + data + _input.substr(_cursor)
+        const newInput =
+            _input.substr(0, _cursor) + data + _input.substr(_cursor)
         this._cursor += data.length
         this.setInput(newInput)
     }
@@ -822,7 +883,10 @@ export default class LocalEchoController {
                 case "\x7F": // CTRL + BACKSPACE
                     ofs = closestLeftBoundary(this._input, this._cursor)
                     if (ofs != null) {
-                        this.setInput(this._input.substr(0, ofs) + this._input.substr(this._cursor))
+                        this.setInput(
+                            this._input.substr(0, ofs) +
+                                this._input.substr(this._cursor)
+                        )
                         this.setCursor(ofs)
                     }
                     break
@@ -845,9 +909,16 @@ export default class LocalEchoController {
 
                 case "\t": // TAB
                     if (this._autocompleteHandlers.length > 0) {
-                        const inputFragment = this._input.substr(0, this._cursor)
-                        const hasTailingSpace = hasTailingWhitespace(inputFragment)
-                        const candidates = collectAutocompleteCandidates(this._autocompleteHandlers, inputFragment)
+                        const inputFragment = this._input.substr(
+                            0,
+                            this._cursor
+                        )
+                        const hasTailingSpace =
+                            hasTailingWhitespace(inputFragment)
+                        const candidates = collectAutocompleteCandidates(
+                            this._autocompleteHandlers,
+                            inputFragment
+                        )
 
                         // Sort candidates
                         candidates.sort()
@@ -862,16 +933,25 @@ export default class LocalEchoController {
                         } else if (candidates.length === 1) {
                             // Just a single candidate? Complete
                             const lastToken = getLastToken(inputFragment)
-                            this.handleCursorInsert(candidates[0].substr(lastToken.length) + " ")
-                        } else if (candidates.length <= this.maxAutocompleteEntries) {
+                            this.handleCursorInsert(
+                                candidates[0].substr(lastToken.length) + " "
+                            )
+                        } else if (
+                            candidates.length <= this.maxAutocompleteEntries
+                        ) {
                             // search for a shared fragement
-                            const sameFragment = getSharedFragment(inputFragment, candidates)
+                            const sameFragment = getSharedFragment(
+                                inputFragment,
+                                candidates
+                            )
 
                             // if there's a shared fragement between the candidates
                             // print complete the shared fragment
                             if (sameFragment) {
                                 const lastToken = getLastToken(inputFragment)
-                                this.handleCursorInsert(sameFragment.substr(lastToken.length))
+                                this.handleCursorInsert(
+                                    sameFragment.substr(lastToken.length)
+                                )
                             }
 
                             // If we are less than maximum auto-complete candidates, print
@@ -883,7 +963,9 @@ export default class LocalEchoController {
                             // If we have more than maximum auto-complete candidates, print
                             // them only if the user acknowledges a warning
                             this.printAndRestartPrompt(() =>
-                                this.readChar(`Display all ${candidates.length} possibilities? (y or n)`).then((yn) => {
+                                this.readChar(
+                                    `Display all ${candidates.length} possibilities? (y or n)`
+                                ).then((yn) => {
                                     if (yn == "y" || yn == "Y") {
                                         this.printWide(candidates)
                                     }
@@ -897,7 +979,9 @@ export default class LocalEchoController {
 
                 case "\x03": // CTRL+C
                     this.setCursor(this._input.length)
-                    this.term.write("^C\r\n" + ((this._activePrompt || {}).prompt || ""))
+                    this.term.write(
+                        "^C\r\n" + ((this._activePrompt || {}).prompt || "")
+                    )
                     this._input = ""
                     this._cursor = 0
                     if (this.history) this.history.rewind()

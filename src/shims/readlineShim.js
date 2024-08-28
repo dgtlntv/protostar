@@ -14,6 +14,9 @@ const readline = {
     clearScreenDown: (stream) => {
         process.stdout.clearScreenDown()
     },
+    createInterface: (options) => {
+        return
+    },
 }
 
 module.exports = readline

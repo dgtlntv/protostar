@@ -1,0 +1,178 @@
+diff --git a/dist/index.cjs b/dist/index.cjs
+index 38fb05c12176af284a1c9430a75ef03c4b473969..719ec3eefec8b09c26c46bd16b7250e5d5a480b6 100644
+--- a/dist/index.cjs
++++ b/dist/index.cjs
+@@ -1,3 +1,171 @@
+-"use strict";Object.defineProperty(exports,Symbol.toStringTag,{value:"Module"});const y=require("node:module"),B=require("@rollup/plugin-inject"),x=require("node-stdlib-browser"),P=require("node-stdlib-browser/helpers/rollup/plugin"),S=require("node-stdlib-browser/helpers/esbuild/plugin");var g=typeof document<"u"?document.currentScript:null;const c=l=>l&&l.__esModule?l:{default:l},T=c(B),j=c(x),q=c(S),v=(l,e)=>d(l)===d(e),s=(l,e)=>l?l===!0?!0:l===e:!1,R=l=>l.startsWith("node:"),$=l=>{const e=l.replace(/[.*+?^${}()|[\]\\]/g,"\\$&");return new RegExp(`^${e}$`)},d=l=>l.replace(/^node:/,""),p={buffer:["import __buffer_polyfill from 'vite-plugin-node-polyfills/shims/buffer'","globalThis.Buffer = globalThis.Buffer || __buffer_polyfill"],global:["import __global_polyfill from 'vite-plugin-node-polyfills/shims/global'","globalThis.global = globalThis.global || __global_polyfill"],process:["import __process_polyfill from 'vite-plugin-node-polyfills/shims/process'","globalThis.process = globalThis.process || __process_polyfill"]},O=(l={})=>{const e={include:[],exclude:[],overrides:{},protocolImports:!0,...l,globals:{Buffer:!0,global:!0,process:!0,...l.globals}},m=o=>e.include.length>0?!e.include.some(r=>v(o,r)):e.exclude.some(r=>v(o,r)),h=o=>{if(s(e.globals.Buffer,"dev")&&/^buffer$/.test(o))return"vite-plugin-node-polyfills/shims/buffer";if(s(e.globals.global,"dev")&&/^global$/.test(o))return"vite-plugin-node-polyfills/shims/global";if(s(e.globals.process,"dev")&&/^process$/.test(o))return"vite-plugin-node-polyfills/shims/process";if(o in e.overrides)return e.overrides[o]},a=Object.entries(j.default).reduce((o,[r,i])=>(!e.protocolImports&&R(r)||m(r)||(o[r]=h(d(r))||i),o),{}),u=y.createRequire(typeof document>"u"?require("url").pathToFileURL(__filename).href:g&&g.src||new URL("index.cjs",document.baseURI).href),f=[...s(e.globals.Buffer,"dev")?[u.resolve("vite-plugin-node-polyfills/shims/buffer")]:[],...s(e.globals.global,"dev")?[u.resolve("vite-plugin-node-polyfills/shims/global")]:[],...s(e.globals.process,"dev")?[u.resolve("vite-plugin-node-polyfills/shims/process")]:[]],b=[...s(e.globals.Buffer,"dev")?p.buffer:[],...s(e.globals.global,"dev")?p.global:[],...s(e.globals.process,"dev")?p.process:[],""].join(`
+-`);return{name:"vite-plugin-node-polyfills",config:(o,r)=>{const i=r.command==="serve";return{build:{rollupOptions:{onwarn:(t,n)=>{P.handleCircularDependancyWarning(t,()=>{if(o.build?.rollupOptions?.onwarn)return o.build.rollupOptions.onwarn(t,n);n(t)})},plugins:[{...T.default({...s(e.globals.Buffer,"build")?{Buffer:"vite-plugin-node-polyfills/shims/buffer"}:{},...s(e.globals.global,"build")?{global:"vite-plugin-node-polyfills/shims/global"}:{},...s(e.globals.process,"build")?{process:"vite-plugin-node-polyfills/shims/process"}:{}})}]}},esbuild:{banner:i?b:void 0},optimizeDeps:{exclude:[...f],esbuildOptions:{banner:i?{js:b}:void 0,define:{...i&&s(e.globals.Buffer,"dev")?{Buffer:"Buffer"}:{},...i&&s(e.globals.global,"dev")?{global:"global"}:{},...i&&s(e.globals.process,"dev")?{process:"process"}:{}},inject:[...f],plugins:[q.default(a),{name:"vite-plugin-node-polyfills-shims-resolver",setup(t){for(const n of f){const _=$(n);t.onResolve({filter:_},()=>({external:!1,path:n}))}}}]}},resolve:{alias:{...a}}}}}};exports.nodePolyfills=O;
++"use strict"
++Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" })
++const y = require("node:module"),
++    B = require("@rollup/plugin-inject"),
++    x = require("node-stdlib-browser"),
++    P = require("node-stdlib-browser/helpers/rollup/plugin"),
++    S = require("node-stdlib-browser/helpers/esbuild/plugin")
++var g = typeof document < "u" ? document.currentScript : null
++const c = (l) => (l && l.__esModule ? l : { default: l }),
++    T = c(B),
++    j = c(x),
++    q = c(S),
++    v = (l, e) => d(l) === d(e),
++    s = (l, e) => (l ? (l === !0 ? !0 : l === e) : !1),
++    R = (l) => l.startsWith("node:"),
++    $ = (l) => {
++        const e = l.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
++        return new RegExp(`^${e}$`)
++    },
++    d = (l) => l.replace(/^node:/, ""),
++    p = {
++        buffer: [
++            "import __buffer_polyfill from 'vite-plugin-node-polyfills/shims/buffer'",
++            "globalThis.Buffer = globalThis.Buffer || __buffer_polyfill",
++        ],
++        global: [
++            "import __global_polyfill from 'vite-plugin-node-polyfills/shims/global'",
++            "globalThis.global = globalThis.global || __global_polyfill",
++        ],
++        process: [
++            "import __process_polyfill from 'vite-plugin-node-polyfills/shims/process'",
++            "globalThis.process = { ...__process_polyfill, ...globalThis.process }",
++        ],
++    },
++    O = (l = {}) => {
++        const e = {
++                include: [],
++                exclude: [],
++                overrides: {},
++                protocolImports: !0,
++                ...l,
++                globals: { Buffer: !0, global: !0, process: !0, ...l.globals },
++            },
++            m = (o) =>
++                e.include.length > 0
++                    ? !e.include.some((r) => v(o, r))
++                    : e.exclude.some((r) => v(o, r)),
++            h = (o) => {
++                if (s(e.globals.Buffer, "dev") && /^buffer$/.test(o))
++                    return "vite-plugin-node-polyfills/shims/buffer"
++                if (s(e.globals.global, "dev") && /^global$/.test(o))
++                    return "vite-plugin-node-polyfills/shims/global"
++                if (s(e.globals.process, "dev") && /^process$/.test(o))
++                    return "vite-plugin-node-polyfills/shims/process"
++                if (o in e.overrides) return e.overrides[o]
++            },
++            a = Object.entries(j.default).reduce(
++                (o, [r, i]) => (
++                    (!e.protocolImports && R(r)) ||
++                        m(r) ||
++                        (o[r] = h(d(r)) || i),
++                    o
++                ),
++                {}
++            ),
++            u = y.createRequire(
++                typeof document > "u"
++                    ? require("url").pathToFileURL(__filename).href
++                    : (g && g.src) ||
++                          new URL("index.cjs", document.baseURI).href
++            ),
++            f = [
++                ...(s(e.globals.Buffer, "dev")
++                    ? [u.resolve("vite-plugin-node-polyfills/shims/buffer")]
++                    : []),
++                ...(s(e.globals.global, "dev")
++                    ? [u.resolve("vite-plugin-node-polyfills/shims/global")]
++                    : []),
++                ...(s(e.globals.process, "dev")
++                    ? [u.resolve("vite-plugin-node-polyfills/shims/process")]
++                    : []),
++            ],
++            b = [
++                ...(s(e.globals.Buffer, "dev") ? p.buffer : []),
++                ...(s(e.globals.global, "dev") ? p.global : []),
++                ...(s(e.globals.process, "dev") ? p.process : []),
++                "",
++            ].join(`
++`)
++        return {
++            name: "vite-plugin-node-polyfills",
++            config: (o, r) => {
++                const i = r.command === "serve"
++                return {
++                    build: {
++                        rollupOptions: {
++                            onwarn: (t, n) => {
++                                P.handleCircularDependancyWarning(t, () => {
++                                    if (o.build?.rollupOptions?.onwarn)
++                                        return o.build.rollupOptions.onwarn(
++                                            t,
++                                            n
++                                        )
++                                    n(t)
++                                })
++                            },
++                            plugins: [
++                                {
++                                    ...T.default({
++                                        ...(s(e.globals.Buffer, "build")
++                                            ? {
++                                                  Buffer: "vite-plugin-node-polyfills/shims/buffer",
++                                              }
++                                            : {}),
++                                        ...(s(e.globals.global, "build")
++                                            ? {
++                                                  global: "vite-plugin-node-polyfills/shims/global",
++                                              }
++                                            : {}),
++                                        ...(s(e.globals.process, "build")
++                                            ? {
++                                                  process:
++                                                      "vite-plugin-node-polyfills/shims/process",
++                                              }
++                                            : {}),
++                                    }),
++                                },
++                            ],
++                        },
++                    },
++                    esbuild: { banner: i ? b : void 0 },
++                    optimizeDeps: {
++                        exclude: [...f],
++                        esbuildOptions: {
++                            banner: i ? { js: b } : void 0,
++                            define: {
++                                ...(i && s(e.globals.Buffer, "dev")
++                                    ? { Buffer: "Buffer" }
++                                    : {}),
++                                ...(i && s(e.globals.global, "dev")
++                                    ? { global: "global" }
++                                    : {}),
++                                ...(i && s(e.globals.process, "dev")
++                                    ? { process: "process" }
++                                    : {}),
++                            },
++                            inject: [...f],
++                            plugins: [
++                                q.default(a),
++                                {
++                                    name: "vite-plugin-node-polyfills-shims-resolver",
++                                    setup(t) {
++                                        for (const n of f) {
++                                            const _ = $(n)
++                                            t.onResolve({ filter: _ }, () => ({
++                                                external: !1,
++                                                path: n,
++                                            }))
++                                        }
++                                    },
++                                },
++                            ],
++                        },
++                    },
++                    resolve: { alias: { ...a } },
++                }
++            },
++        }
++    }
++exports.nodePolyfills = O
+ //# sourceMappingURL=index.cjs.map
