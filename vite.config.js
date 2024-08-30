@@ -23,10 +23,6 @@ export default defineConfig({
         alias: {
             readline: "readline-browser",
             "node:readline": "readline-browser",
-            "node:async_hooks": path.resolve(
-                __dirname,
-                "./src/shims/asyncHooksShim.js"
-            ),
         },
     },
     define: {
@@ -38,5 +34,7 @@ export default defineConfig({
             node: "20.17.0.0",
         }),
         "process.addListener": "()=>{}",
+        "process.removeListener": "()=>{}",
+        "process.on": "()=>{}",
     },
 })

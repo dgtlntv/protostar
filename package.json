@@ -12,7 +12,6 @@
         "vite": "^5.3.1"
     },
     "dependencies": {
-        "@inquirer/prompts": "^5.3.8",
         "@xterm/addon-fit": "^0.10.0",
         "ansi-escapes": "^7.0.0",
         "ansi-regex": "^6.0.1",
@@ -24,6 +23,7 @@
         "log-symbols": "^6.0.0",
         "ora": "^8.0.1",
         "path": "^0.12.7",
+        "prompts": "^2.4.2",
         "readline-browser": "^0.0.3",
         "shell-quote": "^1.8.1",
         "string-argv": "^0.3.2",

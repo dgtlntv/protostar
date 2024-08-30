@@ -14,6 +14,7 @@
  */
 import ansiRegex from "ansi-regex"
 import ansiEscapes from "ansi-escapes"
+import stringWidth from "string-width"
 import { HistoryController } from "./HistoryController"
 import {
     closestLeftBoundary,
@@ -711,11 +712,11 @@ export default class LocalEchoController {
         return ansiEscapes.link(text, url)
     }
 
-    on(event, callback) {
-        console.log("on called")
-        console.log("event", event)
-
+    on(event, listener) {
         switch (event) {
+            case "exit":
+                break
+
             case "drain":
                 break
 
@@ -726,8 +727,57 @@ export default class LocalEchoController {
                 break
 
             case "keypress":
-                console.log(callback)
-                callback()
+                function getMappedKeyName(rawName) {
+                    if (rawName == "Backspace") {
+                        return "backspace"
+                    } else if (rawName == "ArrowLeft") {
+                        return "left"
+                    } else if (rawName == "ArrowRight") {
+                        return "right"
+                    } else if (rawName == "ArrowUp") {
+                        return "up"
+                    } else if (rawName == "ArrowDown") {
+                        return "down"
+                    } else if (rawName == "Delete") {
+                        return "delete"
+                    } else if (rawName == "Enter") {
+                        return "enter"
+                    } else if (rawName == "Tab") {
+                        return "tab"
+                    } else if (rawName == "Home") {
+                        return "home"
+                    } else if (rawName == "End") {
+                        return "end"
+                    } else if (rawName == "Return") {
+                        return "return"
+                    }
+                    return rawName
+                }
+                this.term.onData((char) => {
+                    if (stringWidth(char) >= 2) {
+                        listener(char, {
+                            sequence: char,
+                            name: undefined,
+                            ctrl: false,
+                            meta: false,
+                            shift: false,
+                        })
+                    }
+                })
+
+                this.term.onKey(({ key, domEvent }) => {
+                    const name = getMappedKeyName(domEvent.key)
+                    const ctrl = domEvent.ctrlKey
+                    const shift = domEvent.shiftKey
+
+                    listener(key, {
+                        sequence: name,
+                        name,
+                        ctrl,
+                        shift,
+                    })
+                })
+
             default:
                 break
         }

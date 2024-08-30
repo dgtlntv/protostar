@@ -6,7 +6,7 @@ import { SingleBar } from "cli-progress"
 import chalk from "chalk"
 import Table from "cli-table3"
 import stringWidth from "string-width"
-import { input } from "@inquirer/prompts"
+import prompts from "prompts"
 
 export default async function convertComponentToYargsHandler(
     handlerComponents,
@@ -254,8 +254,18 @@ export default async function convertComponentToYargsHandler(
                 break
 
             case "prompt":
-                const answer = await input({ message: "Enter your name" })
-                console.log(answer)
+                try {
+                    const response = await prompts({
+                        type: "number",
+                        name: "value",
+                        message: "How old are you?",
+                        validate: (value) =>
+                            value < 18 ? `Nightclub is 18+ only` : true,
+                    })
+                    console.log(response) // => { value: 24 }
+                } catch (error) {
+                    console.log(error)
+                }
 
                 break
 
