@@ -2,6 +2,7 @@ import { Terminal } from "xterm"
 import { FitAddon } from "@xterm/addon-fit"
 import LocalEchoController from "./io/LocalEchoController.js"
 import inputHandler from "./io/inputHandler.js"
+import monkeyPatchStdout from "./shims/monkeyPatchStdout.js"
 
 export default function App() {
     const term = new Terminal({
@@ -39,6 +40,7 @@ export default function App() {
         fitAddon.fit()
     })
 
+    monkeyPatchStdout()
     inputHandler(localEcho, term)
     term.focus()
 }

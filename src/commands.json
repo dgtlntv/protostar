@@ -21,7 +21,15 @@
                 "day": {
                     "describe": "The day of the week to give a greeting on.",
                     "type": "string",
-                    "choices": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
+                    "choices": [
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday",
+                        "sunday"
+                    ]
                 }
             },
             "options": {
@@ -35,9 +43,8 @@
             },
             "handler": [
                 {
-                    "component": "progressBar",
-                    "output": "Processing a huge amount of data",
-                    "duration": 5000
+                    "component": "prompt",
+                    "output": { "hello": "world" }
                 }
             ]
         }

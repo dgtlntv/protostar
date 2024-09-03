@@ -305,7 +305,10 @@
                     "const": "spinner"
                 },
                 "output": {
-                    "oneOf": [{ "type": "string" }, { "type": "array", "items": { "type": "string" } }]
+                    "oneOf": [
+                        { "type": "string" },
+                        { "type": "array", "items": { "type": "string" } }
+                    ]
                 },
                 "duration": {
                     "oneOf": [{ "type": "number" }, { "const": "random" }]
@@ -330,6 +333,11 @@
                         "type": "array",
                         "items": { "type": "string" }
                     }
+                },
+                "colWidths": {
+                    "type": "array",
+                    "items": { "type": "number" },
+                    "description": "An array of numbers representing the width of each column in the table"
                 }
             },
             "additionalProperties": false
