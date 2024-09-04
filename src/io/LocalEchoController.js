@@ -769,7 +769,6 @@ export default class LocalEchoController extends EventEmitter {
         if (this._active) {
             this.handleActiveInput(ch, key)
         } else {
-            console.log("keypress", ch, key)
             this.emit("keypress", ch, key)
         }
     }

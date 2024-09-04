@@ -253,14 +253,356 @@ export default async function convertComponentToYargsHandler(
 
                 break
 
-            case "prompt":
-                const response = await prompt({
+            case "autoComplete":
+                const autoComplete = await prompt({
+                    type: "AutoComplete",
+                    name: "flavor",
+                    message: "Pick your favorite flavor",
+                    limit: 10,
+                    initial: 2,
+                    choices: [
+                        "Almond",
+                        "Apple",
+                        "Banana",
+                        "Blackberry",
+                        "Blueberry",
+                        "Cherry",
+                        "Chocolate",
+                        "Cinnamon",
+                        "Coconut",
+                        "Cranberry",
+                        "Grape",
+                        "Nougat",
+                        "Orange",
+                        "Pear",
+                        "Pineapple",
+                        "Raspberry",
+                        "Strawberry",
+                        "Vanilla",
+                        "Watermelon",
+                        "Wintergreen",
+                    ],
+                })
+
+                localEcho.println(
+                    "your response was " + JSON.stringify(autoComplete)
+                )
+
+                break
+
+            case "basicAuth":
+                const basicAuth = await prompt({
+                    type: "BasicAuth",
+                    name: "password",
+                    message: "Please enter your password",
+                    username: "rajat-sr",
+                    password: "123",
+                    showPassword: true,
+                })
+
+                localEcho.println(
+                    "your response was " + JSON.stringify(basicAuth)
+                )
+
+                break
+
+            case "confirm":
+                const confirm = await prompt({
+                    type: "confirm",
+                    name: "question",
+                    message: "Want to answer?",
+                })
+
+                localEcho.println(
+                    "your response was " + JSON.stringify(confirm)
+                )
+
+                break
+
+            case "form":
+                const form = await prompt({
+                    type: "form",
+                    name: "user",
+                    message: "Please provide the following information:",
+                    choices: [
+                        {
+                            name: "firstname",
+                            message: "First Name",
+                            initial: "Jon",
+                        },
+                        {
+                            name: "lastname",
+                            message: "Last Name",
+                            initial: "Schlinkert",
+                        },
+                        {
+                            name: "username",
+                            message: "GitHub username",
+                            initial: "jonschlinkert",
+                        },
+                    ],
+                })
+
+                localEcho.println("your response was " + JSON.stringify(form))
+
+                break
+
+            case "input":
+                const input = await prompt({
                     type: "input",
                     name: "username",
                     message: "What is your username?",
                 })
 
-                console.log(response)
+                localEcho.println("your response was " + JSON.stringify(input))
+
+                break
+
+            case "invisible":
+                const invisible = await prompt({
+                    type: "invisible",
+                    name: "secret",
+                    message: "What is your secret?",
+                })
+
+                localEcho.println(
+                    "your response was " + JSON.stringify(invisible)
+                )
+
+                break
+
+            case "list":
+                const list = await prompt({
+                    type: "list",
+                    name: "keywords",
+                    message: "Type comma-separated keywords",
+                })
+
+                localEcho.println("your response was " + JSON.stringify(list))
+
+                break
+
+            case "multiSelect":
+                const multiSelect = await prompt({
+                    type: "MultiSelect",
+                    name: "value",
+                    message: "Pick your favorite colors",
+                    limit: 7,
+                    choices: [
+                        { name: "aqua", value: "#00ffff" },
+                        { name: "black", value: "#000000" },
+                        { name: "blue", value: "#0000ff" },
+                        { name: "fuchsia", value: "#ff00ff" },
+                        { name: "gray", value: "#808080" },
+                        { name: "green", value: "#008000" },
+                        { name: "lime", value: "#00ff00" },
+                        { name: "maroon", value: "#800000" },
+                        { name: "navy", value: "#000080" },
+                        { name: "olive", value: "#808000" },
+                        { name: "purple", value: "#800080" },
+                        { name: "red", value: "#ff0000" },
+                        { name: "silver", value: "#c0c0c0" },
+                        { name: "teal", value: "#008080" },
+                        { name: "white", value: "#ffffff" },
+                        { name: "yellow", value: "#ffff00" },
+                    ],
+                })
+
+                localEcho.println(
+                    "your response was " + JSON.stringify(multiSelect)
+                )
+
+                break
+
+            case "number":
+                const number = await prompt({
+                    type: "number",
+                    name: "number",
+                    message: "Please enter a number",
+                })
+
+                localEcho.println("your response was " + JSON.stringify(number))
+
+                break
+
+            case "password":
+                const password = await prompt({
+                    type: "password",
+                    name: "password",
+                    message: "What is your password?",
+                })
+
+                localEcho.println(
+                    "your response was " + JSON.stringify(password)
+                )
+
+                break
+
+            case "quiz":
+                const quiz = await prompt({
+                    type: "quiz",
+                    name: "countries",
+                    message: "How many countries are there in the world?",
+                    choices: ["165", "175", "185", "195", "205"],
+                    correctChoice: 3,
+                })
+
+                localEcho.println("your response was " + JSON.stringify(quiz))
+
+                break
+
+            case "survey":
+                const survey = await prompt({
+                    type: "survey",
+                    name: "experience",
+                    message: "Please rate your experience",
+                    scale: [
+                        { name: "1", message: "Strongly Disagree" },
+                        { name: "2", message: "Disagree" },
+                        { name: "3", message: "Neutral" },
+                        { name: "4", message: "Agree" },
+                        { name: "5", message: "Strongly Agree" },
+                    ],
+                    margin: [0, 0, 2, 1],
+                    choices: [
+                        {
+                            name: "interface",
+                            message: "The website has a friendly interface.",
+                        },
+                        {
+                            name: "navigation",
+                            message: "The website is easy to navigate.",
+                        },
+                        {
+                            name: "images",
+                            message: "The website usually has good images.",
+                        },
+                        {
+                            name: "upload",
+                            message:
+                                "The website makes it easy to upload images.",
+                        },
+                        {
+                            name: "colors",
+                            message:
+                                "The website has a pleasing color palette.",
+                        },
+                    ],
+                })
+
+                localEcho.println("your response was " + JSON.stringify(survey))
+
+                break
+
+            case "scale":
+                const scale = await prompt({
+                    type: "scale",
+                    name: "experience",
+                    message: "Please rate your experience",
+                    scale: [
+                        { name: "1", message: "Strongly Disagree" },
+                        { name: "2", message: "Disagree" },
+                        { name: "3", message: "Neutral" },
+                        { name: "4", message: "Agree" },
+                        { name: "5", message: "Strongly Agree" },
+                    ],
+                    margin: [0, 0, 2, 1],
+                    choices: [
+                        {
+                            name: "interface",
+                            message: "The website has a friendly interface.",
+                            initial: 2,
+                        },
+                        {
+                            name: "navigation",
+                            message: "The website is easy to navigate.",
+                            initial: 2,
+                        },
+                        {
+                            name: "images",
+                            message: "The website usually has good images.",
+                            initial: 2,
+                        },
+                        {
+                            name: "upload",
+                            message:
+                                "The website makes it easy to upload images.",
+                            initial: 2,
+                        },
+                        {
+                            name: "colors",
+                            message:
+                                "The website has a pleasing color palette.",
+                            initial: 2,
+                        },
+                    ],
+                })
+
+                localEcho.println("your response was " + JSON.stringify(scale))
+
+                break
+
+            case "select":
+                const select = await prompt({
+                    type: "select",
+                    name: "color",
+                    message: "Pick a flavor",
+                    choices: [
+                        "apple",
+                        "grape",
+                        "watermelon",
+                        "cherry",
+                        "orange",
+                    ],
+                })
+
+                localEcho.println("your response was " + JSON.stringify(select))
+
+                break
+
+            case "snippet":
+                const snippet = await prompt({
+                    type: "snippet",
+                    name: "username",
+                    message: "Fill out the fields in package.json",
+                    required: true,
+                    fields: [
+                        {
+                            name: "author_name",
+                            message: "Author Name",
+                        },
+                        {
+                            name: "version",
+                        },
+                    ],
+                    template: `{
+                        "name": "\${name}",
+                        "description": "\${description}",
+                        "version": "\${version}",
+                        "homepage": "https://github.com/\${username}/\${name}",
+                        "author": "\${author_name} (https://github.com/\${username})",
+                        "repository": "\${username}/\${name}",
+                        "license": "\${license:ISC}"
+                    }
+                    `,
+                })
+
+                localEcho.println(
+                    "your response was " + JSON.stringify(snippet)
+                )
+
+                break
+
+            case "toggle":
+                const toggle = await prompt({
+                    type: "toggle",
+                    message: "Want to answer?",
+                    enabled: "Yep",
+                    disabled: "Nope",
+                })
+
+                localEcho.println("your response was " + JSON.stringify(toggle))
+
                 break
 
             default:

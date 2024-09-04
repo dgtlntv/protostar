@@ -43,7 +43,7 @@
             },
             "handler": [
                 {
-                    "component": "prompt",
+                    "component": "toggle",
                     "output": { "hello": "world" }
                 }
             ]
