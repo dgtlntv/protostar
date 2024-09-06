@@ -262,7 +262,23 @@
                 { "$ref": "#/definitions/tableComponent" },
                 { "$ref": "#/definitions/conditionalComponent" },
                 { "$ref": "#/definitions/variableComponent" },
-                { "$ref": "#/definitions/promptComponent" }
+                { "$ref": "#/definitions/autoCompleteComponent" },
+                { "$ref": "#/definitions/basicAuthComponent" },
+                { "$ref": "#/definitions/confirmComponent" },
+                { "$ref": "#/definitions/formComponent" },
+                { "$ref": "#/definitions/inputComponent" },
+                { "$ref": "#/definitions/invisibleComponent" },
+                { "$ref": "#/definitions/listComponent" },
+                { "$ref": "#/definitions/multiSelectComponent" },
+                { "$ref": "#/definitions/numberComponent" },
+                { "$ref": "#/definitions/passwordComponent" },
+                { "$ref": "#/definitions/quizComponent" },
+                { "$ref": "#/definitions/surveyComponent" },
+                { "$ref": "#/definitions/scaleComponent" },
+                { "$ref": "#/definitions/selectComponent" },
+                { "$ref": "#/definitions/sortComponent" },
+                { "$ref": "#/definitions/snippetComponent" },
+                { "$ref": "#/definitions/toggleComponent" }
             ]
         },
         "textComponent": {
@@ -376,19 +392,577 @@
             },
             "additionalProperties": false
         },
-        "promptComponent": {
+        "autoCompleteComponent": {
             "type": "object",
-            "required": ["component", "output"],
+            "required": ["component", "name", "message", "choices"],
             "properties": {
                 "component": {
-                    "const": "prompt"
+                    "const": "autoComplete"
                 },
-                "output": {
-                    "type": "object",
-                    "additionalProperties": { "type": "string" }
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the prompt's result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Message to display with the prompt in the terminal"
+                },
+                "limit": {
+                    "type": "number",
+                    "description": "Number of choices to display on-screen"
+                },
+                "initial": {
+                    "type": "number",
+                    "description": "The index of the initial selection."
+                },
+                "choices": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of items for user selection"
+                },
+                "multiple": {
+                    "type": "boolean",
+                    "description": "Allows selection of multiple choices"
+                },
+                "footer": {
+                    "type": "string",
+                    "description": "Optional message in muted color providing interaction hint"
                 }
             },
-            "additionalProperties": false
+            "additionalProperties": false,
+            "description": "Prompt that auto-completes as the user types, returning the selected value as a string"
+        },
+        "basicAuthComponent": {
+            "type": "object",
+            "required": [
+                "component",
+                "name",
+                "message",
+                "username",
+                "password"
+            ],
+            "properties": {
+                "component": {
+                    "const": "basicAuth"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the prompt's result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Message to display with the prompt in the terminal"
+                },
+                "username": {
+                    "type": "string",
+                    "description": "Username to compare against"
+                },
+                "password": {
+                    "type": "string",
+                    "description": "Password to compare against"
+                },
+                "showPassword": {
+                    "type": "boolean",
+                    "description": "Determines whether to hide or show the password"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt for username and password authentication, returning true if correct"
+        },
+        "confirmComponent": {
+            "type": "object",
+            "required": ["component", "name", "message"],
+            "properties": {
+                "component": {
+                    "const": "confirm"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the prompt's result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Question to be confirmed or denied"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt to confirm or deny a statement, returning true or false"
+        },
+        "formComponent": {
+            "type": "object",
+            "required": ["component", "name", "message", "choices"],
+            "properties": {
+                "component": {
+                    "const": "form"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the form's results"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Message to display with the form in the terminal"
+                },
+                "choices": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "message"],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Identifier for the form field"
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "Label for the form field"
+                            },
+                            "initial": {
+                                "type": "string",
+                                "description": "Initial placeholder value for the field"
+                            }
+                        }
+                    },
+                    "description": "Array of form fields"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt for multiple values on a single terminal screen"
+        },
+        "inputComponent": {
+            "type": "object",
+            "required": ["component", "name", "message"],
+            "properties": {
+                "component": {
+                    "const": "input"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the input's result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Question or prompt for user input"
+                },
+                "initial": {
+                    "type": "string",
+                    "description": "Initial placeholder value"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt for user input, returning a string"
+        },
+        "invisibleComponent": {
+            "type": "object",
+            "required": ["component", "name", "message"],
+            "properties": {
+                "component": {
+                    "const": "invisible"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the input's result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Question or prompt for hidden user input"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt for user input, hiding it from the terminal, and returning a string"
+        },
+        "listComponent": {
+            "type": "object",
+            "required": ["component", "name", "message"],
+            "properties": {
+                "component": {
+                    "const": "list"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the list's result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Question or prompt for list input"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt returning a list of values, created by splitting user input"
+        },
+        "multiSelectComponent": {
+            "type": "object",
+            "required": ["component", "name", "message", "choices"],
+            "properties": {
+                "component": {
+                    "const": "multiSelect"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the selection results"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Message to display with the selection prompt"
+                },
+                "limit": {
+                    "type": "number",
+                    "description": "Number of choices to display on-screen"
+                },
+                "choices": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "value"],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Display text for the choice"
+                            },
+                            "value": {
+                                "type": "string",
+                                "description": "Value to be returned if selected"
+                            }
+                        }
+                    },
+                    "description": "Array of selectable options"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt allowing selection of multiple items from a list of options"
+        },
+        "numberComponent": {
+            "type": "object",
+            "required": ["component", "name", "message"],
+            "properties": {
+                "component": {
+                    "const": "number"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the number input result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Question or prompt for number input"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt that takes a number as input"
+        },
+        "passwordComponent": {
+            "type": "object",
+            "required": ["component", "name", "message"],
+            "properties": {
+                "component": {
+                    "const": "password"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the password input result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Question or prompt for password input"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt that takes user input and masks it in the terminal"
+        },
+        "quizComponent": {
+            "type": "object",
+            "required": [
+                "component",
+                "name",
+                "message",
+                "choices",
+                "correctChoice"
+            ],
+            "properties": {
+                "component": {
+                    "const": "quiz"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the quiz result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Quiz question to display"
+                },
+                "choices": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of possible answers to the quiz question"
+                },
+                "correctChoice": {
+                    "type": "number",
+                    "description": "Index of the correct choice from the choices array"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt for multiple-choice quiz questions"
+        },
+        "surveyComponent": {
+            "type": "object",
+            "required": ["component", "name", "message", "scale", "choices"],
+            "properties": {
+                "component": {
+                    "const": "survey"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the survey results"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Message to display with the survey prompt"
+                },
+                "scale": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "message"],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Label for the scale point"
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "Explanation text for the scale point"
+                            }
+                        }
+                    },
+                    "description": "Definition of the survey scale"
+                },
+                "choices": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "message"],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Identifier for the survey question"
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "Survey question text"
+                            }
+                        }
+                    },
+                    "description": "List of survey questions"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt for user feedback on a list of questions using a defined scale"
+        },
+        "scaleComponent": {
+            "type": "object",
+            "required": ["component", "name", "message", "scale", "choices"],
+            "properties": {
+                "component": {
+                    "const": "scale"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the scale results"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Message to display with the scale prompt"
+                },
+                "scale": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "message"],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Label for the scale point"
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "Explanation text for the scale point"
+                            }
+                        }
+                    },
+                    "description": "Definition of the scale"
+                },
+                "choices": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "message"],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Identifier for the scale question"
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "Scale question text"
+                            },
+                            "initial": {
+                                "type": "number",
+                                "description": "Initial value for the scale question"
+                            }
+                        }
+                    },
+                    "description": "List of scale questions"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Compact version of Survey prompt using a Likert Scale for quick feedback"
+        },
+        "selectComponent": {
+            "type": "object",
+            "required": ["component", "name", "message", "choices"],
+            "properties": {
+                "component": {
+                    "const": "select"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the selection result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Message to display with the selection prompt"
+                },
+                "choices": {
+                    "oneOf": [
+                        {
+                            "type": "array",
+                            "items": { "type": "string" }
+                        },
+                        {
+                            "type": "array",
+                            "items": {
+                                "type": "object",
+                                "oneOf": [
+                                    {
+                                        "required": ["name", "value"],
+                                        "properties": {
+                                            "name": { "type": "string" },
+                                            "value": { "type": "string" }
+                                        }
+                                    },
+                                    {
+                                        "required": [
+                                            "message",
+                                            "name",
+                                            "value"
+                                        ],
+                                        "properties": {
+                                            "message": { "type": "string" },
+                                            "name": { "type": "string" },
+                                            "value": { "type": "string" }
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ],
+                    "description": "List of options to select from"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt for selecting from a list of options"
+        },
+        "sortComponent": {
+            "type": "object",
+            "required": ["component", "name", "message", "choices"],
+            "properties": {
+                "component": {
+                    "const": "sort"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the sorted result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Message to display with the sorting prompt"
+                },
+                "choices": {
+                    "type": "array",
+                    "items": { "type": "string" },
+                    "description": "List of items to be sorted"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt for sorting items in a list"
+        },
+        "snippetComponent": {
+            "type": "object",
+            "required": ["component", "name", "message", "fields", "template"],
+            "properties": {
+                "component": {
+                    "const": "snippet"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the completed snippet"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Message to display with the snippet prompt"
+                },
+                "fields": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "required": ["name", "message"],
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "Identifier for the field"
+                            },
+                            "message": {
+                                "type": "string",
+                                "description": "Prompt message for the field"
+                            }
+                        }
+                    },
+                    "description": "List of fields to be filled in the snippet"
+                },
+                "template": {
+                    "type": "string",
+                    "description": "Template string with placeholders marked as ${name}"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt for replacing placeholders in a snippet of code or text"
+        },
+        "toggleComponent": {
+            "type": "object",
+            "required": ["component", "name", "message", "enabled", "disabled"],
+            "properties": {
+                "component": {
+                    "const": "toggle"
+                },
+                "name": {
+                    "type": "string",
+                    "description": "Identifier for accessing the toggle result"
+                },
+                "message": {
+                    "type": "string",
+                    "description": "Message to display with the toggle prompt"
+                },
+                "enabled": {
+                    "type": "string",
+                    "description": "Label for the enabled state"
+                },
+                "disabled": {
+                    "type": "string",
+                    "description": "Label for the disabled state"
+                }
+            },
+            "additionalProperties": false,
+            "description": "Prompt for toggling between two values, returning true or false"
         }
     }
 }
