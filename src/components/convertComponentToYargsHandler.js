@@ -18,9 +18,6 @@ export default async function convertComponentToYargsHandler(
         ? handlerComponents
         : [handlerComponents]
 
-    //TODO: Every output needs to be interpolated so we can use args, flags and variables in text,
-    //      progressbar text, spinner text, and settings variables.
-
     for (const component of handler) {
         switch (component.component) {
             case "text":
@@ -43,7 +40,11 @@ export default async function convertComponentToYargsHandler(
                         { hideCursor: true },
                         {
                             format:
-                                component.output +
+                                interpolateVariables(
+                                    component.output,
+                                    argv,
+                                    globalVariables
+                                ) +
                                 " | " +
                                 chalk.cyan("{bar}") +
                                 " | {percentage}% | ETA: {eta}s",
@@ -105,6 +106,14 @@ export default async function convertComponentToYargsHandler(
                     ? component.output
                     : [component.output]
 
+                spinnerOutput.forEach((output, index) => {
+                    spinnerOutput[index] = interpolateVariables(
+                        output,
+                        argv,
+                        globalVariables
+                    )
+                })
+
                 const spinner = ora({
                     text: spinnerOutput[0],
                     stream: process.stdout,
@@ -143,6 +152,12 @@ export default async function convertComponentToYargsHandler(
                 const cornerWidth = 1 // Width of corner characters
                 const minColumnWidth = 3 // Minimum width for each column
 
+                const interpolatedOutput = component.output.map((row) =>
+                    row.map((cell) =>
+                        interpolateVariables(cell, argv, globalVariables)
+                    )
+                )
+
                 function scaleColumnWidths(colWidths, maxWidth, columnCount) {
                     const totalPadding = cellPadding * columnCount
                     const totalBorderWidth = borderWidth * (columnCount + 1)
@@ -173,7 +188,7 @@ export default async function convertComponentToYargsHandler(
                 }
 
                 let colWidths
-                const columnCount = component.output[0].length
+                const columnCount = interpolatedOutput[0].length
 
                 if (component.colWidths) {
                     // Scenario 1: User provided colWidths
@@ -184,9 +199,9 @@ export default async function convertComponentToYargsHandler(
                     )
                 } else {
                     // Scenario 2: Calculate colWidths based on content
-                    colWidths = component.output[0].map(() => 0)
+                    colWidths = interpolatedOutput[0].map(() => 0)
 
-                    component.output.forEach((row) => {
+                    interpolatedOutput.forEach((row) => {
                         row.forEach((cell, index) => {
                             const cellWidth = stringWidth(cell.toString())
                             if (cellWidth > colWidths[index]) {
@@ -203,14 +218,14 @@ export default async function convertComponentToYargsHandler(
                 }
 
                 const tableOptions = {
-                    head: component.output[0],
+                    head: interpolatedOutput[0],
                     colWidths: colWidths,
                     wordWrap: true,
                     wrapOnWordBoundary: false,
                 }
 
                 const table = new Table(tableOptions)
-                table.push(...component.output.slice(1))
+                table.push(...interpolatedOutput.slice(1))
 
                 localEcho.println(table.toString())
                 break
