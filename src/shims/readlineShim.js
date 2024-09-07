@@ -14,7 +14,6 @@ class Interface {
     }
 
     prompt(preserveCursor) {
-        console.log("Prompt in readline called")
         return globalThis.localEcho.printAndRestartPrompt(() => {})
     }
 
@@ -31,8 +30,6 @@ class Interface {
     }
 
     write(data, key) {
-        console.log("Write in readline called")
-
         return globalThis.localEcho.print(data)
     }
 
@@ -47,7 +44,6 @@ class Interface {
     }
 
     question(query, ...args) {
-        console.log("Question in readline called")
         const [options = {}, callback] = args.length > 1 ? args : [{}, args[0]]
 
         globalThis.localEcho.print(query)

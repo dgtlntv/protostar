@@ -3,6 +3,11 @@ import { FitAddon } from "@xterm/addon-fit"
 import LocalEchoController from "./io/LocalEchoController.js"
 import inputHandler from "./io/inputHandler.js"
 import monkeyPatchStdout from "./shims/monkeyPatchStdout.js"
+import initializeYargs from "./io/yargs/initializeYargs.js"
+
+// GENERAL TODOs
+// 1. Write tests
+// 2. Somehow reduce flickering when typing
 
 export default function App() {
     const term = new Terminal({
@@ -33,6 +38,7 @@ export default function App() {
 
     term.loadAddon(fitAddon)
     term.loadAddon(localEcho)
+
     term.open(document.getElementById("terminal"))
 
     fitAddon.fit()
@@ -41,6 +47,9 @@ export default function App() {
     })
 
     monkeyPatchStdout()
-    inputHandler(localEcho, term)
+
+    const yargs = initializeYargs(localEcho)
+
+    inputHandler(localEcho, term, yargs)
     term.focus()
 }

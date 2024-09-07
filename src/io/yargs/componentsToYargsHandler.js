@@ -1,14 +1,14 @@
-import interpolateVariables from "./text/interpolateVariables"
-import sleep from "../utils/sleep"
+import interpolateVariables from "../../components/text/interpolateVariables"
+import sleep from "../../utils/sleep"
 import ora from "ora"
-import stopSpinner from "./spinner/stopSpinner"
+import stopSpinner from "../../components/spinner/stopSpinner"
 import { SingleBar } from "cli-progress"
 import chalk from "chalk"
 import Table from "cli-table3"
 import stringWidth from "string-width"
 import { prompt } from "enquirer"
 
-export default async function convertComponentToYargsHandler(
+export default async function componentsToYargsHandler(
     handlerComponents,
     argv,
     localEcho,
@@ -26,6 +26,7 @@ export default async function convertComponentToYargsHandler(
                     argv,
                     globalVariables
                 )
+
                 localEcho.print(textOutput + "\n")
                 if (component.duration) {
                     component.duration === "random"
@@ -231,7 +232,6 @@ export default async function convertComponentToYargsHandler(
                 break
 
             case "conditional":
-                // TODO: We need to check this actually works
                 const condition = component.output.if
                 const context = { ...argv, ...globalVariables }
 
@@ -241,14 +241,14 @@ export default async function convertComponentToYargsHandler(
                 )(...Object.values(context))
 
                 if (evaluatedCondition) {
-                    await convertComponentToYargsHandler(
+                    await componentsToYargsHandler(
                         [component.output.then],
                         argv,
                         localEcho,
                         globalVariables
                     )
                 } else if (component.output.else) {
-                    await convertComponentToYargsHandler(
+                    await componentsToYargsHandler(
                         [component.output.else],
                         argv,
                         localEcho,
@@ -258,7 +258,6 @@ export default async function convertComponentToYargsHandler(
                 break
 
             case "variable":
-                // TODO: We need to check this actually works
                 for (var variableName in component.output) {
                     if (variableName in globalVariables) {
                         globalVariables[variableName] =
@@ -314,6 +313,7 @@ export default async function convertComponentToYargsHandler(
                     type: "confirm",
                     name: component.name,
                     message: component.message,
+                    initial: component.initial ? component.initial : false,
                 })
 
                 globalVariables[component.name] = confirm[component.name]

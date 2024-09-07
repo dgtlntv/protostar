@@ -2,10 +2,10 @@
     "$schema": "./commands-schema.json",
     "welcome": "Welcome to the Enhanced CLI Prototype!\nType 'help' to get a list of all available commands.\n",
     "variables": {
-        "test": "test"
+        "test": "123"
     },
     "commands": {
-        "hello <name> [day]": {
+        "hello [day]": {
             "describe": "Prints a greeting",
             "alias": ["hi", "wassup"],
             "example": [
@@ -13,11 +13,6 @@
                 "Will print a hello message in all uppercase to max on a monday."
             ],
             "positional": {
-                "name": {
-                    "describe": "The name to give a greeting to.",
-                    "type": "string",
-                    "default": "Max"
-                },
                 "day": {
                     "describe": "The day of the week to give a greeting on.",
                     "type": "string",
@@ -43,37 +38,27 @@
             },
             "handler": [
                 {
-                    "component": "autoComplete",
+                    "component": "form",
+                    "message": "Bruh moment",
                     "name": "flavor",
-                    "message": "Pick your favorite flavor",
-                    "limit": 10,
-                    "initial": 2,
                     "choices": [
-                        "Almond",
-                        "Apple",
-                        "Banana",
-                        "Blackberry",
-                        "Blueberry",
-                        "Cherry",
-                        "Chocolate",
-                        "Cinnamon",
-                        "Coconut",
-                        "Cranberry",
-                        "Grape",
-                        "Nougat",
-                        "Orange",
-                        "Pear",
-                        "Pineapple",
-                        "Raspberry",
-                        "Strawberry",
-                        "Vanilla",
-                        "Watermelon",
-                        "Wintergreen"
+                        { "name": "bruh", "message": "moment" },
+                        { "name": "123", "message": "123" }
                     ]
                 },
                 {
                     "component": "text",
-                    "output": "{{flavor}}"
+                    "output": "{{flavor.bruh}} is my fav flavor i also like {{test}}"
+                },
+                {
+                    "component": "conditional",
+                    "output": {
+                        "if": "flavor.bruh === 'topkek'",
+                        "then": {
+                            "component": "text",
+                            "output": "It was topkek xDD"
+                        }
+                    }
                 }
             ]
         }

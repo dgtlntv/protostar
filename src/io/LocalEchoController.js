@@ -15,7 +15,6 @@
 import EventEmitter from "eventemitter3"
 import ansiRegex from "ansi-regex"
 import ansiEscapes from "ansi-escapes"
-import monkeyPatchStdout from "../shims/monkeyPatchStdout"
 import { HistoryController } from "./HistoryController"
 import {
     closestLeftBoundary,
@@ -91,13 +90,8 @@ export default class LocalEchoController extends EventEmitter {
      *  Detach the controller from the terminal
      */
     detach() {
-        if (this.term.off) {
-            this.term.off("data", this._handleTermData)
-            this.term.off("resize", this._handleTermResize)
-        } else {
-            this._disposables.forEach((d) => d.dispose())
-            this._disposables = []
-        }
+        this._disposables.forEach((d) => d.dispose())
+        this._disposables = []
 
         this.emit("pause")
     }
@@ -106,20 +100,15 @@ export default class LocalEchoController extends EventEmitter {
      * Attach controller to the terminal, handling events
      */
     attach() {
-        if (this.term.on) {
-            this.term.on("data", this._handleTermData)
-            this.term.on("resize", this._handleTermResize)
-        } else {
-            this._disposables.push(this.term.onData(this._handleTermData))
-            this._disposables.push(this.term.onResize(this._handleTermResize))
-        }
+        this._disposables.push(this.term.onData(this._handleTermData))
+        this._disposables.push(this.term.onResize(this._handleTermResize))
+
         this._termSize = {
             cols: this.term.cols,
             rows: this.term.rows,
         }
 
         this.emit("resume")
-        monkeyPatchStdout()
     }
 
     /**
@@ -252,9 +241,8 @@ export default class LocalEchoController extends EventEmitter {
      * Apply prompts to the given input
      */
     applyPrompts(input) {
-        const prompt = (this._activePrompt || {}).prompt || ""
-        const continuationPrompt =
-            (this._activePrompt || {}).continuationPrompt || ""
+        const prompt = this?._activePrompt?.prompt || ""
+        const continuationPrompt = this?._activePrompt?.continuationPrompt || ""
 
         return prompt + input.replace(/\n/g, "\n" + continuationPrompt)
     }
@@ -317,6 +305,7 @@ export default class LocalEchoController extends EventEmitter {
 
         // Write the new input lines, including the current prompt
         const newPrompt = this.applyPrompts(newInput)
+
         this.print(newPrompt)
 
         // Trim cursor overflow
@@ -327,17 +316,20 @@ export default class LocalEchoController extends EventEmitter {
         // Move the cursor to the appropriate row/col
         const newCursor = this.applyPromptOffset(newInput, this._cursor)
         const newLines = countLines(newPrompt, this._termSize.cols)
+
         const { col, row } = offsetToColRow(
             newPrompt,
             newCursor,
             this._termSize.cols
         )
+
         const moveUpRows = newLines - row - 1
 
         this.term.write(ansiEscapes.cursorLeft)
         for (var i = 0; i < moveUpRows; ++i)
             this.term.write(ansiEscapes.cursorPrevLine)
-        this.term.write(ansiEscapes.cursorForward(col))
+
+        if (col !== 0) this.term.write(ansiEscapes.cursorForward(col))
 
         // Replace input
         this._input = newInput
@@ -465,90 +457,6 @@ export default class LocalEchoController extends EventEmitter {
     }
 
     /**
-     * Move cursor up a specific amount of rows
-     */
-    cursorUp(count = 1) {
-        this.term.write(ansiEscapes.cursorUp(count))
-    }
-
-    /**
-     * Move cursor down a specific amount of rows
-     */
-    cursorDown(count = 1) {
-        this.term.write(ansiEscapes.cursorDown(count))
-    }
-
-    /**
-     * Move cursor forward a specific amount of columns
-     */
-    cursorForward(count = 1) {
-        this.term.write(ansiEscapes.cursorForward(count))
-    }
-
-    /**
-     * Move cursor backward a specific amount of columns
-     */
-    cursorBackward(count = 1) {
-        this.term.write(ansiEscapes.cursorBackward(count))
-    }
-
-    /**
-     * Move cursor to the left side
-     */
-    cursorLeft() {
-        this.term.write(ansiEscapes.cursorLeft)
-    }
-
-    /**
-     * Save cursor position + settings
-     */
-    cursorSavePosition() {
-        this.term.write(ansiEscapes.cursorSavePosition)
-    }
-
-    /**
-     * Restore last cursor position + settings
-     */
-    cursorRestorePosition() {
-        this.term.write(ansiEscapes.cursorRestorePosition)
-    }
-
-    /**
-     * Get cursor position.
-     */
-    cursorGetPosition() {
-        this.term.write(ansiEscapes.cursorRestorePosition)
-    }
-
-    /**
-     * Move cursor to the next line
-     */
-    cursorNextLine() {
-        this.term.write(ansiEscapes.cursorNextLine)
-    }
-
-    /**
-     * Move cursor to the previous line
-     */
-    cursorPrevLine() {
-        this.term.write(ansiEscapes.cursorPrevLine)
-    }
-
-    /**
-     * Hide the cursor
-     */
-    cursorHide() {
-        this.term.write(ansiEscapes.cursorHide)
-    }
-
-    /**
-     * Show the cursor
-     */
-    cursorShow() {
-        this.term.write(ansiEscapes.cursorShow)
-    }
-
-    /**
      * Erase a character at cursor location
      */
     handleCursorErase(backspace) {
@@ -565,101 +473,6 @@ export default class LocalEchoController extends EventEmitter {
                 _input.substr(0, _cursor) + _input.substr(_cursor + 1)
             this.setInput(newInput)
         }
-    }
-
-    /**
-     * Erase from the current cursor position up the specified amount of rows.
-     */
-    clearLines(count) {
-        this.term.write(ansiEscapes.eraseLines(count))
-    }
-
-    /**
-     * Erase from the current cursor position to the end of the current line
-     */
-    clearEndLine() {
-        this.term.write(ansiEscapes.eraseEndLine)
-    }
-
-    /**
-     * Erase from the current cursor position to the start of the current line
-     */
-    clearStartLine() {
-        this.term.write(ansiEscapes.eraseStartLine)
-    }
-
-    /**
-     * Erase the entire current line
-     */
-    clearLine(direction = 0) {
-        switch (direction) {
-            case -1:
-                this.term.write(ansiEscapes.eraseStartLine)
-                break
-            case 1:
-                this.term.write(ansiEscapes.eraseEndLine)
-                break
-            case 0:
-            default:
-                this.term.write(ansiEscapes.eraseLine)
-                break
-        }
-    }
-
-    /**
-     * Erase the screen from the current line down to the bottom of the screen
-     */
-    clearScreenDown() {
-        this.term.write(ansiEscapes.eraseDown)
-    }
-
-    /**
-     * Erase the screen from the current line up to the top of the screen
-     */
-    clearScreenUp() {
-        this.term.write(ansiEscapes.eraseUp)
-    }
-
-    /**
-     * Erase the screen and move the cursor the top left position
-     */
-    eraseScreen() {
-        this.term.write(ansiEscapes.eraseScreen)
-    }
-
-    /**
-     * Scroll display up one line
-     */
-    scrollUp() {
-        this.term.write(ansiEscapes.scrollUp)
-    }
-
-    /**
-     * Scroll display down one line
-     */
-    scrollDown() {
-        this.term.write(ansiEscapes.scrollDown)
-    }
-
-    /**
-     * Clear the terminal screen. (Viewport)
-     */
-    clearScreen() {
-        this.term.write(ansiEscapes.clearScreen)
-    }
-
-    /**
-     * Output a beeping sound
-     */
-    beep() {
-        this.term.write(ansiEscapes.beep)
-    }
-
-    /**
-     * Create a clickable link.
-     */
-    link(text, url) {
-        return ansiEscapes.link(text, url)
     }
 
     /**
@@ -779,7 +592,7 @@ export default class LocalEchoController extends EventEmitter {
     handleActiveInput(data, key) {
         let ofs
 
-        switch (key.name) {
+        switch (key?.name) {
             case "up":
                 if (this.history) {
                     let value = this.history.getPrevious()
@@ -938,5 +751,188 @@ export default class LocalEchoController extends EventEmitter {
                 this.handleCursorInsert(data)
                 break
         }
+    }
+
+    /////////////////////////////////////////////////////////////////////////////
+    // ANSI Escape commands
+    /////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * Move cursor up a specific amount of rows
+     */
+    cursorUp(count = 1) {
+        this.term.write(ansiEscapes.cursorUp(count))
+    }
+
+    /**
+     * Move cursor down a specific amount of rows
+     */
+    cursorDown(count = 1) {
+        this.term.write(ansiEscapes.cursorDown(count))
+    }
+
+    /**
+     * Move cursor forward a specific amount of columns
+     */
+    cursorForward(count = 1) {
+        this.term.write(ansiEscapes.cursorForward(count))
+    }
+
+    /**
+     * Move cursor backward a specific amount of columns
+     */
+    cursorBackward(count = 1) {
+        this.term.write(ansiEscapes.cursorBackward(count))
+    }
+
+    /**
+     * Move cursor to the left side
+     */
+    cursorLeft() {
+        this.term.write(ansiEscapes.cursorLeft)
+    }
+
+    /**
+     * Save cursor position + settings
+     */
+    cursorSavePosition() {
+        this.term.write(ansiEscapes.cursorSavePosition)
+    }
+
+    /**
+     * Restore last cursor position + settings
+     */
+    cursorRestorePosition() {
+        this.term.write(ansiEscapes.cursorRestorePosition)
+    }
+
+    /**
+     * Get cursor position.
+     */
+    cursorGetPosition() {
+        this.term.write(ansiEscapes.cursorRestorePosition)
+    }
+
+    /**
+     * Move cursor to the next line
+     */
+    cursorNextLine() {
+        this.term.write(ansiEscapes.cursorNextLine)
+    }
+
+    /**
+     * Move cursor to the previous line
+     */
+    cursorPrevLine() {
+        this.term.write(ansiEscapes.cursorPrevLine)
+    }
+
+    /**
+     * Hide the cursor
+     */
+    cursorHide() {
+        this.term.write(ansiEscapes.cursorHide)
+    }
+
+    /**
+     * Show the cursor
+     */
+    cursorShow() {
+        this.term.write(ansiEscapes.cursorShow)
+    }
+
+    /**
+     * Erase from the current cursor position up the specified amount of rows.
+     */
+    clearLines(count) {
+        this.term.write(ansiEscapes.eraseLines(count))
+    }
+
+    /**
+     * Erase from the current cursor position to the end of the current line
+     */
+    clearEndLine() {
+        this.term.write(ansiEscapes.eraseEndLine)
+    }
+
+    /**
+     * Erase from the current cursor position to the start of the current line
+     */
+    clearStartLine() {
+        this.term.write(ansiEscapes.eraseStartLine)
+    }
+
+    /**
+     * Erase the entire current line
+     */
+    clearLine(direction = 0) {
+        switch (direction) {
+            case -1:
+                this.term.write(ansiEscapes.eraseStartLine)
+                break
+            case 1:
+                this.term.write(ansiEscapes.eraseEndLine)
+                break
+            case 0:
+            default:
+                this.term.write(ansiEscapes.eraseLine)
+                break
+        }
+    }
+
+    /**
+     * Erase the screen from the current line down to the bottom of the screen
+     */
+    clearScreenDown() {
+        this.term.write(ansiEscapes.eraseDown)
+    }
+
+    /**
+     * Erase the screen from the current line up to the top of the screen
+     */
+    clearScreenUp() {
+        this.term.write(ansiEscapes.eraseUp)
+    }
+
+    /**
+     * Erase the screen and move the cursor the top left position
+     */
+    eraseScreen() {
+        this.term.write(ansiEscapes.eraseScreen)
+    }
+
+    /**
+     * Scroll display up one line
+     */
+    scrollUp() {
+        this.term.write(ansiEscapes.scrollUp)
+    }
+
+    /**
+     * Scroll display down one line
+     */
+    scrollDown() {
+        this.term.write(ansiEscapes.scrollDown)
+    }
+
+    /**
+     * Clear the terminal screen. (Viewport)
+     */
+    clearScreen() {
+        this.term.write(ansiEscapes.clearScreen)
+    }
+
+    /**
+     * Output a beeping sound
+     */
+    beep() {
+        this.term.write(ansiEscapes.beep)
+    }
+
+    /**
+     * Create a clickable link.
+     */
+    link(text, url) {
+        return ansiEscapes.link(text, url)
     }
 }

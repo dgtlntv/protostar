@@ -483,6 +483,10 @@
                 "message": {
                     "type": "string",
                     "description": "Question to be confirmed or denied"
+                },
+                "initial": {
+                    "type": "boolean",
+                    "description": "Set whether the initial value is true or false."
                 }
             },
             "additionalProperties": false,
