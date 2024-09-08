@@ -274,7 +274,11 @@ export default async function componentsToYargsHandler(
                 const autoComplete = await prompt({
                     type: "AutoComplete",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     limit: component.limit ? component.limit : 5,
                     initial: component.initial ? component.initial : 0,
                     choices: component.choices,
@@ -296,7 +300,11 @@ export default async function componentsToYargsHandler(
                 const basicAuth = await prompt({
                     type: "BasicAuth",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     username: component.username,
                     password: component.password,
                     showPassword: component.showPassword
@@ -312,7 +320,11 @@ export default async function componentsToYargsHandler(
                 const confirm = await prompt({
                     type: "confirm",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     initial: component.initial ? component.initial : false,
                 })
 
@@ -324,7 +336,11 @@ export default async function componentsToYargsHandler(
                 const form = await prompt({
                     type: "form",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     choices: component.choices,
                 })
 
@@ -336,7 +352,11 @@ export default async function componentsToYargsHandler(
                 const input = await prompt({
                     type: "input",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     initial: component.initial ? component.initial : "",
                 })
 
@@ -345,10 +365,16 @@ export default async function componentsToYargsHandler(
                 break
 
             case "invisible":
+                // TODO: Known bug. When typing certain characters like "ö" the cursor will move to the left
+                // into the prompt where it shouldnt be "allowed" to be.
                 const invisible = await prompt({
                     type: "invisible",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                 })
 
                 globalVariables[component.name] = invisible[component.name]
@@ -359,7 +385,11 @@ export default async function componentsToYargsHandler(
                 const list = await prompt({
                     type: "list",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                 })
 
                 globalVariables[component.name] = list[component.name]
@@ -370,7 +400,11 @@ export default async function componentsToYargsHandler(
                 const multiSelect = await prompt({
                     type: "MultiSelect",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     limit: component.limit ? component.limit : 5,
                     choices: component.choices,
                 })
@@ -383,7 +417,11 @@ export default async function componentsToYargsHandler(
                 const number = await prompt({
                     type: "number",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                 })
 
                 globalVariables[component.name] = number[component.name]
@@ -394,7 +432,11 @@ export default async function componentsToYargsHandler(
                 const password = await prompt({
                     type: "password",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                 })
 
                 globalVariables[component.name] = password[component.name]
@@ -405,7 +447,11 @@ export default async function componentsToYargsHandler(
                 const quiz = await prompt({
                     type: "quiz",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     choices: component.choices,
                     correctChoice: component.correctChoice,
                 })
@@ -418,7 +464,11 @@ export default async function componentsToYargsHandler(
                 const survey = await prompt({
                     type: "survey",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     scale: component.scale,
                     margin: [0, 0, 2, 1],
                     choices: component.choices,
@@ -432,7 +482,11 @@ export default async function componentsToYargsHandler(
                 const scale = await prompt({
                     type: "scale",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     scale: component.scale,
                     margin: [0, 0, 2, 1],
                     choices: component.choices,
@@ -446,7 +500,11 @@ export default async function componentsToYargsHandler(
                 const select = await prompt({
                     type: "select",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     choices: component.choices,
                 })
 
@@ -458,7 +516,11 @@ export default async function componentsToYargsHandler(
                 const sort = await prompt({
                     type: "sort",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     choices: component.choices,
                 })
 
@@ -470,10 +532,18 @@ export default async function componentsToYargsHandler(
                 const snippet = await prompt({
                     type: "snippet",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     required: true,
                     fields: component.fields,
-                    template: component.template,
+                    template: JSON.stringify(
+                        JSON.parse(component.template.replaceAll("\\n", "\n")),
+                        null,
+                        2
+                    ),
                 })
 
                 globalVariables[component.name] = snippet[component.name]
@@ -484,7 +554,11 @@ export default async function componentsToYargsHandler(
                 const toggle = await prompt({
                     type: "toggle",
                     name: component.name,
-                    message: component.message,
+                    message: interpolateVariables(
+                        component.message,
+                        argv,
+                        globalVariables
+                    ),
                     enabled: component.enabled,
                     disabled: component.disabled,
                 })

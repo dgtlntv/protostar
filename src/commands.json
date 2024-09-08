@@ -38,27 +38,15 @@
             },
             "handler": [
                 {
-                    "component": "form",
+                    "component": "toggle",
                     "message": "Bruh moment",
                     "name": "flavor",
-                    "choices": [
-                        { "name": "bruh", "message": "moment" },
-                        { "name": "123", "message": "123" }
-                    ]
+                    "enabled": "Top",
+                    "disabled": "kek"
                 },
                 {
                     "component": "text",
-                    "output": "{{flavor.bruh}} is my fav flavor i also like {{test}}"
-                },
-                {
-                    "component": "conditional",
-                    "output": {
-                        "if": "flavor.bruh === 'topkek'",
-                        "then": {
-                            "component": "text",
-                            "output": "It was topkek xDD"
-                        }
-                    }
+                    "output": "{{flavor}} is my fav flavor i also like {{nothing}}"
                 }
             ]
         }
