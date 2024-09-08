@@ -58,6 +58,8 @@ class Interface {
 }
 
 function createInterface(options) {
+    console.log("bruh")
+
     return new Interface(options)
 }
 
@@ -81,7 +83,7 @@ function emitKeypressEvents(stream, rlinterface) {
     // empty function since the KeypressEvent is already enabled
 }
 
-module.exports = {
+export {
     Interface,
     createInterface,
     clearLine,
