@@ -1,255 +1,53 @@
 {
-    "welcome": {
-        "message": "Welcome to the Enhanced CLI Prototype!\nType 'help' to get a list of all available commands.\n",
-        "color": "green"
-    },
-    "globalVariables": {
-        "username": "",
-        "isLoggedIn": "false",
-        "currentProject": ""
+    "$schema": "./commands-schema.json",
+    "welcome": "Welcome to the Enhanced CLI Prototype!\nType 'help' to get a list of all available commands.\n",
+    "variables": {
+        "test": "123"
     },
     "commands": {
-        "hello": {
-            "description": "Prints a greeting",
-            "color": "green",
-            "flags": {
-                "--name": {
-                    "description": "Specify a name for a personalized greeting",
+        "hello [day]": {
+            "describe": "Prints a greeting",
+            "alias": ["hi", "wassup"],
+            "example": [
+                "hello max monday --uppercase",
+                "Will print a hello message in all uppercase to max on a monday."
+            ],
+            "positional": {
+                "day": {
+                    "describe": "The day of the week to give a greeting on.",
                     "type": "string",
-                    "aliases": ["-n"],
-                    "required": true
-                },
-                "--uppercase": {
-                    "description": "Print the greeting in uppercase",
+                    "choices": [
+                        "monday",
+                        "tuesday",
+                        "wednesday",
+                        "thursday",
+                        "friday",
+                        "saturday",
+                        "sunday"
+                    ]
+                }
+            },
+            "options": {
+                "uppercase": {
+                    "alias": "u",
+                    "demandOption": true,
+                    "describe": "Print everything in uppercase.",
                     "type": "boolean",
-                    "aliases": ["-u"]
+                    "default": "false"
                 }
             },
-            "action": [
+            "handler": [
                 {
-                    "if": "flags['--name']",
-                    "then": "Hello, {{flags['--name']}}{{flags['--uppercase'] ? '!' : '.'}}",
-                    "else": "Hello, world{{flags['--uppercase'] ? '!' : '.'}}"
+                    "component": "toggle",
+                    "message": "Bruh moment",
+                    "name": "flavor",
+                    "enabled": "Top",
+                    "disabled": "kek"
                 },
                 {
-                    "if": "flags['--uppercase']",
-                    "then": {
-                        "text": "WELCOME TO THE TERMINAL!",
-                        "color": "green"
-                    },
-                    "else": "Welcome to the terminal."
+                    "component": "text",
+                    "output": "{{flavor}} is my fav flavor i also like {{nothing}}"
                 }
-            ]
-        },
-        "git": {
-            "description": "Version control system",
-            "subcommands": {
-                "commit": {
-                    "description": "Record changes to the repository",
-                    "action": [
-                        {
-                            "if": "flags['--message']",
-                            "then": "Changes commited successfully: {{flags['--message']}}.",
-                            "else": "Changes commited successfully."
-                        }
-                    ],
-                    "flags": {
-                        "--message": {
-                            "description": "Commit message",
-                            "aliases": ["-m"],
-                            "type": "string"
-                        }
-                    }
-                },
-                "push": {
-                    "description": "Update remote refs along with associated objects",
-                    "action": "Changes pushed to remote repository."
-                }
-            }
-        },
-        "echo": {
-            "description": "Display a line of text",
-            "args": [
-                {
-                    "name": "text",
-                    "description": "The text to display"
-                }
-            ],
-            "action": "{{args[0]}}"
-        },
-        "login": {
-            "description": "Log in to the system",
-            "prompts": [
-                {
-                    "name": "username",
-                    "message": "Enter your username:"
-                },
-                {
-                    "name": "password",
-                    "message": "Enter your password:",
-                    "hidden": true
-                }
-            ],
-            "action": [
-                {
-                    "setVariable": "username",
-                    "value": "{{prompt.username}}"
-                },
-                {
-                    "setVariable": "isLoggedIn",
-                    "value": "true"
-                },
-                "Welcome, {{globalVariables.username}}! You are now logged in."
-            ]
-        },
-        "logout": {
-            "description": "Log out from the system",
-            "action": [
-                {
-                    "if": "globalVariables.isLoggedIn === 'true'",
-                    "then": [
-                        {
-                            "setVariable": "username",
-                            "value": ""
-                        },
-                        {
-                            "setVariable": "isLoggedIn",
-                            "value": "false"
-                        },
-                        "You have been logged out."
-                    ],
-                    "else": "You are not currently logged in."
-                }
-            ]
-        },
-        "start-project": {
-            "description": "Start a new project",
-            "args": [
-                {
-                    "name": "projectName",
-                    "description": "The name of the project to start"
-                }
-            ],
-            "action": [
-                {
-                    "if": "globalVariables.isLoggedIn === 'true'",
-                    "then": [
-                        {
-                            "setVariable": "currentProject",
-                            "value": "{{args[0]}}"
-                        },
-                        "Started project: {{globalVariables.currentProject}}"
-                    ],
-                    "else": "You need to be logged in to start a project."
-                }
-            ]
-        },
-        "project-info": {
-            "description": "Show current project information",
-            "action": [
-                {
-                    "if": "globalVariables.currentProject",
-                    "then": "Current project: {{globalVariables.currentProject}}",
-                    "else": "No project is currently active."
-                }
-            ]
-        },
-        "deploy": {
-            "description": "Deploy the application",
-            "flags": {
-                "--environment": {
-                    "description": "Deployment environment",
-                    "required": true,
-                    "type": "string",
-                    "aliases": ["-e"]
-                }
-            },
-            "action": [
-                {
-                    "if": "flags['--environment'] === 'production'",
-                    "then": "Deploying to production...",
-                    "else": "Deploying to {{flags['--environment']}}..."
-                }
-            ]
-        },
-        "list": {
-            "description": "List files and directories",
-            "aliases": ["ls", "dir"],
-            "action": "Listing files and directories..."
-        },
-        "status": {
-            "description": "Show system status",
-            "action": [
-                "You have the following system status:",
-                {
-                    "data": [
-                        ["cpu", "memory", "disk"],
-                        ["25%", "4GB", "120GB"],
-                        ["25%", "4GB", "120GB"],
-                        ["25%", "4GB", "120GB"],
-                        ["25%", "412312312GB", "120GB"]
-                    ],
-                    "format": "table"
-                }
-            ]
-        },
-        "setup": {
-            "description": "Set up the development environment",
-            "action": [
-                {
-                    "type": "spinner",
-                    "text": "Installing dependencies...",
-                    "duration": 5000
-                },
-                "Dependencies installed.",
-                {
-                    "text": "Configuring settings...",
-                    "delay": 1000
-                },
-                "Setup complete!"
-            ]
-        },
-        "build": {
-            "description": "Build the project",
-            "action": [
-                {
-                    "text": "Compiling source files...",
-                    "delay": 2000
-                },
-                {
-                    "text": "Optimizing...",
-                    "delay": 1500
-                },
-                {
-                    "text": "Generating output...",
-                    "delay": 1000
-                },
-                {
-                    "text": "Build complete!",
-                    "delay": 500
-                }
-            ]
-        },
-        "download": {
-            "description": "Download a large file",
-            "action": [
-                {
-                    "type": "progressBar",
-                    "text": "Downloading:",
-                    "duration": 5000
-                },
-                "Download complete!"
-            ]
-        },
-        "process": {
-            "description": "Process data",
-            "action": [
-                {
-                    "type": "spinner",
-                    "texts": ["Processing data", "Processing more data", "Processing EVEN MORE DATA"],
-                    "duration": 4000
-                },
-                "Processing complete!"
             ]
         }
     }

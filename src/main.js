@@ -1,5 +1,7 @@
-import { initializeTerminal } from "./components/Terminal.js"
+import App from "./App.js"
 import "./styles.css"
 import "xterm/css/xterm.css"
 
-document.addEventListener("DOMContentLoaded", initializeTerminal)
+document.addEventListener("DOMContentLoaded", () => {
+    App()
+})
