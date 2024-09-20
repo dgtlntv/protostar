@@ -336,9 +336,11 @@ Or an array of components:
 
 The following section explains each available component more in depth:
 
-#### Components
+## Components
 
-**Text**
+A component corresponds to something that can happen as a reaction to a command. Multiple components can be linked together to happen in sequence. See the handler documentation.
+
+### Text
 
 The simplest of the components is the text component. It simply prints text to the terminal, while optionally waiting for some time after printing the text to the terminal.
 
@@ -369,7 +371,7 @@ The simplest of the components is the text component. It simply prints text to t
 
 ---
 
-**Progress bar**
+### Progress bar
 
 The progress bar component renders a progress bar in the terminal, showing a task's completion over time.
 
@@ -394,7 +396,7 @@ The progress bar component renders a progress bar in the terminal, showing a tas
 
 ---
 
-**Spinner**
+### Spinner
 
 The spinner component displays an animated spinner in the terminal, indicating that a process is ongoing.
 
@@ -421,7 +423,7 @@ The spinner component displays an animated spinner in the terminal, indicating t
 
 ---
 
-**Table**
+### Table
 
 The table component renders a formatted table in the terminal.
 
@@ -450,7 +452,7 @@ The table component renders a formatted table in the terminal.
 
 ---
 
-**Conditional**
+### Conditional
 
 The conditional component allows for branching logic based on a condition.
 
@@ -468,30 +470,30 @@ The output object should contain the following fields.
 
 ```json
 {
-    "commands": {
-        "check": {
-            "handler": {
-                "component": "conditional",
-                "output": {
-                    "if": "isLoggedIn == true",
-                    "then": {
-                        "component": "text",
-                        "output": "Welcome back!"
-                    },
-                    "else": {
-                        "component": "text",
-                        "output": "Please log in first."
-                    }
-                }
-            }
-        }
-    }
+"commands": {
+	"check": {
+		"handler": {
+			"component": "conditional",
+			"output": {
+				"if": "isLoggedIn == true",
+				"then": {
+					"component": "text",
+					"output": "Welcome back!"
+				},
+				"else": {
+					"component": "text",
+					"output": "Please log in first."
+				}
+			}
+
+		}
+	}
 }
 ```
 
 ---
 
-**Variable**
+### Variable
 
 The variable component allows setting global variables that can be used across commands. For the setting of the variable to be succesfull it needs to be initialized as a global variable in the CLIs global variables.
 
@@ -517,7 +519,7 @@ The variable component allows setting global variables that can be used across c
 
 ---
 
-**AutoComplete**
+### AutoComplete
 
 The autoComplete component provides a prompt that auto-completes as the user types.
 
@@ -550,7 +552,7 @@ The autoComplete component provides a prompt that auto-completes as the user typ
 
 ---
 
-**BasicAuth**
+### BasicAuth
 
 The basicAuth component prompts for username and password authentication.
 
@@ -581,7 +583,7 @@ The basicAuth component prompts for username and password authentication.
 
 ---
 
-**Confirm**
+### Confirm
 
 The confirm component prompts to confirm or deny a statement.
 
@@ -608,7 +610,7 @@ The confirm component prompts to confirm or deny a statement.
 
 ---
 
-**Form**
+### Form
 
 The form component prompts for multiple values on a single terminal screen.
 
@@ -653,7 +655,7 @@ Each choice in the choices array should have the following properties:
 
 ---
 
-**Input**
+### Input
 
 The input component prompts for user input.
 
@@ -680,7 +682,7 @@ The input component prompts for user input.
 
 ---
 
-**Invisible**
+### Invisible
 
 The invisible component prompts for user input, hiding it from the terminal.
 
@@ -705,7 +707,7 @@ The invisible component prompts for user input, hiding it from the terminal.
 
 ---
 
-**List**
+### List
 
 The list component prompts for a list of values, created by splitting user input.
 
@@ -730,7 +732,7 @@ The list component prompts for a list of values, created by splitting user input
 
 ---
 
-**MultiSelect**
+### MultiSelect
 
 The multiSelect component allows selection of multiple items from a list of options.
 
@@ -770,7 +772,7 @@ Each choice in the choices array should have the following properties:
 
 ---
 
-**Number**
+### Number
 
 The number component prompts for a numeric input.
 
@@ -795,7 +797,7 @@ The number component prompts for a numeric input.
 
 ---
 
-**Password**
+### Password
 
 The password component prompts for a password, masking the input in the terminal.
 
@@ -820,7 +822,7 @@ The password component prompts for a password, masking the input in the terminal
 
 ---
 
-**Quiz**
+### Quiz
 
 The quiz component presents multiple-choice quiz questions.
 
@@ -849,7 +851,7 @@ The quiz component presents multiple-choice quiz questions.
 
 ---
 
-**Survey**
+### Survey
 
 The survey component prompts for user feedback on a list of questions using a defined scale.
 
@@ -905,7 +907,7 @@ Each item in the choices array should have:
 
 ---
 
-**Scale**
+### Scale
 
 The scale component is a compact version of the Survey prompt, using a Likert Scale for quick feedback.
 
@@ -960,7 +962,7 @@ Each item in the choices array should have:
 
 ---
 
-**Select**
+### Select
 
 The select component prompts for selecting from a list of options.
 
@@ -998,7 +1000,7 @@ The choices can be either an array of strings or an array of objects with name a
 
 ---
 
-**Sort**
+### Sort
 
 The sort component prompts for sorting items in a list.
 
@@ -1030,7 +1032,7 @@ The sort component prompts for sorting items in a list.
 
 ---
 
-**Snippet**
+### Snippet
 
 The snippet component prompts for replacing placeholders in a snippet of code or text.
 
@@ -1079,7 +1081,7 @@ Each item in the fields array should have:
 
 ---
 
-**Toggle**
+### Toggle
 
 The toggle component prompts for toggling between two values.
 
