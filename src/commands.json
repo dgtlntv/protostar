@@ -5,7 +5,7 @@
         "test": "123"
     },
     "commands": {
-        "hello [day]": {
+        "example": {
             "describe": "Prints a greeting",
             "alias": ["hi", "wassup"],
             "example": [
@@ -38,15 +38,14 @@
             },
             "handler": [
                 {
-                    "component": "toggle",
-                    "message": "Bruh moment",
-                    "name": "flavor",
-                    "enabled": "Top",
-                    "disabled": "kek"
-                },
-                {
-                    "component": "text",
-                    "output": "{{flavor}} is my fav flavor i also like {{nothing}}"
+                    "component": "snippet",
+                    "name": "package",
+                    "message": "Fill out the fields in package.json",
+                    "fields": [
+                        { "name": "functionName", "message": "Function name:" },
+                        { "name": "paramName", "message": "Parameter name:" }
+                    ],
+                    "template": "{\n  \"name\": \"${name}\",\n  \"description\": \"${description}\",\n  \"version\": \"${version}\",\n  \"homepage\": \"https://github.com/${username}/${name}\",\n  \"author\": \"${author_name} (https://github.com/${username})\",\n  \"repository\": \"${username}/${name}\",\n  \"license\": \"${license:ISC}\"\n}\n"
                 }
             ]
         }

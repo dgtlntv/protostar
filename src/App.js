@@ -8,6 +8,7 @@ import initializeYargs from "./io/yargs/initializeYargs.js"
 // GENERAL TODOs
 // 1. Write tests
 // 2. Somehow reduce flickering when typing
+// 3. Write the welcome message if available
 
 export default function App() {
     const term = new Terminal({

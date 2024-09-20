@@ -206,7 +206,7 @@
                 },
                 "defaultDescription": {
                     "type": "string",
-                    "description": "A description of the default value, useful when the default value is computed"
+                    "description": "A description of the default value."
                 },
                 "demandOption": {
                     "oneOf": [
