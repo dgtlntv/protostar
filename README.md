@@ -336,7 +336,7 @@ Or an array of components:
 
 The following section explains each available component more in depth:
 
-###### Components
+#### Components
 
 **Text**
 
