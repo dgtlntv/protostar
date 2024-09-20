@@ -339,6 +339,7 @@ The following section explains each available component more in depth:
 ###### Components
 
 **Text**
+
 The simplest of the components is the text component. It simply prints text to the terminal, while optionally waiting for some time after printing the text to the terminal.
 
 | field    | required/optional | Description                                                                                                                                                         |
@@ -369,6 +370,7 @@ The simplest of the components is the text component. It simply prints text to t
 ---
 
 **Progress bar**
+
 The progress bar component renders a progress bar in the terminal, showing a task's completion over time.
 
 | field    | required/optional | Description                                                                                                                                       |
@@ -393,6 +395,7 @@ The progress bar component renders a progress bar in the terminal, showing a tas
 ---
 
 **Spinner**
+
 The spinner component displays an animated spinner in the terminal, indicating that a process is ongoing.
 
 | field      | required/optional | Description                                                                                                                                       |
@@ -419,6 +422,7 @@ The spinner component displays an animated spinner in the terminal, indicating t
 ---
 
 **Table**
+
 The table component renders a formatted table in the terminal.
 
 | field     | required/optional | Description                                                                                                                                                         |
@@ -447,6 +451,7 @@ The table component renders a formatted table in the terminal.
 ---
 
 **Conditional**
+
 The conditional component allows for branching logic based on a condition.
 
 | field  | required/optional | Description                                                     |
@@ -463,30 +468,31 @@ The output object should contain the following fields.
 
 ```json
 {
-"commands": {
-	"check": {
-		"handler": {
-			"component": "conditional",
-			"output": {
-				"if": "isLoggedIn == true",
-				"then": {
-					"component": "text",
-					"output": "Welcome back!"
-				},
-				"else": {
-					"component": "text",
-					"output": "Please log in first."
-				}
-			}
-
-		}
-	}
+    "commands": {
+        "check": {
+            "handler": {
+                "component": "conditional",
+                "output": {
+                    "if": "isLoggedIn == true",
+                    "then": {
+                        "component": "text",
+                        "output": "Welcome back!"
+                    },
+                    "else": {
+                        "component": "text",
+                        "output": "Please log in first."
+                    }
+                }
+            }
+        }
+    }
 }
 ```
 
 ---
 
 **Variable**
+
 The variable component allows setting global variables that can be used across commands. For the setting of the variable to be succesfull it needs to be initialized as a global variable in the CLIs global variables.
 
 | field  | required/optional | Description                                                    |
@@ -512,6 +518,7 @@ The variable component allows setting global variables that can be used across c
 ---
 
 **AutoComplete**
+
 The autoComplete component provides a prompt that auto-completes as the user types.
 
 | field    | required/optional | Description                                                |
@@ -544,6 +551,7 @@ The autoComplete component provides a prompt that auto-completes as the user typ
 ---
 
 **BasicAuth**
+
 The basicAuth component prompts for username and password authentication.
 
 | field        | required/optional | Description                                        |
@@ -574,6 +582,7 @@ The basicAuth component prompts for username and password authentication.
 ---
 
 **Confirm**
+
 The confirm component prompts to confirm or deny a statement.
 
 | field   | required/optional | Description                                    |
@@ -600,6 +609,7 @@ The confirm component prompts to confirm or deny a statement.
 ---
 
 **Form**
+
 The form component prompts for multiple values on a single terminal screen.
 
 | field   | required/optional | Description                                      |
@@ -644,6 +654,7 @@ Each choice in the choices array should have the following properties:
 ---
 
 **Input**
+
 The input component prompts for user input.
 
 | field   | required/optional | Description                                 |
@@ -670,6 +681,7 @@ The input component prompts for user input.
 ---
 
 **Invisible**
+
 The invisible component prompts for user input, hiding it from the terminal.
 
 | field   | required/optional | Description                                 |
@@ -694,6 +706,7 @@ The invisible component prompts for user input, hiding it from the terminal.
 ---
 
 **List**
+
 The list component prompts for a list of values, created by splitting user input.
 
 | field   | required/optional | Description                                |
@@ -718,6 +731,7 @@ The list component prompts for a list of values, created by splitting user input
 ---
 
 **MultiSelect**
+
 The multiSelect component allows selection of multiple items from a list of options.
 
 | field   | required/optional | Description                                    |
@@ -757,6 +771,7 @@ Each choice in the choices array should have the following properties:
 ---
 
 **Number**
+
 The number component prompts for a numeric input.
 
 | field   | required/optional | Description                                      |
@@ -781,6 +796,7 @@ The number component prompts for a numeric input.
 ---
 
 **Password**
+
 The password component prompts for a password, masking the input in the terminal.
 
 | field   | required/optional | Description                                        |
@@ -805,6 +821,7 @@ The password component prompts for a password, masking the input in the terminal
 ---
 
 **Quiz**
+
 The quiz component presents multiple-choice quiz questions.
 
 | field         | required/optional | Description                                        |
@@ -833,6 +850,7 @@ The quiz component presents multiple-choice quiz questions.
 ---
 
 **Survey**
+
 The survey component prompts for user feedback on a list of questions using a defined scale.
 
 | field   | required/optional | Description                                 |
@@ -888,6 +906,7 @@ Each item in the choices array should have:
 ---
 
 **Scale**
+
 The scale component is a compact version of the Survey prompt, using a Likert Scale for quick feedback.
 
 | field   | required/optional | Description                                |
@@ -942,6 +961,7 @@ Each item in the choices array should have:
 ---
 
 **Select**
+
 The select component prompts for selecting from a list of options.
 
 | field   | required/optional | Description                                   |
@@ -979,6 +999,7 @@ The choices can be either an array of strings or an array of objects with name a
 ---
 
 **Sort**
+
 The sort component prompts for sorting items in a list.
 
 | field   | required/optional | Description                                |
@@ -1010,6 +1031,7 @@ The sort component prompts for sorting items in a list.
 ---
 
 **Snippet**
+
 The snippet component prompts for replacing placeholders in a snippet of code or text.
 
 | field    | required/optional | Description                                                                                                                                                                                                                                                                                                             |
@@ -1058,6 +1080,7 @@ Each item in the fields array should have:
 ---
 
 **Toggle**
+
 The toggle component prompts for toggling between two values.
 
 | field    | required/optional | Description                                |
