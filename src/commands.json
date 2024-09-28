@@ -2,50 +2,20 @@
     "$schema": "./commands-schema.json",
     "welcome": "Welcome to the Enhanced CLI Prototype!\nType 'help' to get a list of all available commands.\n",
     "variables": {
-        "test": "123"
+        "username": "unset",
+        "isLoggedIn": "false"
     },
     "commands": {
-        "example": {
-            "describe": "Prints a greeting",
-            "alias": ["hi", "wassup"],
-            "example": [
-                "hello max monday --uppercase",
-                "Will print a hello message in all uppercase to max on a monday."
-            ],
-            "positional": {
-                "day": {
-                    "describe": "The day of the week to give a greeting on.",
-                    "type": "string",
-                    "choices": [
-                        "monday",
-                        "tuesday",
-                        "wednesday",
-                        "thursday",
-                        "friday",
-                        "saturday",
-                        "sunday"
-                    ]
-                }
-            },
-            "options": {
-                "uppercase": {
-                    "alias": "u",
-                    "demandOption": true,
-                    "describe": "Print everything in uppercase.",
-                    "type": "boolean",
-                    "default": "false"
-                }
-            },
+        "register": {
             "handler": [
                 {
-                    "component": "snippet",
-                    "name": "package",
-                    "message": "Fill out the fields in package.json",
-                    "fields": [
-                        { "name": "functionName", "message": "Function name:" },
-                        { "name": "paramName", "message": "Parameter name:" }
-                    ],
-                    "template": "{\n  \"name\": \"${name}\",\n  \"description\": \"${description}\",\n  \"version\": \"${version}\",\n  \"homepage\": \"https://github.com/${username}/${name}\",\n  \"author\": \"${author_name} (https://github.com/${username})\",\n  \"repository\": \"${username}/${name}\",\n  \"license\": \"${license:ISC}\"\n}\n"
+                    "component": "text",
+                    "output": "Registering in progress...",
+                    "duration": 2000
+                },
+                {
+                    "component": "text",
+                    "output": "Registered successfully"
                 }
             ]
         }

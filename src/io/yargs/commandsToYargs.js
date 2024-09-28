@@ -11,7 +11,8 @@ export default function commandsToYargs(yargs, config, localEcho) {
             commandName,
             commandConfig.description ||
                 commandConfig.desc ||
-                commandConfig.describe,
+                commandConfig.describe ||
+                "",
             (yargs) => {
                 // Process positional arguments
                 if (commandConfig.positional) {

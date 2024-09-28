@@ -357,7 +357,7 @@ The simplest of the components is the text component. It simply prints text to t
                 {
                     "component": "text",
                     "output": "Registering in progress...",
-                    "duration": 5000
+                    "duration": 2000
                 },
                 {
                     "component": "text",
@@ -387,7 +387,7 @@ The progress bar component renders a progress bar in the terminal, showing a tas
             "handler": {
                 "component": "progressBar",
                 "output": "Installing dependencies...",
-                "duration": 3000
+                "duration": 2000
             }
         }
     }
@@ -413,8 +413,8 @@ The spinner component displays an animated spinner in the terminal, indicating t
             "handler": {
                 "component": "spinner",
                 "output": ["Processing", "Please wait", "Almost done"],
-                "duration": 5000,
-                "conclusion": "success"
+                "duration": 2000,
+                "conclusion": "succeed"
             }
         }
     }
@@ -470,24 +470,24 @@ The output object should contain the following fields.
 
 ```json
 {
-"commands": {
-	"check": {
-		"handler": {
-			"component": "conditional",
-			"output": {
-				"if": "isLoggedIn == true",
-				"then": {
-					"component": "text",
-					"output": "Welcome back!"
-				},
-				"else": {
-					"component": "text",
-					"output": "Please log in first."
-				}
-			}
-
-		}
-	}
+    "commands": {
+        "check": {
+            "handler": {
+                "component": "conditional",
+                "output": {
+                    "if": "isLoggedIn == 'true'",
+                    "then": {
+                        "component": "text",
+                        "output": "Welcome back!"
+                    },
+                    "else": {
+                        "component": "text",
+                        "output": "Please log in first."
+                    }
+                }
+            }
+        }
+    }
 }
 ```
 
@@ -505,13 +505,23 @@ The variable component allows setting global variables that can be used across c
 {
     "commands": {
         "login": {
-            "handler": {
-                "component": "variable",
-                "output": {
-                    "username": "john_doe",
-                    "isLoggedIn": "true"
+            "handler": [
+                {
+                    "component": "text",
+                    "output": "Before setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}"
+                },
+                {
+                    "component": "variable",
+                    "output": {
+                        "username": "john_doe",
+                        "isLoggedIn": "true"
+                    }
+                },
+                {
+                    "component": "text",
+                    "output": "After setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}"
                 }
-            }
+            ]
         }
     }
 }
@@ -1095,7 +1105,7 @@ The toggle component prompts for toggling between two values.
 ```json
 {
     "commands": {
-        "toggleNotifications": {
+        "notifications": {
             "handler": {
                 "component": "toggle",
                 "name": "notificationsEnabled",

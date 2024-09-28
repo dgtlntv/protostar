@@ -330,7 +330,7 @@
                     "oneOf": [{ "type": "number" }, { "const": "random" }]
                 },
                 "conclusion": {
-                    "enum": ["stop", "success", "fail"],
+                    "enum": ["stop", "succeed", "fail"],
                     "description": "Specifies how the spinner should conclude its animation"
                 }
             },
