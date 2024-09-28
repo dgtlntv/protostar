@@ -342,6 +342,8 @@ A component corresponds to something that can happen as a reaction to a command.
 
 ### Text
 
+![](media/text.gif)
+
 The simplest of the components is the text component. It simply prints text to the terminal, while optionally waiting for some time after printing the text to the terminal.
 
 | field    | required/optional | Description                                                                                                                                                         |
@@ -373,6 +375,8 @@ The simplest of the components is the text component. It simply prints text to t
 
 ### Progress bar
 
+![](media/progressBar.gif)
+
 The progress bar component renders a progress bar in the terminal, showing a task's completion over time.
 
 | field    | required/optional | Description                                                                                                                                       |
@@ -397,6 +401,8 @@ The progress bar component renders a progress bar in the terminal, showing a tas
 ---
 
 ### Spinner
+
+![](media/spinner.gif)
 
 The spinner component displays an animated spinner in the terminal, indicating that a process is ongoing.
 
@@ -424,6 +430,8 @@ The spinner component displays an animated spinner in the terminal, indicating t
 ---
 
 ### Table
+
+![](media/table.gif)
 
 The table component renders a formatted table in the terminal.
 
@@ -453,6 +461,8 @@ The table component renders a formatted table in the terminal.
 ---
 
 ### Conditional
+
+![](media/conditional.gif)
 
 The conditional component allows for branching logic based on a condition.
 
@@ -495,6 +505,8 @@ The output object should contain the following fields.
 
 ### Variable
 
+![](media/variable.gif)
+
 The variable component allows setting global variables that can be used across commands. For the setting of the variable to be succesfull it needs to be initialized as a global variable in the CLIs global variables.
 
 | field  | required/optional | Description                                                    |
@@ -531,6 +543,8 @@ The variable component allows setting global variables that can be used across c
 
 ### AutoComplete
 
+![](media/autocomplete.gif)
+
 The autoComplete component provides a prompt that auto-completes as the user types.
 
 | field    | required/optional | Description                                                |
@@ -564,6 +578,8 @@ The autoComplete component provides a prompt that auto-completes as the user typ
 
 ### BasicAuth
 
+![](media/basicAuth.gif)
+
 The basicAuth component prompts for username and password authentication.
 
 | field        | required/optional | Description                                        |
@@ -595,6 +611,8 @@ The basicAuth component prompts for username and password authentication.
 
 ### Confirm
 
+![](media/confirm.gif)
+
 The confirm component prompts to confirm or deny a statement.
 
 | field   | required/optional | Description                                    |
@@ -621,6 +639,8 @@ The confirm component prompts to confirm or deny a statement.
 ---
 
 ### Form
+
+![](media/form.gif)
 
 The form component prompts for multiple values on a single terminal screen.
 
@@ -667,6 +687,8 @@ Each choice in the choices array should have the following properties:
 
 ### Input
 
+![](media/input.gif)
+
 The input component prompts for user input.
 
 | field   | required/optional | Description                                 |
@@ -694,6 +716,8 @@ The input component prompts for user input.
 
 ### Invisible
 
+![](media/invisible.gif)
+
 The invisible component prompts for user input, hiding it from the terminal.
 
 | field   | required/optional | Description                                 |
@@ -719,6 +743,8 @@ The invisible component prompts for user input, hiding it from the terminal.
 
 ### List
 
+![](media/list.gif)
+
 The list component prompts for a list of values, created by splitting user input.
 
 | field   | required/optional | Description                                |
@@ -743,6 +769,8 @@ The list component prompts for a list of values, created by splitting user input
 ---
 
 ### MultiSelect
+
+![](media/multiSelect.gif)
 
 The multiSelect component allows selection of multiple items from a list of options.
 
@@ -784,6 +812,8 @@ Each choice in the choices array should have the following properties:
 
 ### Number
 
+![](media/number.gif)
+
 The number component prompts for a numeric input.
 
 | field   | required/optional | Description                                      |
@@ -809,6 +839,8 @@ The number component prompts for a numeric input.
 
 ### Password
 
+![](media/password.gif)
+
 The password component prompts for a password, masking the input in the terminal.
 
 | field   | required/optional | Description                                        |
@@ -833,6 +865,8 @@ The password component prompts for a password, masking the input in the terminal
 ---
 
 ### Quiz
+
+![](media/quiz.gif)
 
 The quiz component presents multiple-choice quiz questions.
 
@@ -862,6 +896,8 @@ The quiz component presents multiple-choice quiz questions.
 ---
 
 ### Survey
+
+![](media/survey.gif)
 
 The survey component prompts for user feedback on a list of questions using a defined scale.
 
@@ -919,6 +955,8 @@ Each item in the choices array should have:
 
 ### Scale
 
+![](media/scale.gif)
+
 The scale component is a compact version of the Survey prompt, using a Likert Scale for quick feedback.
 
 | field   | required/optional | Description                                |
@@ -974,6 +1012,8 @@ Each item in the choices array should have:
 
 ### Select
 
+![](media/select.gif)
+
 The select component prompts for selecting from a list of options.
 
 | field   | required/optional | Description                                   |
@@ -1012,6 +1052,8 @@ The choices can be either an array of strings or an array of objects with name a
 
 ### Sort
 
+![](media/sort.gif)
+
 The sort component prompts for sorting items in a list.
 
 | field   | required/optional | Description                                |
@@ -1043,6 +1085,8 @@ The sort component prompts for sorting items in a list.
 ---
 
 ### Snippet
+
+![](media/snippet.gif)
 
 The snippet component prompts for replacing placeholders in a snippet of code or text.
 
@@ -1092,6 +1136,8 @@ Each item in the fields array should have:
 ---
 
 ### Toggle
+
+![](media/toggle.gif)
 
 The toggle component prompts for toggling between two values.
 
