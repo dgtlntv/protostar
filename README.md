@@ -1,6 +1,6 @@
 # Protostar
 
-Protostar is a tool allows you to create interactive CLI prototypes using a simple JSON configuration file. It's designed to be easy to use, even for those with limited coding experience.
+Protostar is a tool that allows you to create interactive CLI prototypes using a simple JSON configuration file. It's designed to be easy to use, even for those with limited coding experience.
 
 ## Prerequisites
 
