@@ -31,6 +31,7 @@ export default function commandsToYargs(yargs, config, localEcho) {
                     )
                 }
                 // Process subcommands recursively
+                // TODO subcommands is bugged
                 if (commandConfig.commands) {
                     Object.entries(commandConfig.commands).forEach(
                         ([subCommandName, subCommandConfig]) => {

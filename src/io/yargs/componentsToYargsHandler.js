@@ -242,14 +242,14 @@ export default async function componentsToYargsHandler(
 
                 if (evaluatedCondition) {
                     await componentsToYargsHandler(
-                        [component.output.then],
+                        component.output.then,
                         argv,
                         localEcho,
                         globalVariables
                     )
                 } else if (component.output.else) {
                     await componentsToYargsHandler(
-                        [component.output.else],
+                        component.output.else,
                         argv,
                         localEcho,
                         globalVariables

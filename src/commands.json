@@ -1,21 +1,186 @@
 {
-    "$schema": "./commands-schema.json",
-    "welcome": "Welcome to the Enhanced CLI Prototype!\nType 'help' to get a list of all available commands.\n",
+    "welcome": "Welcome to TaskTrack CLI! Type 'help' to see available commands.",
     "variables": {
-        "username": "unset",
         "isLoggedIn": "false"
     },
     "commands": {
-        "register": {
+        "login": {
+            "description": "Log in to TaskTrack",
             "handler": [
                 {
-                    "component": "text",
-                    "output": "Registering in progress...",
+                    "component": "input",
+                    "name": "username",
+                    "message": "Enter your username:"
+                },
+                {
+                    "component": "password",
+                    "name": "password",
+                    "message": "Enter your password:"
+                },
+                {
+                    "component": "spinner",
+                    "output": [
+                        "Logging in",
+                        "Please wait",
+                        "Verifying credentials"
+                    ],
                     "duration": 2000
                 },
                 {
+                    "component": "variable",
+                    "output": {
+                        "isLoggedIn": "true"
+                    }
+                },
+                {
                     "component": "text",
-                    "output": "Registered successfully"
+                    "output": "Welcome, {{username}}! You are now logged in."
+                }
+            ]
+        },
+        "logout": {
+            "description": "Log out from TaskTrack",
+            "handler": [
+                {
+                    "component": "conditional",
+                    "output": {
+                        "if": "isLoggedIn == 'true'",
+                        "then": [
+                            {
+                                "component": "spinner",
+                                "output": "Logging out...",
+                                "duration": 1000
+                            },
+                            {
+                                "component": "variable",
+                                "output": {
+                                    "username": "",
+                                    "isLoggedIn": "false"
+                                }
+                            },
+                            {
+                                "component": "text",
+                                "output": "You have been logged out successfully."
+                            }
+                        ],
+                        "else": {
+                            "component": "text",
+                            "output": "You are not currently logged in."
+                        }
+                    }
+                }
+            ]
+        },
+        "add": {
+            "description": "Add a new task",
+            "handler": [
+                {
+                    "component": "conditional",
+                    "output": {
+                        "if": "isLoggedIn == 'true'",
+                        "then": [
+                            {
+                                "component": "input",
+                                "name": "taskName",
+                                "message": "Enter task name:"
+                            },
+                            {
+                                "component": "select",
+                                "name": "priority",
+                                "message": "Select task priority:",
+                                "choices": [
+                                    { "name": "Low", "value": "low" },
+                                    { "name": "Medium", "value": "medium" },
+                                    { "name": "High", "value": "high" }
+                                ]
+                            },
+                            {
+                                "component": "progressBar",
+                                "output": "Adding task...",
+                                "duration": 1500
+                            },
+                            {
+                                "component": "text",
+                                "output": "Task '{{taskName}}' added with {{priority}} priority."
+                            }
+                        ],
+                        "else": {
+                            "component": "text",
+                            "output": "Please log in to add tasks."
+                        }
+                    }
+                }
+            ]
+        },
+        "list": {
+            "description": "List all tasks",
+            "handler": [
+                {
+                    "component": "conditional",
+                    "output": {
+                        "if": "isLoggedIn == 'true'",
+                        "then": [
+                            {
+                                "component": "spinner",
+                                "output": "Fetching tasks...",
+                                "duration": 1000
+                            },
+                            {
+                                "component": "table",
+                                "output": [
+                                    ["ID", "Task", "Priority", "Status"],
+                                    [
+                                        "1",
+                                        "Implement login",
+                                        "High",
+                                        "In Progress"
+                                    ],
+                                    ["2", "Create task list", "Medium", "Todo"],
+                                    [
+                                        "3",
+                                        "Add task prioritization",
+                                        "Low",
+                                        "Completed"
+                                    ]
+                                ]
+                            }
+                        ],
+                        "else": {
+                            "component": "text",
+                            "output": "Please log in to view tasks."
+                        }
+                    }
+                }
+            ]
+        },
+        "complete": {
+            "description": "Mark a task as complete",
+            "handler": [
+                {
+                    "component": "conditional",
+                    "output": {
+                        "if": "isLoggedIn == 'true'",
+                        "then": [
+                            {
+                                "component": "number",
+                                "name": "taskId",
+                                "message": "Enter the ID of the task to mark as complete:"
+                            },
+                            {
+                                "component": "spinner",
+                                "output": "Updating task status...",
+                                "duration": 1500
+                            },
+                            {
+                                "component": "text",
+                                "output": "Task {{taskId}} has been marked as complete."
+                            }
+                        ],
+                        "else": {
+                            "component": "text",
+                            "output": "Please log in to update tasks."
+                        }
+                    }
                 }
             ]
         }

@@ -58,8 +58,6 @@ class Interface {
 }
 
 function createInterface(options) {
-    console.log("bruh")
-
     return new Interface(options)
 }
 

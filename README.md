@@ -1,6 +1,10 @@
-# Protostar
+# Proto\*
 
-Protostar is a tool that allows you to create interactive CLI prototypes using a simple JSON configuration file. It's designed to be easy to use, even for those with limited coding experience.
+![](media/example.gif)
+<small>A CLI prototype of a task manager.</small>
+
+Proto\* is a tool for creating interactive CLI prototypes using a simple JSON configuration file. The tool generates a website that emulates a terminal, with only the CLI defined in the configuration file being available. It's designed for quick and easy creation of CLI prototypes, enabling rapid iterations.
+The tool automatically deploys to GitHub Pages, allowing prototypes to be easily shared. This makes it suitable for user testing, as users can access the prototype through a simple link rather than having to install anything.
 
 ## Prerequisites
 
