@@ -29,9 +29,6 @@ jobs:
               with:
                   node-version: 20
 
-            - name: Setup env variable
-              run: export BASE_PATH="/${{ github.event.repository.name }}/"
-
             - name: Install Yarn
               run: npm install -g yarn
 
@@ -40,6 +37,8 @@ jobs:
 
             - name: Build
               run: yarn build
+              env:
+                BASE_PATH: ${{ github.event.repository.name }}
 
             - name: Setup Pages
               uses: actions/configure-pages@v4
