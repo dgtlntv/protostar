@@ -29,6 +29,9 @@ jobs:
               with:
                   node-version: 20
 
+            - name: Setup env variable
+              run: export BASE_PATH="/${{ github.repository_name }}/"
+
             - name: Install Yarn
               run: npm install -g yarn
 

@@ -3,7 +3,7 @@ import { nodePolyfills } from "vite-plugin-node-polyfills"
 import path from "path"
 
 export default defineConfig({
-    base: "/cli-prototype/",
+    base: process.env.BASE_PATH || '/',
     plugins: [
         nodePolyfills({
             include: ["path", "process"],
