@@ -26,15 +26,15 @@ You have to have [git](https://git-scm.com/downloads), [node](https://nodejs.org
 
 ## Setup and Usage
 
-1. Fork this repository to your GitHub account.
-2. Clone your forked repository:
+1. Create a new repository using this repository as a template.
+2. Clone the newly created repository to your local computer either with an app like [Github desktop](https://desktop.github.com/download/) or by running the following command:
 
 ```bash
 git clone https://github.com/your-username/cli-prototype.git
 cd cli-prototype
 ```
 
-3. Install dependencies:
+3. In the cloned repository install the dependencies:
 
 ```bash
 yarn install
@@ -52,7 +52,7 @@ yarn run dev
 
 This project is set up to deploy automatically to GitHub Pages using GitHub Actions:
 
-1. In your forked repository, go to Settings > Pages.
+1. In your Github repository, go to Settings > Pages.
 2. Under "Source", select "GitHub Actions".
 3. The site will deploy automatically on pushes to the main branch.
 4. You can find the deployed site URL in the GitHub Actions workflow runs.
