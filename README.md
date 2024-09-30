@@ -62,7 +62,7 @@ This project is set up to deploy automatically to GitHub Pages using GitHub Acti
 This prototyping tool is build in a way so that the only file you need to change to customize your CLI prototype is the `src/commands.json` file.
 The general schema of the `commands.json` is:
 
-```json5
+```yaml
 {
     // Welcome message for the CLI prototype
     welcome: "Welcome to My CLI! Type 'help' for available commands.",
