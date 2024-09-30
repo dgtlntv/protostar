@@ -1,7 +1,21 @@
-# Proto\*
+<h1 align="center">Proto*</h1>
 
-![](media/example.gif)
-<small>A CLI prototype of a task manager.</small>
+<br>
+
+<p align="center">
+  <b>Quickly and easily create interactive CLI prototypes.</b><br>
+  <sub>Enabling you to rapidly iterate, share a CLI concept with colleagues or do user testing.</sub>
+</p>
+
+<br>
+
+<p align="center">
+  <img src="media/example.gif" alt="Enquirer Survey Prompt" width="1000"><br>
+  <sub>A "dummy" prototype of a task management CLI. You can see more interaction examples under <a href="#components">components</a></sub>
+</p>
+
+<br>
+<br>
 
 Proto\* is a tool for creating interactive CLI prototypes using a simple JSON configuration file. The tool generates a website that emulates a terminal, with only the CLI defined in the configuration file being available. It's designed for quick and easy creation of CLI prototypes, enabling rapid iterations.
 The tool automatically deploys to GitHub Pages, allowing prototypes to be easily shared. This makes it suitable for user testing, as users can access the prototype through a simple link rather than having to install anything.
@@ -48,20 +62,15 @@ This project is set up to deploy automatically to GitHub Pages using GitHub Acti
 This prototyping tool is build in a way so that the only file you need to change to customize your CLI prototype is the `src/commands.json` file.
 The general schema of the `commands.json` is:
 
-```json
-{
-    // Welcome message for the CLI prototype
-    "welcome": "Welcome to My CLI! Type 'help' for available commands.",
-
-    // The global variables you can read and write accross commands
-    "variables": {
-        "username": "dgtlntv",
-        "isLoggedIn": "false"
-    },
-    "commands": {
-        // The commands available in the CLI prototype
-    }
-}
+```yaml
+{ ? // Welcome message for the CLI prototype
+      "welcome"
+    : "Welcome to My CLI! Type 'help' for available commands.", ? // The global variables you can read and write accross commands
+      "variables"
+    : {
+          "username": "dgtlntv",
+          "isLoggedIn": "false",
+      }, "commands": { // The commands available in the CLI prototype } }
 ```
 
 -   `welcome` is optional. It defines a welcome message that is output when the CLI is loaded for the first time.
@@ -74,27 +83,23 @@ The general schema of the `commands.json` is:
 
 The command name with which the command can be called is the key of the command object. In this example we are creating a `register` command:
 
-```json
-{
-    "commands": {
-        "register": {
-            // Command content
-        }
-    }
-}
+```yaml
+{ "commands": { "register": { // Command content } } }
 ```
 
 ##### Description
 
 The description is shown in the automatically generated help message.
 
-```json
+```yaml
 {
-    "commands": {
-        "register": {
-            "description": "This command registers a new account with the service."
-        }
-    }
+    "commands":
+        {
+            "register":
+                {
+                    "description": "This command registers a new account with the service.",
+                },
+        },
 }
 ```
 
@@ -103,30 +108,27 @@ The description is shown in the automatically generated help message.
 An alias allows you to call the same command with a different command name. Can either be a single string or an array of strings.
 In the following example the user could call the same `register`command with `enrol` or `signup` now.
 
-```json
-{
-    "commands": {
-        "register": {
-            "alias": ["enrol", "signup"]
-        }
-    }
-}
+```yaml
+{ "commands": { "register": { "alias": ["enrol", "signup"] } } }
 ```
 
 ##### Example
 
 The example will be used to provide example usages of a command in the automatically generated help message. Can be a single example [command, description] or an array of such examples.
 
-```json
+```yaml
 {
-    "commands": {
-        "register": {
-            "example": [
-                "register email@example.com",
-                "Register a new account with the email@example.com email."
-            ]
-        }
-    }
+    "commands":
+        {
+            "register":
+                {
+                    "example":
+                        [
+                            "register email@example.com",
+                            "Register a new account with the email@example.com email.",
+                        ],
+                },
+        },
 }
 ```
 
@@ -134,38 +136,20 @@ The example will be used to provide example usages of a command in the automatic
 
 Positional arguments in commands can be either required or optional. Required positional arguments are denoted as `<email>`, while optional arguments are represented as `[username]`.
 
-```json
-{
-    "commands": {
-        "register <email> [username]": {
-            // Command content
-        }
-    }
-}
+```yaml
+{ "commands": { "register <email> [username]": { // Command content } } }
 ```
 
 The `|` character allows you to specify aliases for positional arguments.
 
-```json
-{
-    "commands": {
-        "register <email | username>": {
-            // Command content
-        }
-    }
-}
+```yaml
+{ "commands": { "register <email | username>": { // Command content } } }
 ```
 
 The last positional argument can optionally accept an array of values, by using the `..` operator:
 
-```json
-{
-    "commands": {
-        "register <email> [..socialUrls]": {
-            // Command content
-        }
-    }
-}
+```yaml
+{ "commands": { "register <email> [..socialUrls]": { // Command content } } }
 ```
 
 Under `positional` the positional argument of a command are defined. You can use the following fields to describe the positional arguments:
@@ -179,27 +163,34 @@ Under `positional` the positional argument of a command are defined. You can use
 | description  | A short description of the positional argument.                                                                               |
 | type         | The expected data type of the positional argument (boolean, number, string).                                                  |
 
-```json
+```yaml
 {
-    "commands": {
-        "register <email>": {
-            "positional": {
-                "email": {
-                    "alias": "username",
-                    // choice and default don't really make sense in this example, but is an available configuration
-                    // "choices": [
-                    //     "choice1",
-                    //     "choice2",
-                    //     "choice3"
-                    // ],
-                    // "default": "defaultOption",
-                    "demandOption": true,
-                    "description": "The email to register your account with",
-                    "type": "string"
-                }
-            }
-        }
-    }
+    "commands":
+        {
+            "register <email>":
+                {
+                    "positional":
+                        {
+                            "email":
+                                {
+                                    "alias": "username",
+                                    // choice and default don't really make sense in this example,
+                                    ? but is an available configuration
+                                      // "choices"
+                                    : [
+                                          //     "choice1",
+                                          //     "choice2",
+                                          //     "choice3"
+                                          //,
+                                      ],
+                                    // "default": "defaultOption",
+                                    "demandOption": true,
+                                    "description": "The email to register your account with",
+                                    "type": "string",
+                                },
+                        },
+                },
+        },
 }
 ```
 
@@ -221,32 +212,39 @@ Under `options` the flags (eg. `--flag`) of a command are defined. You can use t
 | requiresArg        | If true, the option must be specified with a value.                                                                           |
 | type               | The expected data type of the positional argument (boolean, number, string).                                                  |
 
-```json
+```yaml
 {
-    "commands": {
-        "register": {
-            "options": {
-                "password": {
-                    "alias": ["pwd", "pw"],
-                    // choice and default don't really make sense in this example, but is an available configuration
-                    // "choices": [
-                    //     "choice1",
-                    //     "choice2",
-                    //     "choice3"
-                    // ],
-                    // "default": "defaultOption",
-                    // "defaultDescription": "The description for the default option",
-                    "demandOption": true,
-                    "description": "The password for your account",
-                    "group": "Login credentials",
-                    "hidden": false,
-                    "nargs": 1,
-                    "requiresArg": true,
-                    "type": "string"
-                }
-            }
-        }
-    }
+    "commands":
+        {
+            "register":
+                {
+                    "options":
+                        {
+                            "password":
+                                {
+                                    "alias": ["pwd", "pw"],
+                                    // choice and default don't really make sense in this example,
+                                    ? but is an available configuration
+                                      // "choices"
+                                    : [
+                                          //     "choice1",
+                                          //     "choice2",
+                                          //     "choice3"
+                                          //,
+                                      ],
+                                    // "default": "defaultOption",
+                                    // "defaultDescription": "The description for the default option",
+                                    "demandOption": true,
+                                    "description": "The password for your account",
+                                    "group": "Login credentials",
+                                    "hidden": false,
+                                    "nargs": 1,
+                                    "requiresArg": true,
+                                    "type": "string",
+                                },
+                        },
+                },
+        },
 }
 ```
 
@@ -254,20 +252,19 @@ Under `options` the flags (eg. `--flag`) of a command are defined. You can use t
 
 If you want to chain multiple commands you can nest commands under `commands`. The commands defined under `commands` allow for the exact same configuration as a root command.
 
-```json
+```yaml
 {
-    "commands": {
-        "register": {
-            "commands": {
-                "user": {
-                    // Command content
+    "commands":
+        {
+            "register":
+                {
+                    "commands":
+                        {
+                            "user": { // Command content },
+                            "serviceaccount": { // Command content },
+                        },
                 },
-                "serviceaccount": {
-                    // Command content
-                }
-            }
-        }
-    }
+        },
 }
 ```
 
@@ -303,38 +300,44 @@ Under `handler` the response to a command is defined. The handler accepts the co
 
 The handler accepts either a single component:
 
-```json
+```yaml
 {
-    "commands": {
-        "register": {
-            "handler": {
-                "component": "text",
-                "output": "Registered successfully"
-            }
-        }
-    }
+    "commands":
+        {
+            "register":
+                {
+                    "handler":
+                        {
+                            "component": "text",
+                            "output": "Registered successfully",
+                        },
+                },
+        },
 }
 ```
 
 Or an array of components:
 
-```json
+```yaml
 {
-    "commands": {
-        "register": {
-            "handler": [
+    "commands":
+        {
+            "register":
                 {
-                    "component": "text",
-                    "output": "Registering in progress...",
-                    "duration": 5000
+                    "handler":
+                        [
+                            {
+                                "component": "text",
+                                "output": "Registering in progress...",
+                                "duration": 5000,
+                            },
+                            {
+                                "component": "text",
+                                "output": "Registered successfully",
+                            },
+                        ],
                 },
-                {
-                    "component": "text",
-                    "output": "Registered successfully"
-                }
-            ]
-        }
-    }
+        },
 }
 ```
 
@@ -355,23 +358,26 @@ The simplest of the components is the text component. It simply prints text to t
 | output   | required          | The text that should be printed to the terminal                                                                                                                     |
 | duration | optional          | The duration (in milliseconds) that should be waited after printing the text. Also accepts "random" which will wait for a random duration between 100ms and 3000ms. |
 
-```json
+```yaml
 {
-    "commands": {
-        "register": {
-            "handler": [
+    "commands":
+        {
+            "register":
                 {
-                    "component": "text",
-                    "output": "Registering in progress...",
-                    "duration": 2000
+                    "handler":
+                        [
+                            {
+                                "component": "text",
+                                "output": "Registering in progress...",
+                                "duration": 2000,
+                            },
+                            {
+                                "component": "text",
+                                "output": "Registered successfully",
+                            },
+                        ],
                 },
-                {
-                    "component": "text",
-                    "output": "Registered successfully"
-                }
-            ]
-        }
-    }
+        },
 }
 ```
 
@@ -388,17 +394,20 @@ The progress bar component renders a progress bar in the terminal, showing a tas
 | output   | required          | The text displayed alongside the progress bar                                                                                                     |
 | duration | required          | The duration (in milliseconds) for the progress bar to complete. Also accepts "random" which will use a random duration between 100ms and 3000ms. |
 
-```json
+```yaml
 {
-    "commands": {
-        "install": {
-            "handler": {
-                "component": "progressBar",
-                "output": "Installing dependencies...",
-                "duration": 2000
-            }
-        }
-    }
+    "commands":
+        {
+            "install":
+                {
+                    "handler":
+                        {
+                            "component": "progressBar",
+                            "output": "Installing dependencies...",
+                            "duration": 2000,
+                        },
+                },
+        },
 }
 ```
 
@@ -416,18 +425,22 @@ The spinner component displays an animated spinner in the terminal, indicating t
 | duration   | required          | The duration (in milliseconds) for which the spinner should run. Also accepts "random" which will use a random duration between 100ms and 3000ms. |
 | conclusion | optional          | Specifies how the spinner should conclude its animation. Can be `stop`, `success`, or `fail`.                                                     |
 
-```json
+```yaml
 {
-    "commands": {
-        "process": {
-            "handler": {
-                "component": "spinner",
-                "output": ["Processing", "Please wait", "Almost done"],
-                "duration": 2000,
-                "conclusion": "succeed"
-            }
-        }
-    }
+    "commands":
+        {
+            "process":
+                {
+                    "handler":
+                        {
+                            "component": "spinner",
+                            "output":
+                                ["Processing", "Please wait", "Almost done"],
+                            "duration": 2000,
+                            "conclusion": "succeed",
+                        },
+                },
+        },
 }
 ```
 
@@ -444,21 +457,25 @@ The table component renders a formatted table in the terminal.
 | output    | required          | A 2D array representing the table data, including headers if desired.                                                                                               |
 | colWidths | optional          | An array of numbers representing the width of each column in the table. If this is not set the table will hug its content, until the table fills the terminal size. |
 
-```json
+```yaml
 {
-    "commands": {
-        "list": {
-            "handler": {
-                "component": "table",
-                "output": [
-                    ["Name", "Age", "City"],
-                    ["John", "30", "New York"],
-                    ["Alice", "25", "London"]
-                ],
-                "colWidths": [10, 5, 15]
-            }
-        }
-    }
+    "commands":
+        {
+            "list":
+                {
+                    "handler":
+                        {
+                            "component": "table",
+                            "output":
+                                [
+                                    ["Name", "Age", "City"],
+                                    ["John", "30", "New York"],
+                                    ["Alice", "25", "London"],
+                                ],
+                            "colWidths": [10, 5, 15],
+                        },
+                },
+        },
 }
 ```
 
@@ -482,26 +499,32 @@ The output object should contain the following fields.
 | then  | required          | The component to be executed if the condition is true. You can provide another conditional component as well.                              |
 | else  | optional          | The component to be executed if the condition is false (if this field is provided). You can provide another conditional component as well. |
 
-```json
+```yaml
 {
-    "commands": {
-        "check": {
-            "handler": {
-                "component": "conditional",
-                "output": {
-                    "if": "isLoggedIn == 'true'",
-                    "then": {
-                        "component": "text",
-                        "output": "Welcome back!"
-                    },
-                    "else": {
-                        "component": "text",
-                        "output": "Please log in first."
-                    }
-                }
-            }
-        }
-    }
+    "commands":
+        {
+            "check":
+                {
+                    "handler":
+                        {
+                            "component": "conditional",
+                            "output":
+                                {
+                                    "if": "isLoggedIn == 'true'",
+                                    "then":
+                                        {
+                                            "component": "text",
+                                            "output": "Welcome back!",
+                                        },
+                                    "else":
+                                        {
+                                            "component": "text",
+                                            "output": "Please log in first.",
+                                        },
+                                },
+                        },
+                },
+        },
 }
 ```
 
@@ -517,29 +540,33 @@ The variable component allows setting global variables that can be used across c
 | ------ | ----------------- | -------------------------------------------------------------- |
 | output | required          | An object where keys are variable names and values are strings |
 
-```json
+```yaml
 {
-    "commands": {
-        "login": {
-            "handler": [
+    "commands":
+        {
+            "login":
                 {
-                    "component": "text",
-                    "output": "Before setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}"
+                    "handler":
+                        [
+                            {
+                                "component": "text",
+                                "output": "Before setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}",
+                            },
+                            {
+                                "component": "variable",
+                                "output":
+                                    {
+                                        "username": "john_doe",
+                                        "isLoggedIn": "true",
+                                    },
+                            },
+                            {
+                                "component": "text",
+                                "output": "After setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}",
+                            },
+                        ],
                 },
-                {
-                    "component": "variable",
-                    "output": {
-                        "username": "john_doe",
-                        "isLoggedIn": "true"
-                    }
-                },
-                {
-                    "component": "text",
-                    "output": "After setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}"
-                }
-            ]
-        }
-    }
+        },
 }
 ```
 
@@ -561,20 +588,30 @@ The autoComplete component provides a prompt that auto-completes as the user typ
 | multiple | optional          | Allows selection of multiple choices                       |
 | footer   | optional          | Optional message in muted color providing interaction hint |
 
-```json
+```yaml
 {
-    "commands": {
-        "search": {
-            "handler": {
-                "component": "autoComplete",
-                "name": "query",
-                "message": "Search for a fruit:",
-                "choices": ["Apple", "Banana", "Cherry", "Date", "Elderberry"],
-                "limit": 3,
-                "footer": "Use arrow keys to navigate"
-            }
-        }
-    }
+    "commands":
+        {
+            "search":
+                {
+                    "handler":
+                        {
+                            "component": "autoComplete",
+                            "name": "query",
+                            "message": "Search for a fruit:",
+                            "choices":
+                                [
+                                    "Apple",
+                                    "Banana",
+                                    "Cherry",
+                                    "Date",
+                                    "Elderberry",
+                                ],
+                            "limit": 3,
+                            "footer": "Use arrow keys to navigate",
+                        },
+                },
+        },
 }
 ```
 
@@ -594,20 +631,23 @@ The basicAuth component prompts for username and password authentication.
 | password     | required          | Password to compare against                        |
 | showPassword | optional          | Determines whether to hide or show the password    |
 
-```json
+```yaml
 {
-    "commands": {
-        "login": {
-            "handler": {
-                "component": "basicAuth",
-                "name": "auth",
-                "message": "Please enter your credentials:",
-                "username": "admin",
-                "password": "secret",
-                "showPassword": false
-            }
-        }
-    }
+    "commands":
+        {
+            "login":
+                {
+                    "handler":
+                        {
+                            "component": "basicAuth",
+                            "name": "auth",
+                            "message": "Please enter your credentials:",
+                            "username": "admin",
+                            "password": "secret",
+                            "showPassword": false,
+                        },
+                },
+        },
 }
 ```
 
@@ -625,18 +665,21 @@ The confirm component prompts to confirm or deny a statement.
 | message | required          | Question to be confirmed or denied             |
 | initial | optional          | Set whether the initial value is true or false |
 
-```json
+```yaml
 {
-    "commands": {
-        "delete": {
-            "handler": {
-                "component": "confirm",
-                "name": "confirmDelete",
-                "message": "Are you sure you want to delete this item?",
-                "initial": false
-            }
-        }
-    }
+    "commands":
+        {
+            "delete":
+                {
+                    "handler":
+                        {
+                            "component": "confirm",
+                            "name": "confirmDelete",
+                            "message": "Are you sure you want to delete this item?",
+                            "initial": false,
+                        },
+                },
+        },
 }
 ```
 
@@ -662,28 +705,29 @@ Each choice in the choices array should have the following properties:
 | message | required          | Label for the form field                |
 | initial | optional          | Initial placeholder value for the field |
 
-```json
+```yaml
 {
-    "commands": {
-        "register": {
-            "handler": {
-                "component": "form",
-                "name": "userInfo",
-                "message": "Please enter your information:",
-                "choices": [
-                    {
-                        "name": "username",
-                        "message": "Username:",
-                        "initial": "user123"
-                    },
-                    {
-                        "name": "email",
-                        "message": "Email:"
-                    }
-                ]
-            }
-        }
-    }
+    "commands":
+        {
+            "register":
+                {
+                    "handler":
+                        {
+                            "component": "form",
+                            "name": "userInfo",
+                            "message": "Please enter your information:",
+                            "choices":
+                                [
+                                    {
+                                        "name": "username",
+                                        "message": "Username:",
+                                        "initial": "user123",
+                                    },
+                                    { "name": "email", "message": "Email:" },
+                                ],
+                        },
+                },
+        },
 }
 ```
 
@@ -701,18 +745,21 @@ The input component prompts for user input.
 | message | required          | Question or prompt for user input           |
 | initial | optional          | Initial placeholder value                   |
 
-```json
+```yaml
 {
-    "commands": {
-        "name": {
-            "handler": {
-                "component": "input",
-                "name": "username",
-                "message": "What's your name?",
-                "initial": "Anonymous"
-            }
-        }
-    }
+    "commands":
+        {
+            "name":
+                {
+                    "handler":
+                        {
+                            "component": "input",
+                            "name": "username",
+                            "message": "What's your name?",
+                            "initial": "Anonymous",
+                        },
+                },
+        },
 }
 ```
 
@@ -729,17 +776,20 @@ The invisible component prompts for user input, hiding it from the terminal.
 | name    | required          | Identifier for accessing the input's result |
 | message | required          | Question or prompt for hidden user input    |
 
-```json
+```yaml
 {
-    "commands": {
-        "password": {
-            "handler": {
-                "component": "invisible",
-                "name": "password",
-                "message": "Enter your password:"
-            }
-        }
-    }
+    "commands":
+        {
+            "password":
+                {
+                    "handler":
+                        {
+                            "component": "invisible",
+                            "name": "password",
+                            "message": "Enter your password:",
+                        },
+                },
+        },
 }
 ```
 
@@ -756,17 +806,20 @@ The list component prompts for a list of values, created by splitting user input
 | name    | required          | Identifier for accessing the list's result |
 | message | required          | Question or prompt for list input          |
 
-```json
+```yaml
 {
-    "commands": {
-        "tags": {
-            "handler": {
-                "component": "list",
-                "name": "tags",
-                "message": "Enter tags (comma-separated):"
-            }
-        }
-    }
+    "commands":
+        {
+            "tags":
+                {
+                    "handler":
+                        {
+                            "component": "list",
+                            "name": "tags",
+                            "message": "Enter tags (comma-separated):",
+                        },
+                },
+        },
 }
 ```
 
@@ -792,23 +845,36 @@ Each choice in the choices array should have the following properties:
 | name  | required          | Display text for the choice      |
 | value | required          | Value to be returned if selected |
 
-```json
+```yaml
 {
-    "commands": {
-        "features": {
-            "handler": {
-                "component": "multiSelect",
-                "name": "features",
-                "message": "Select desired features:",
-                "choices": [
-                    { "name": "Auto-save", "value": "autosave" },
-                    { "name": "Dark mode", "value": "darkmode" },
-                    { "name": "Notifications", "value": "notifications" }
-                ],
-                "limit": 2
-            }
-        }
-    }
+    "commands":
+        {
+            "features":
+                {
+                    "handler":
+                        {
+                            "component": "multiSelect",
+                            "name": "features",
+                            "message": "Select desired features:",
+                            "choices":
+                                [
+                                    {
+                                        "name": "Auto-save",
+                                        "value": "autosave",
+                                    },
+                                    {
+                                        "name": "Dark mode",
+                                        "value": "darkmode",
+                                    },
+                                    {
+                                        "name": "Notifications",
+                                        "value": "notifications",
+                                    },
+                                ],
+                            "limit": 2,
+                        },
+                },
+        },
 }
 ```
 
@@ -825,17 +891,20 @@ The number component prompts for a numeric input.
 | name    | required          | Identifier for accessing the number input result |
 | message | required          | Question or prompt for number input              |
 
-```json
+```yaml
 {
-    "commands": {
-        "age": {
-            "handler": {
-                "component": "number",
-                "name": "age",
-                "message": "Enter your age:"
-            }
-        }
-    }
+    "commands":
+        {
+            "age":
+                {
+                    "handler":
+                        {
+                            "component": "number",
+                            "name": "age",
+                            "message": "Enter your age:",
+                        },
+                },
+        },
 }
 ```
 
@@ -852,17 +921,20 @@ The password component prompts for a password, masking the input in the terminal
 | name    | required          | Identifier for accessing the password input result |
 | message | required          | Question or prompt for password input              |
 
-```json
+```yaml
 {
-    "commands": {
-        "password": {
-            "handler": {
-                "component": "password",
-                "name": "newPassword",
-                "message": "Enter new password:"
-            }
-        }
-    }
+    "commands":
+        {
+            "password":
+                {
+                    "handler":
+                        {
+                            "component": "password",
+                            "name": "newPassword",
+                            "message": "Enter new password:",
+                        },
+                },
+        },
 }
 ```
 
@@ -881,19 +953,22 @@ The quiz component presents multiple-choice quiz questions.
 | choices       | required          | List of possible answers to the quiz question      |
 | correctChoice | required          | Index of the correct choice from the choices array |
 
-```json
+```yaml
 {
-    "commands": {
-        "quiz": {
-            "handler": {
-                "component": "quiz",
-                "name": "capitalQuiz",
-                "message": "What is the capital of France?",
-                "choices": ["London", "Berlin", "Paris", "Madrid"],
-                "correctChoice": 2
-            }
-        }
-    }
+    "commands":
+        {
+            "quiz":
+                {
+                    "handler":
+                        {
+                            "component": "quiz",
+                            "name": "capitalQuiz",
+                            "message": "What is the capital of France?",
+                            "choices": ["London", "Berlin", "Paris", "Madrid"],
+                            "correctChoice": 2,
+                        },
+                },
+        },
 }
 ```
 
@@ -926,32 +1001,43 @@ Each item in the choices array should have:
 | name    | required          | Identifier for the survey question |
 | message | required          | Survey question text               |
 
-```json
+```yaml
 {
-    "commands": {
-        "feedback": {
-            "handler": {
-                "component": "survey",
-                "name": "userSatisfaction",
-                "message": "Please rate your experience:",
-                "scale": [
-                    { "name": "1", "message": "Strongly Disagree" },
-                    { "name": "3", "message": "Neutral" },
-                    { "name": "5", "message": "Strongly Agree" }
-                ],
-                "choices": [
-                    {
-                        "name": "easeOfUse",
-                        "message": "The product was easy to use"
-                    },
-                    {
-                        "name": "features",
-                        "message": "The product had all the features I needed"
-                    }
-                ]
-            }
-        }
-    }
+    "commands":
+        {
+            "feedback":
+                {
+                    "handler":
+                        {
+                            "component": "survey",
+                            "name": "userSatisfaction",
+                            "message": "Please rate your experience:",
+                            "scale":
+                                [
+                                    {
+                                        "name": "1",
+                                        "message": "Strongly Disagree",
+                                    },
+                                    { "name": "3", "message": "Neutral" },
+                                    {
+                                        "name": "5",
+                                        "message": "Strongly Agree",
+                                    },
+                                ],
+                            "choices":
+                                [
+                                    {
+                                        "name": "easeOfUse",
+                                        "message": "The product was easy to use",
+                                    },
+                                    {
+                                        "name": "features",
+                                        "message": "The product had all the features I needed",
+                                    },
+                                ],
+                        },
+                },
+        },
 }
 ```
 
@@ -985,30 +1071,38 @@ Each item in the choices array should have:
 | message | required          | Question text               |
 | initial | optional          | Index of the initial value  |
 
-```json
+```yaml
 {
-    "commands": {
-        "feedback": {
-            "handler": {
-                "component": "scale",
-                "name": "productRating",
-                "message": "Rate our product:",
-                "scale": [
-                    { "name": "1", "message": "Poor" },
-                    { "name": "3", "message": "Average" },
-                    { "name": "5", "message": "Excellent" }
-                ],
-                "choices": [
-                    {
-                        "name": "overall",
-                        "message": "Overall satisfaction",
-                        "initial": 3
-                    },
-                    { "name": "support", "message": "Customer support" }
-                ]
-            }
-        }
-    }
+    "commands":
+        {
+            "feedback":
+                {
+                    "handler":
+                        {
+                            "component": "scale",
+                            "name": "productRating",
+                            "message": "Rate our product:",
+                            "scale":
+                                [
+                                    { "name": "1", "message": "Poor" },
+                                    { "name": "3", "message": "Average" },
+                                    { "name": "5", "message": "Excellent" },
+                                ],
+                            "choices":
+                                [
+                                    {
+                                        "name": "overall",
+                                        "message": "Overall satisfaction",
+                                        "initial": 3,
+                                    },
+                                    {
+                                        "name": "support",
+                                        "message": "Customer support",
+                                    },
+                                ],
+                        },
+                },
+        },
 }
 ```
 
@@ -1033,22 +1127,26 @@ The choices can be either an array of strings or an array of objects with name a
 | name  | required          | Display text for the choice      |
 | value | required          | Value to be returned if selected |
 
-```json
+```yaml
 {
-    "commands": {
-        "color": {
-            "handler": {
-                "component": "select",
-                "name": "favoriteColor",
-                "message": "Choose your favorite color:",
-                "choices": [
-                    { "name": "Red", "value": "red" },
-                    { "name": "Blue", "value": "blue" },
-                    { "name": "Green", "value": "green" }
-                ]
-            }
-        }
-    }
+    "commands":
+        {
+            "color":
+                {
+                    "handler":
+                        {
+                            "component": "select",
+                            "name": "favoriteColor",
+                            "message": "Choose your favorite color:",
+                            "choices":
+                                [
+                                    { "name": "Red", "value": "red" },
+                                    { "name": "Blue", "value": "blue" },
+                                    { "name": "Green", "value": "green" },
+                                ],
+                        },
+                },
+        },
 }
 ```
 
@@ -1066,23 +1164,27 @@ The sort component prompts for sorting items in a list.
 | message | required          | Message to display with the sorting prompt |
 | choices | required          | List of items to be sorted                 |
 
-```json
+```yaml
 {
-    "commands": {
-        "tasks": {
-            "handler": {
-                "component": "sort",
-                "name": "taskOrder",
-                "message": "Sort these tasks by priority:",
-                "choices": [
-                    "Fix bugs",
-                    "Implement new feature",
-                    "Write documentation",
-                    "Refactor code"
-                ]
-            }
-        }
-    }
+    "commands":
+        {
+            "tasks":
+                {
+                    "handler":
+                        {
+                            "component": "sort",
+                            "name": "taskOrder",
+                            "message": "Sort these tasks by priority:",
+                            "choices":
+                                [
+                                    "Fix bugs",
+                                    "Implement new feature",
+                                    "Write documentation",
+                                    "Refactor code",
+                                ],
+                        },
+                },
+        },
 }
 ```
 
@@ -1108,32 +1210,48 @@ Each item in the fields array should have:
 | name    | required          | Identifier for the field     |
 | message | required          | Prompt message for the field |
 
-```json
+```yaml
 {
-    "commands": {
-        "generate": {
-            "handler": {
-                "component": "snippet",
-                "name": "package",
-                "message": "Fill out the fields in package.json",
-                "fields": [
-                    { "name": "name", "message": "Name of the package" },
-                    {
-                        "name": "description",
-                        "message": "Description of the package"
-                    },
-                    { "name": "version", "message": "Version of the package" },
-                    { "name": "username", "message": "Your username" },
-                    { "name": "author_name", "message": "Your name" },
-                    {
-                        "name": "license",
-                        "message": "The license of the package"
-                    }
-                ],
-                "template": "{\n  \"name\": \"${name}\",\n  \"description\": \"${description}\",\n  \"version\": \"${version}\",\n  \"homepage\": \"https://github.com/${username}/${name}\",\n  \"author\": \"${author_name} (https://github.com/${username})\",\n  \"repository\": \"${username}/${name}\",\n  \"license\": \"${license:ISC}\"\n}\n"
-            }
-        }
-    }
+    "commands":
+        {
+            "generate":
+                {
+                    "handler":
+                        {
+                            "component": "snippet",
+                            "name": "package",
+                            "message": "Fill out the fields in package.json",
+                            "fields":
+                                [
+                                    {
+                                        "name": "name",
+                                        "message": "Name of the package",
+                                    },
+                                    {
+                                        "name": "description",
+                                        "message": "Description of the package",
+                                    },
+                                    {
+                                        "name": "version",
+                                        "message": "Version of the package",
+                                    },
+                                    {
+                                        "name": "username",
+                                        "message": "Your username",
+                                    },
+                                    {
+                                        "name": "author_name",
+                                        "message": "Your name",
+                                    },
+                                    {
+                                        "name": "license",
+                                        "message": "The license of the package",
+                                    },
+                                ],
+                            "template": "{\n  \"name\": \"${name}\",\n  \"description\": \"${description}\",\n  \"version\": \"${version}\",\n  \"homepage\": \"https://github.com/${username}/${name}\",\n  \"author\": \"${author_name} (https://github.com/${username})\",\n  \"repository\": \"${username}/${name}\",\n  \"license\": \"${license:ISC}\"\n}\n",
+                        },
+                },
+        },
 }
 ```
 
@@ -1152,18 +1270,21 @@ The toggle component prompts for toggling between two values.
 | enabled  | required          | Label for the enabled state                |
 | disabled | required          | Label for the disabled state               |
 
-```json
+```yaml
 {
-    "commands": {
-        "notifications": {
-            "handler": {
-                "component": "toggle",
-                "name": "notificationsEnabled",
-                "message": "Enable notifications?",
-                "enabled": "Yes",
-                "disabled": "No"
-            }
-        }
-    }
+    "commands":
+        {
+            "notifications":
+                {
+                    "handler":
+                        {
+                            "component": "toggle",
+                            "name": "notificationsEnabled",
+                            "message": "Enable notifications?",
+                            "enabled": "Yes",
+                            "disabled": "No",
+                        },
+                },
+        },
 }
 ```
