@@ -10,7 +10,7 @@
 <br>
 
 <p align="center">
-  <img src="media/example.gif" alt="Enquirer Survey Prompt" width="1000"><br>
+  <img src="media/example.gif" width="1000"><br>
   <sub>A "dummy" prototype of a task management CLI. You can see more interaction examples under <a href="#components">components</a></sub>
 </p>
 
@@ -26,8 +26,15 @@ You have to have [git](https://git-scm.com/downloads), [node](https://nodejs.org
 
 ## Setup and Usage
 
-1. Create a new repository using this repository as a template.
-   ![](media/template.png)
+<ol>
+    <li>
+        <p>
+            Create a new repository using this repository as a template.</br>
+            <img src="media/template.png" width="300"><br>
+        </p>
+    </li>
+</ol>
+
 2. Clone the newly created repository to your local computer either with an app like [Github desktop](https://desktop.github.com/download/) or by running the following command:
 
 ```bash
@@ -53,18 +60,48 @@ yarn run dev
 
 This project is set up to deploy automatically to GitHub Pages using GitHub Actions:
 
-1. In your Github repository, go to Settings > Pages.
-2. Under "Source", select "GitHub Actions".
-   ![](media/settings.png)
-3. On the home page of your Github repository click on the settings icon of the "About" section.
-   ![](media/about.png)
-4. Under website, check "Use your Github Pages website".
-   ![](media/website.png)
-5. Your Github pages link will now show up in the "About" section.
-   ![](media/link.png)
-6. The site will deploy automatically on pushes to the main branch. You can verify a succesfull deployedment by the green checkmark next to the merge.
-   ![](media/deployed.png)
-7. You should now be able to reach your CLI prototype with the link in the "About" section.
+<ol>
+    <li>
+        <p>
+            In your Github repository, go to Settings > Pages.</br>
+        </p>
+    </li>
+    <li>
+        <p>
+            Under "Source", select "GitHub Actions".</br>
+            <img src="media/settings.png" width="300"><br>
+        </p>
+    </li>
+    <li>
+        <p>
+            On the home page of your Github repository click on the settings icon of the "About" section.</br>
+            <img src="media/about.png" width="300"><br>
+        </p>
+    </li>
+    <li>
+        <p>
+            Under website, check "Use your Github Pages website".</br>
+            <img src="media/website.png" width="300"><br>
+        </p>
+    </li>
+    <li>
+        <p>
+            Your Github pages link will now show up in the "About" section.</br>
+            <img src="media/link.png" width="300"><br>
+        </p>
+    </li>
+    <li>
+        <p>
+            The site will deploy automatically on pushes to the main branch. You can verify a succesfull deployedment by the green checkmark next to the merge.</br>
+            <img src="media/deployed.png" width="300"><br>
+        </p>
+    </li>
+    <li>
+        <p>
+            You should now be able to reach your CLI prototype with the link in the "About" section.</br>
+        </p>
+    </li>
+</ol>
 
 ## Customizing Your CLI
 
