@@ -27,6 +27,7 @@ You have to have [git](https://git-scm.com/downloads), [node](https://nodejs.org
 ## Setup and Usage
 
 1. Create a new repository using this repository as a template.
+   ![](media/template.png)
 2. Clone the newly created repository to your local computer either with an app like [Github desktop](https://desktop.github.com/download/) or by running the following command:
 
 ```bash
@@ -54,8 +55,16 @@ This project is set up to deploy automatically to GitHub Pages using GitHub Acti
 
 1. In your Github repository, go to Settings > Pages.
 2. Under "Source", select "GitHub Actions".
-3. The site will deploy automatically on pushes to the main branch.
-4. You can find the deployed site URL in the GitHub Actions workflow runs.
+   ![](media/settings.png)
+3. On the home page of your Github repository click on the settings icon of the "About" section.
+   ![](media/about.png)
+4. Under website, check "Use your Github Pages website".
+   ![](media/website.png)
+5. Your Github pages link will now show up in the "About" section.
+   ![](media/link.png)
+6. The site will deploy automatically on pushes to the main branch. You can verify a succesfull deployedment by the green checkmark next to the merge.
+   ![](media/deployed.png)
+7. You should now be able to reach your CLI prototype with the link in the "About" section.
 
 ## Customizing Your CLI
 
