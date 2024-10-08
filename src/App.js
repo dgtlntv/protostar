@@ -4,11 +4,11 @@ import LocalEchoController from "./io/LocalEchoController.js"
 import inputHandler from "./io/inputHandler.js"
 import monkeyPatchStdout from "./shims/monkeyPatchStdout.js"
 import initializeYargs from "./io/yargs/initializeYargs.js"
+import commandsData from "./commands.json"
 
-// GENERAL TODOs
+// GENERAL TODO
 // 1. Write tests
 // 2. Somehow reduce flickering when typing
-// 3. Write the welcome message if available
 
 export default function App() {
     const term = new Terminal({
@@ -39,8 +39,9 @@ export default function App() {
 
     term.loadAddon(fitAddon)
     term.loadAddon(localEcho)
-
     term.open(document.getElementById("terminal"))
+
+    commandsData.welcome ? term.write(commandsData.welcome + "\n\n") : null
 
     fitAddon.fit()
     window.addEventListener("resize", (event) => {
@@ -49,7 +50,7 @@ export default function App() {
 
     monkeyPatchStdout()
 
-    const yargs = initializeYargs(localEcho)
+    const yargs = initializeYargs(localEcho, commandsData)
 
     inputHandler(localEcho, term, yargs)
     term.focus()
