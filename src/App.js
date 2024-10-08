@@ -9,6 +9,7 @@ import commandsData from "./commands.json"
 // GENERAL TODO
 // 1. Write tests
 // 2. Somehow reduce flickering when typing
+// 3. weird bug where help text is repeated if you hit enter on an empty prompt
 
 export default function App() {
     const term = new Terminal({
