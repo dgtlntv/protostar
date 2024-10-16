@@ -22,7 +22,7 @@ The tool automatically deploys to GitHub Pages, allowing prototypes to be easily
 
 ## Prerequisites
 
-You have to have [git](https://git-scm.com/downloads), [node](https://nodejs.org/en/download/package-manager) and [yarn](https://classic.yarnpkg.com/lang/en/docs/install/) installed.
+You have to have [git](https://git-scm.com/downloads), [node](https://nodejs.org/en/download/package-manager) and [yarn](https://classic.yarnpkg.com/lang/en/docs/install/) installed. You can use [Multipass Setup](MultipassSetup.md) to make this easy.
 
 ## Setup and Usage
 

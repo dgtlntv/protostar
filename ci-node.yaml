@@ -1,0 +1,10 @@
+# cloud-config
+
+# Install node and npm packages on first boot
+snap:
+    commands:
+        - snap install node --classic
+
+runcmd:
+    - npm install -g npm
+    - npm install -g yarn
