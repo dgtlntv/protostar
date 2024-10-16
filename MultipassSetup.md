@@ -2,17 +2,19 @@
 
 ## Install multipass
 
-MacOS X users can download and install Multipass from the [official download page](https://multipass.run/download/macos/).
+MacOS X users can download and install Multipass from the [official Mac download page](https://multipass.run/download/macos/).
 Alternatively they can use [Homebrew](https://brew.sh/) to install it using `brew install multipass`.
 
 Windows users can download and install Multipass from
-the [official download page](https://multipass.run/download/windows/).
+the [official Windows download page](https://multipass.run/download/windows/).
 
 Linux users can run `snap install multipass` from the command line.
 
 ## Setup VM for development
 
-Go to a directory that you want to use for development.
+Go to a directory that you want to use for development: On a Mac, open Terminal and use e.g. `mkdir workspace; cd workspace`.
+On a Windows machine, you will also need to [install git](https://git-scm.com/download/win)  before opening CMD or Powershell 
+and using e.g. `md workspace; cd workspace`. 
 
 ```
 git clone https://github.com/dgtlntv/protostar
