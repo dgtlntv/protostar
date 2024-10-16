@@ -12,20 +12,20 @@ Linux users can run `snap install multipass` from the command line.
 
 ## Setup VM for development
 
-Go to a directory that you want to use for development: On a Mac, open Terminal and use e.g. `mkdir workspace; cd workspace`.
-On a Windows machine, you will also need to [install git](https://git-scm.com/download/win)  before opening CMD or Powershell 
-and using e.g. `md workspace; cd workspace`. 
+Go to a directory that you want to use for development: On a Mac, open Terminal and use e.g. `mkdir workspace; cd workspace`. On Mac make sure that you are not in a system directory like `Documents`or `Desktop` as mounting a directory in multipass will not work in these directories.
+
+On a Windows machine, you will also need to [install git](https://git-scm.com/download/win) before opening CMD or Powershell
+and using e.g. `md workspace; cd workspace`.
 
 ```
 git clone https://github.com/dgtlntv/protostar
 
-multipass launch -n node --cloud-init protostar/ci-node.yaml
-multipass mount protostar node:protostar
+multipass launch -n node --cloud-init ./protostar/ci-node.yaml --mount ./protostar:protostar
 ```
 
-Open a shell with multipass shell node or using the Multipass UI.
+Open a shell with `multipass shell node` or using the Multipass UI.
 
-In the shell, continue with running the example script:
+In the shell, continue with installing the dependencies and starting the prototype:
 
 ```
 yarn
@@ -35,6 +35,7 @@ yarn dev --host
 ## Connecting to the server
 
 The server will display a message like this:
+
 ```
    VITE v5.4.0  ready in 768 ms
 
@@ -42,4 +43,5 @@ The server will display a message like this:
   ➜  Network: http://10.83.94.241:5173/
   ➜  press h + enter to show help
 ```
+
 The second arrow points to the NETWORK_ADDRESS that will allow you to connect to the server (in this example 10.83.94.241). Copy that address and open a web browser pointing to http://NETWORK_ADDRESS:5173
