@@ -22,7 +22,7 @@ The tool automatically deploys to GitHub Pages, allowing prototypes to be easily
 
 ## Prerequisites
 
-You have to have [git](https://git-scm.com/downloads), [node](https://nodejs.org/en/download/package-manager) and [yarn](https://classic.yarnpkg.com/lang/en/docs/install/) installed.
+You have to have [git](https://git-scm.com/downloads), [node](https://nodejs.org/en/download/package-manager) and [yarn](https://classic.yarnpkg.com/lang/en/docs/install/) installed. You can use [Multipass Setup](Multipass.md) to make this easy.
 
 ## Setup and Usage
 
@@ -110,23 +110,23 @@ The general schema of the `commands.json` is:
 
 ```json5
 {
-    // Welcome message for the CLI prototype
-    welcome: "Welcome to My CLI! Type 'help' for available commands.",
+  // Welcome message for the CLI prototype
+  welcome: "Welcome to My CLI! Type 'help' for available commands.",
 
-    // The global variables you can read and write accross commands
-    variables: {
-        username: "dgtlntv",
-        isLoggedIn: "false",
-    },
-    commands: {
-        // The commands available in the CLI prototype
-    },
+  // The global variables you can read and write accross commands
+  variables: {
+    username: "dgtlntv",
+    isLoggedIn: "false",
+  },
+  commands: {
+    // The commands available in the CLI prototype
+  },
 }
 ```
 
--   `welcome` is optional. It defines a welcome message that is output when the CLI is loaded for the first time.
--   `variables` is optional as well and can be used to define variables that can be set and checked by commands. For example, through them we can prescribe a specific command sequence.
--   The commands of the CLI are defined in the commands object.
+- `welcome` is optional. It defines a welcome message that is output when the CLI is loaded for the first time.
+- `variables` is optional as well and can be used to define variables that can be set and checked by commands. For example, through them we can prescribe a specific command sequence.
+- The commands of the CLI are defined in the commands object.
 
 ### Commands
 
@@ -136,11 +136,11 @@ The command name with which the command can be called is the key of the command 
 
 ```json5
 {
-    commands: {
-        register: {
-            // Command content
-        },
+  commands: {
+    register: {
+      // Command content
     },
+  },
 }
 ```
 
@@ -150,11 +150,11 @@ The description is shown in the automatically generated help message.
 
 ```json5
 {
-    commands: {
-        register: {
-            description: "This command registers a new account with the service.",
-        },
+  commands: {
+    register: {
+      description: "This command registers a new account with the service.",
     },
+  },
 }
 ```
 
@@ -165,11 +165,11 @@ In the following example the user could call the same `register`command with `en
 
 ```json5
 {
-    commands: {
-        register: {
-            alias: ["enrol", "signup"],
-        },
+  commands: {
+    register: {
+      alias: ["enrol", "signup"],
     },
+  },
 }
 ```
 
@@ -179,14 +179,14 @@ The example will be used to provide example usages of a command in the automatic
 
 ```json5
 {
-    commands: {
-        register: {
-            example: [
-                "register email@example.com",
-                "Register a new account with the email@example.com email.",
-            ],
-        },
+  commands: {
+    register: {
+      example: [
+        "register email@example.com",
+        "Register a new account with the email@example.com email.",
+      ],
     },
+  },
 }
 ```
 
@@ -196,11 +196,11 @@ Positional arguments in commands can be either required or optional. Required po
 
 ```json5
 {
-    commands: {
-        "register <email> [username]": {
-            // Command content
-        },
+  commands: {
+    "register <email> [username]": {
+      // Command content
     },
+  },
 }
 ```
 
@@ -208,11 +208,11 @@ The `|` character allows you to specify aliases for positional arguments.
 
 ```json5
 {
-    commands: {
-        "register <email | username>": {
-            // Command content
-        },
+  commands: {
+    "register <email | username>": {
+      // Command content
     },
+  },
 }
 ```
 
@@ -220,11 +220,11 @@ The last positional argument can optionally accept an array of values, by using 
 
 ```json5
 {
-    commands: {
-        "register <email> [..socialUrls]": {
-            // Command content
-        },
+  commands: {
+    "register <email> [..socialUrls]": {
+      // Command content
     },
+  },
 }
 ```
 
@@ -241,25 +241,25 @@ Under `positional` the positional argument of a command are defined. You can use
 
 ```json5
 {
-    commands: {
-        "register <email>": {
-            positional: {
-                email: {
-                    alias: "username",
-                    // choice and default don't really make sense in this example, but is an available configuration
-                    // "choices": [
-                    //     "choice1",
-                    //     "choice2",
-                    //     "choice3"
-                    // ],
-                    // "default": "defaultOption",
-                    demandOption: true,
-                    description: "The email to register your account with",
-                    type: "string",
-                },
-            },
+  commands: {
+    "register <email>": {
+      positional: {
+        email: {
+          alias: "username",
+          // choice and default don't really make sense in this example, but is an available configuration
+          // "choices": [
+          //     "choice1",
+          //     "choice2",
+          //     "choice3"
+          // ],
+          // "default": "defaultOption",
+          demandOption: true,
+          description: "The email to register your account with",
+          type: "string",
         },
+      },
     },
+  },
 }
 ```
 
@@ -283,30 +283,30 @@ Under `options` the flags (eg. `--flag`) of a command are defined. You can use t
 
 ```json5
 {
-    commands: {
-        register: {
-            options: {
-                password: {
-                    alias: ["pwd", "pw"],
-                    // choice and default don't really make sense in this example, but is an available configuration
-                    // "choices": [
-                    //     "choice1",
-                    //     "choice2",
-                    //     "choice3"
-                    // ],
-                    // "default": "defaultOption",
-                    // "defaultDescription": "The description for the default option",
-                    demandOption: true,
-                    description: "The password for your account",
-                    group: "Login credentials",
-                    hidden: false,
-                    nargs: 1,
-                    requiresArg: true,
-                    type: "string",
-                },
-            },
+  commands: {
+    register: {
+      options: {
+        password: {
+          alias: ["pwd", "pw"],
+          // choice and default don't really make sense in this example, but is an available configuration
+          // "choices": [
+          //     "choice1",
+          //     "choice2",
+          //     "choice3"
+          // ],
+          // "default": "defaultOption",
+          // "defaultDescription": "The description for the default option",
+          demandOption: true,
+          description: "The password for your account",
+          group: "Login credentials",
+          hidden: false,
+          nargs: 1,
+          requiresArg: true,
+          type: "string",
         },
+      },
     },
+  },
 }
 ```
 
@@ -316,18 +316,18 @@ If you want to chain multiple commands you can nest commands under `commands`. T
 
 ```json5
 {
-    commands: {
-        register: {
-            commands: {
-                user: {
-                    // Command content
-                },
-                serviceaccount: {
-                    // Command content
-                },
-            },
+  commands: {
+    register: {
+      commands: {
+        user: {
+          // Command content
         },
+        serviceaccount: {
+          // Command content
+        },
+      },
     },
+  },
 }
 ```
 
@@ -365,14 +365,14 @@ The handler accepts either a single component:
 
 ```json5
 {
-    commands: {
-        register: {
-            handler: {
-                component: "text",
-                output: "Registered successfully",
-            },
-        },
+  commands: {
+    register: {
+      handler: {
+        component: "text",
+        output: "Registered successfully",
+      },
     },
+  },
 }
 ```
 
@@ -380,21 +380,21 @@ Or an array of components:
 
 ```json5
 {
-    commands: {
-        register: {
-            handler: [
-                {
-                    component: "text",
-                    output: "Registering in progress...",
-                    duration: 5000,
-                },
-                {
-                    component: "text",
-                    output: "Registered successfully",
-                },
-            ],
+  commands: {
+    register: {
+      handler: [
+        {
+          component: "text",
+          output: "Registering in progress...",
+          duration: 5000,
         },
+        {
+          component: "text",
+          output: "Registered successfully",
+        },
+      ],
     },
+  },
 }
 ```
 
@@ -417,21 +417,21 @@ The simplest of the components is the text component. It simply prints text to t
 
 ```json5
 {
-    commands: {
-        register: {
-            handler: [
-                {
-                    component: "text",
-                    output: "Registering in progress...",
-                    duration: 2000,
-                },
-                {
-                    component: "text",
-                    output: "Registered successfully",
-                },
-            ],
+  commands: {
+    register: {
+      handler: [
+        {
+          component: "text",
+          output: "Registering in progress...",
+          duration: 2000,
         },
+        {
+          component: "text",
+          output: "Registered successfully",
+        },
+      ],
     },
+  },
 }
 ```
 
@@ -450,15 +450,15 @@ The progress bar component renders a progress bar in the terminal, showing a tas
 
 ```json5
 {
-    commands: {
-        install: {
-            handler: {
-                component: "progressBar",
-                output: "Installing dependencies...",
-                duration: 2000,
-            },
-        },
+  commands: {
+    install: {
+      handler: {
+        component: "progressBar",
+        output: "Installing dependencies...",
+        duration: 2000,
+      },
     },
+  },
 }
 ```
 
@@ -478,16 +478,16 @@ The spinner component displays an animated spinner in the terminal, indicating t
 
 ```json5
 {
-    commands: {
-        process: {
-            handler: {
-                component: "spinner",
-                output: ["Processing", "Please wait", "Almost done"],
-                duration: 2000,
-                conclusion: "succeed",
-            },
-        },
+  commands: {
+    process: {
+      handler: {
+        component: "spinner",
+        output: ["Processing", "Please wait", "Almost done"],
+        duration: 2000,
+        conclusion: "succeed",
+      },
     },
+  },
 }
 ```
 
@@ -506,19 +506,19 @@ The table component renders a formatted table in the terminal.
 
 ```json5
 {
-    commands: {
-        list: {
-            handler: {
-                component: "table",
-                output: [
-                    ["Name", "Age", "City"],
-                    ["John", "30", "New York"],
-                    ["Alice", "25", "London"],
-                ],
-                colWidths: [10, 5, 15],
-            },
-        },
+  commands: {
+    list: {
+      handler: {
+        component: "table",
+        output: [
+          ["Name", "Age", "City"],
+          ["John", "30", "New York"],
+          ["Alice", "25", "London"],
+        ],
+        colWidths: [10, 5, 15],
+      },
     },
+  },
 }
 ```
 
@@ -544,24 +544,24 @@ The output object should contain the following fields.
 
 ```json5
 {
-    commands: {
-        check: {
-            handler: {
-                component: "conditional",
-                output: {
-                    if: "isLoggedIn == 'true'",
-                    then: {
-                        component: "text",
-                        output: "Welcome back!",
-                    },
-                    else: {
-                        component: "text",
-                        output: "Please log in first.",
-                    },
-                },
-            },
+  commands: {
+    check: {
+      handler: {
+        component: "conditional",
+        output: {
+          if: "isLoggedIn == 'true'",
+          then: {
+            component: "text",
+            output: "Welcome back!",
+          },
+          else: {
+            component: "text",
+            output: "Please log in first.",
+          },
         },
+      },
     },
+  },
 }
 ```
 
@@ -579,27 +579,27 @@ The variable component allows setting global variables that can be used across c
 
 ```json5
 {
-    commands: {
-        login: {
-            handler: [
-                {
-                    component: "text",
-                    output: "Before setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}",
-                },
-                {
-                    component: "variable",
-                    output: {
-                        username: "john_doe",
-                        isLoggedIn: "true",
-                    },
-                },
-                {
-                    component: "text",
-                    output: "After setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}",
-                },
-            ],
+  commands: {
+    login: {
+      handler: [
+        {
+          component: "text",
+          output: "Before setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}",
         },
+        {
+          component: "variable",
+          output: {
+            username: "john_doe",
+            isLoggedIn: "true",
+          },
+        },
+        {
+          component: "text",
+          output: "After setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}",
+        },
+      ],
     },
+  },
 }
 ```
 
@@ -623,18 +623,18 @@ The autoComplete component provides a prompt that auto-completes as the user typ
 
 ```json5
 {
-    commands: {
-        search: {
-            handler: {
-                component: "autoComplete",
-                name: "query",
-                message: "Search for a fruit:",
-                choices: ["Apple", "Banana", "Cherry", "Date", "Elderberry"],
-                limit: 3,
-                footer: "Use arrow keys to navigate",
-            },
-        },
+  commands: {
+    search: {
+      handler: {
+        component: "autoComplete",
+        name: "query",
+        message: "Search for a fruit:",
+        choices: ["Apple", "Banana", "Cherry", "Date", "Elderberry"],
+        limit: 3,
+        footer: "Use arrow keys to navigate",
+      },
     },
+  },
 }
 ```
 
@@ -656,18 +656,18 @@ The basicAuth component prompts for username and password authentication.
 
 ```json5
 {
-    commands: {
-        login: {
-            handler: {
-                component: "basicAuth",
-                name: "auth",
-                message: "Please enter your credentials:",
-                username: "admin",
-                password: "secret",
-                showPassword: false,
-            },
-        },
+  commands: {
+    login: {
+      handler: {
+        component: "basicAuth",
+        name: "auth",
+        message: "Please enter your credentials:",
+        username: "admin",
+        password: "secret",
+        showPassword: false,
+      },
     },
+  },
 }
 ```
 
@@ -687,16 +687,16 @@ The confirm component prompts to confirm or deny a statement.
 
 ```json5
 {
-    commands: {
-        delete: {
-            handler: {
-                component: "confirm",
-                name: "confirmDelete",
-                message: "Are you sure you want to delete this item?",
-                initial: false,
-            },
-        },
+  commands: {
+    delete: {
+      handler: {
+        component: "confirm",
+        name: "confirmDelete",
+        message: "Are you sure you want to delete this item?",
+        initial: false,
+      },
     },
+  },
 }
 ```
 
@@ -724,26 +724,26 @@ Each choice in the choices array should have the following properties:
 
 ```json5
 {
-    commands: {
-        register: {
-            handler: {
-                component: "form",
-                name: "userInfo",
-                message: "Please enter your information:",
-                choices: [
-                    {
-                        name: "username",
-                        message: "Username:",
-                        initial: "user123",
-                    },
-                    {
-                        name: "email",
-                        message: "Email:",
-                    },
-                ],
-            },
-        },
+  commands: {
+    register: {
+      handler: {
+        component: "form",
+        name: "userInfo",
+        message: "Please enter your information:",
+        choices: [
+          {
+            name: "username",
+            message: "Username:",
+            initial: "user123",
+          },
+          {
+            name: "email",
+            message: "Email:",
+          },
+        ],
+      },
     },
+  },
 }
 ```
 
@@ -763,16 +763,16 @@ The input component prompts for user input.
 
 ```json5
 {
-    commands: {
-        name: {
-            handler: {
-                component: "input",
-                name: "username",
-                message: "What's your name?",
-                initial: "Anonymous",
-            },
-        },
+  commands: {
+    name: {
+      handler: {
+        component: "input",
+        name: "username",
+        message: "What's your name?",
+        initial: "Anonymous",
+      },
     },
+  },
 }
 ```
 
@@ -791,15 +791,15 @@ The invisible component prompts for user input, hiding it from the terminal.
 
 ```json5
 {
-    commands: {
-        password: {
-            handler: {
-                component: "invisible",
-                name: "password",
-                message: "Enter your password:",
-            },
-        },
+  commands: {
+    password: {
+      handler: {
+        component: "invisible",
+        name: "password",
+        message: "Enter your password:",
+      },
     },
+  },
 }
 ```
 
@@ -818,15 +818,15 @@ The list component prompts for a list of values, created by splitting user input
 
 ```json5
 {
-    commands: {
-        tags: {
-            handler: {
-                component: "list",
-                name: "tags",
-                message: "Enter tags (comma-separated):",
-            },
-        },
+  commands: {
+    tags: {
+      handler: {
+        component: "list",
+        name: "tags",
+        message: "Enter tags (comma-separated):",
+      },
     },
+  },
 }
 ```
 
@@ -854,21 +854,21 @@ Each choice in the choices array should have the following properties:
 
 ```json5
 {
-    commands: {
-        features: {
-            handler: {
-                component: "multiSelect",
-                name: "features",
-                message: "Select desired features:",
-                choices: [
-                    { name: "Auto-save", value: "autosave" },
-                    { name: "Dark mode", value: "darkmode" },
-                    { name: "Notifications", value: "notifications" },
-                ],
-                limit: 2,
-            },
-        },
+  commands: {
+    features: {
+      handler: {
+        component: "multiSelect",
+        name: "features",
+        message: "Select desired features:",
+        choices: [
+          { name: "Auto-save", value: "autosave" },
+          { name: "Dark mode", value: "darkmode" },
+          { name: "Notifications", value: "notifications" },
+        ],
+        limit: 2,
+      },
     },
+  },
 }
 ```
 
@@ -887,15 +887,15 @@ The number component prompts for a numeric input.
 
 ```json5
 {
-    commands: {
-        age: {
-            handler: {
-                component: "number",
-                name: "age",
-                message: "Enter your age:",
-            },
-        },
+  commands: {
+    age: {
+      handler: {
+        component: "number",
+        name: "age",
+        message: "Enter your age:",
+      },
     },
+  },
 }
 ```
 
@@ -914,15 +914,15 @@ The password component prompts for a password, masking the input in the terminal
 
 ```json5
 {
-    commands: {
-        password: {
-            handler: {
-                component: "password",
-                name: "newPassword",
-                message: "Enter new password:",
-            },
-        },
+  commands: {
+    password: {
+      handler: {
+        component: "password",
+        name: "newPassword",
+        message: "Enter new password:",
+      },
     },
+  },
 }
 ```
 
@@ -943,17 +943,17 @@ The quiz component presents multiple-choice quiz questions.
 
 ```json5
 {
-    commands: {
-        quiz: {
-            handler: {
-                component: "quiz",
-                name: "capitalQuiz",
-                message: "What is the capital of France?",
-                choices: ["London", "Berlin", "Paris", "Madrid"],
-                correctChoice: 2,
-            },
-        },
+  commands: {
+    quiz: {
+      handler: {
+        component: "quiz",
+        name: "capitalQuiz",
+        message: "What is the capital of France?",
+        choices: ["London", "Berlin", "Paris", "Madrid"],
+        correctChoice: 2,
+      },
     },
+  },
 }
 ```
 
@@ -988,30 +988,30 @@ Each item in the choices array should have:
 
 ```json5
 {
-    commands: {
-        feedback: {
-            handler: {
-                component: "survey",
-                name: "userSatisfaction",
-                message: "Please rate your experience:",
-                scale: [
-                    { name: "1", message: "Strongly Disagree" },
-                    { name: "3", message: "Neutral" },
-                    { name: "5", message: "Strongly Agree" },
-                ],
-                choices: [
-                    {
-                        name: "easeOfUse",
-                        message: "The product was easy to use",
-                    },
-                    {
-                        name: "features",
-                        message: "The product had all the features I needed",
-                    },
-                ],
-            },
-        },
+  commands: {
+    feedback: {
+      handler: {
+        component: "survey",
+        name: "userSatisfaction",
+        message: "Please rate your experience:",
+        scale: [
+          { name: "1", message: "Strongly Disagree" },
+          { name: "3", message: "Neutral" },
+          { name: "5", message: "Strongly Agree" },
+        ],
+        choices: [
+          {
+            name: "easeOfUse",
+            message: "The product was easy to use",
+          },
+          {
+            name: "features",
+            message: "The product had all the features I needed",
+          },
+        ],
+      },
     },
+  },
 }
 ```
 
@@ -1047,28 +1047,28 @@ Each item in the choices array should have:
 
 ```json5
 {
-    commands: {
-        feedback: {
-            handler: {
-                component: "scale",
-                name: "productRating",
-                message: "Rate our product:",
-                scale: [
-                    { name: "1", message: "Poor" },
-                    { name: "3", message: "Average" },
-                    { name: "5", message: "Excellent" },
-                ],
-                choices: [
-                    {
-                        name: "overall",
-                        message: "Overall satisfaction",
-                        initial: 3,
-                    },
-                    { name: "support", message: "Customer support" },
-                ],
-            },
-        },
+  commands: {
+    feedback: {
+      handler: {
+        component: "scale",
+        name: "productRating",
+        message: "Rate our product:",
+        scale: [
+          { name: "1", message: "Poor" },
+          { name: "3", message: "Average" },
+          { name: "5", message: "Excellent" },
+        ],
+        choices: [
+          {
+            name: "overall",
+            message: "Overall satisfaction",
+            initial: 3,
+          },
+          { name: "support", message: "Customer support" },
+        ],
+      },
     },
+  },
 }
 ```
 
@@ -1095,20 +1095,20 @@ The choices can be either an array of strings or an array of objects with name a
 
 ```json5
 {
-    commands: {
-        color: {
-            handler: {
-                component: "select",
-                name: "favoriteColor",
-                message: "Choose your favorite color:",
-                choices: [
-                    { name: "Red", value: "red" },
-                    { name: "Blue", value: "blue" },
-                    { name: "Green", value: "green" },
-                ],
-            },
-        },
+  commands: {
+    color: {
+      handler: {
+        component: "select",
+        name: "favoriteColor",
+        message: "Choose your favorite color:",
+        choices: [
+          { name: "Red", value: "red" },
+          { name: "Blue", value: "blue" },
+          { name: "Green", value: "green" },
+        ],
+      },
     },
+  },
 }
 ```
 
@@ -1128,21 +1128,21 @@ The sort component prompts for sorting items in a list.
 
 ```json5
 {
-    commands: {
-        tasks: {
-            handler: {
-                component: "sort",
-                name: "taskOrder",
-                message: "Sort these tasks by priority:",
-                choices: [
-                    "Fix bugs",
-                    "Implement new feature",
-                    "Write documentation",
-                    "Refactor code",
-                ],
-            },
-        },
+  commands: {
+    tasks: {
+      handler: {
+        component: "sort",
+        name: "taskOrder",
+        message: "Sort these tasks by priority:",
+        choices: [
+          "Fix bugs",
+          "Implement new feature",
+          "Write documentation",
+          "Refactor code",
+        ],
+      },
     },
+  },
 }
 ```
 
@@ -1170,30 +1170,30 @@ Each item in the fields array should have:
 
 ```json5
 {
-    commands: {
-        generate: {
-            handler: {
-                component: "snippet",
-                name: "package",
-                message: "Fill out the fields in package.json",
-                fields: [
-                    { name: "name", message: "Name of the package" },
-                    {
-                        name: "description",
-                        message: "Description of the package",
-                    },
-                    { name: "version", message: "Version of the package" },
-                    { name: "username", message: "Your username" },
-                    { name: "author_name", message: "Your name" },
-                    {
-                        name: "license",
-                        message: "The license of the package",
-                    },
-                ],
-                template: '{\n  "name": "${name}",\n  "description": "${description}",\n  "version": "${version}",\n  "homepage": "https://github.com/${username}/${name}",\n  "author": "${author_name} (https://github.com/${username})",\n  "repository": "${username}/${name}",\n  "license": "${license:ISC}"\n}\n',
-            },
-        },
+  commands: {
+    generate: {
+      handler: {
+        component: "snippet",
+        name: "package",
+        message: "Fill out the fields in package.json",
+        fields: [
+          { name: "name", message: "Name of the package" },
+          {
+            name: "description",
+            message: "Description of the package",
+          },
+          { name: "version", message: "Version of the package" },
+          { name: "username", message: "Your username" },
+          { name: "author_name", message: "Your name" },
+          {
+            name: "license",
+            message: "The license of the package",
+          },
+        ],
+        template: '{\n  "name": "${name}",\n  "description": "${description}",\n  "version": "${version}",\n  "homepage": "https://github.com/${username}/${name}",\n  "author": "${author_name} (https://github.com/${username})",\n  "repository": "${username}/${name}",\n  "license": "${license:ISC}"\n}\n',
+      },
     },
+  },
 }
 ```
 
@@ -1214,16 +1214,16 @@ The toggle component prompts for toggling between two values.
 
 ```json5
 {
-    commands: {
-        notifications: {
-            handler: {
-                component: "toggle",
-                name: "notificationsEnabled",
-                message: "Enable notifications?",
-                enabled: "Yes",
-                disabled: "No",
-            },
-        },
+  commands: {
+    notifications: {
+      handler: {
+        component: "toggle",
+        name: "notificationsEnabled",
+        message: "Enable notifications?",
+        enabled: "Yes",
+        disabled: "No",
+      },
     },
+  },
 }
 ```
