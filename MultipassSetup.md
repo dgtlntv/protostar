@@ -1,37 +1,43 @@
-= Environment setup using multipass
+# Environment setup using multipass
 
-== Install multipass
+## Install multipass
 
 MacOS X users can download and install Multipass from the [official download page](https://multipass.run/download/macos/).
-Alternatively they can use [Homebrew](https://brew.sh/) to install it using 'brew install multipass'.
+Alternatively they can use [Homebrew](https://brew.sh/) to install it using `brew install multipass`.
 
 Windows users can download and install Multipass from
 the [official download page](https://multipass.run/download/windows/).
 
-Linux users can run 'snap install multipass' from the command line.
+Linux users can run `snap install multipass` from the command line.
 
-== Setup VM for development
+## Setup VM for development
 
 Go to a directory that you want to use for development.
 
-'''
+```
 git clone https://github.com/dgtlntv/protostar
 
 multipass launch -n node --cloud-init protostar/ci-node.yaml
 multipass mount protostar node:protostar
-'''
+```
 
 Open a shell with multipass shell node or using the Multipass UI.
 
 In the shell, continue with running the example script:
 
-'''
+```
 yarn
 yarn dev --host
-'''
+```
 
-== Connecting to the server
+## Connecting to the server
 
-Find out the IP address of the VM using the GUI -> Instances view, or using 'multipass list'
+The server will display a message like this:
+```
+   VITE v5.4.0  ready in 768 ms
 
-Open a web browser pointing to http://IP_ADDRESS:5173
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: http://10.83.94.241:5173/
+  ➜  press h + enter to show help
+```
+The second arrow points to the NETWORK_ADDRESS that will allow you to connect to the server (in this example 10.83.94.241). Copy that address and open a web browser pointing to http://NETWORK_ADDRESS:5173
