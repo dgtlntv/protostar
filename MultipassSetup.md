@@ -28,6 +28,7 @@ Open a shell with `multipass shell node` or using the Multipass UI.
 In the shell, continue with installing the dependencies and starting the prototype:
 
 ```
+cd protostar
 yarn
 yarn dev --host
 ```
