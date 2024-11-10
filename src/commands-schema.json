@@ -119,7 +119,6 @@
                     "description": "Handler for the command, can be a single component or an array of components"
                 }
             },
-            "required": ["handler"],
             "additionalProperties": false
         },
         "positionalOptions": {
@@ -370,8 +369,28 @@
                     "required": ["if", "then"],
                     "properties": {
                         "if": { "type": "string" },
-                        "then": { "$ref": "#/definitions/component" },
-                        "else": { "$ref": "#/definitions/component" }
+                        "then": {
+                            "oneOf": [
+                                { "$ref": "#/definitions/component" },
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/component"
+                                    }
+                                }
+                            ]
+                        },
+                        "else": {
+                            "oneOf": [
+                                { "$ref": "#/definitions/component" },
+                                {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/definitions/component"
+                                    }
+                                }
+                            ]
+                        }
                     },
                     "additionalProperties": false
                 }
