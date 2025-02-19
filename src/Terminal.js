@@ -8,7 +8,6 @@ import monkeyPatchStdout from "./shims/monkeyPatchStdout.js"
 // GENERAL TODO
 // 1. Write tests
 // 2. Somehow reduce flickering when typing
-// 3. weird bug where help text is repeated if you hit enter on an empty prompt
 
 export class Terminal {
     constructor(element, commands = {}) {
