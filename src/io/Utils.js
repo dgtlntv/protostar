@@ -1,5 +1,5 @@
 /**
- * Copyright [yyyy] [name of copyright owner]
+ * Copyright 2018 Ioannis Charalampidis
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11,10 +11,17 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Key changes:
+ * - Added ANSI regex handling to offsetToColRow and countLines functions
+ * - Added decodeANSIKeypressData function for handling ANSI keyboard input
+ * - Added ansiRegex dependency
+ *
+ * Original repository: https://github.com/wavesoft/local-echo/blob/master/lib/Utils.js
  */
 
-import { parse } from "shell-quote"
 import ansiRegex from "ansi-regex"
+import { parse } from "shell-quote"
 
 /**
  * Detects all the word boundaries on the given input
