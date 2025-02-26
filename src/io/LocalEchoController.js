@@ -1,5 +1,5 @@
 /**
- * Copyright [yyyy] [name of copyright owner]
+ * Copyright 2018 Ioannis Charalampidis
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -11,22 +11,32 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Key changes:
+ * - Extended EventEmitter functionality for better event handling
+ * - Replaced direct ANSI codes with ansiEscapes library
+ * - Added new terminal control methods
+ * - Improved cursor navigation and input handling
+ * - Fixed edge cases in prompt management
+ *
+ * Original repository: https://github.com/wavesoft/local-echo/blob/master/lib/LocalEchoController.js
  */
-import EventEmitter from "eventemitter3"
-import ansiRegex from "ansi-regex"
+
 import ansiEscapes from "ansi-escapes"
+import ansiRegex from "ansi-regex"
+import EventEmitter from "eventemitter3"
 import { HistoryController } from "./HistoryController"
 import {
     closestLeftBoundary,
     closestRightBoundary,
     collectAutocompleteCandidates,
     countLines,
+    decodeANSIKeypressData,
     getLastToken,
+    getSharedFragment,
     hasTailingWhitespace,
     isIncompleteInput,
     offsetToColRow,
-    getSharedFragment,
-    decodeANSIKeypressData,
 } from "./Utils"
 
 /**
