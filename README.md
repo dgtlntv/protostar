@@ -22,7 +22,7 @@ The tool automatically deploys to GitHub Pages, allowing prototypes to be easily
 
 ## Prerequisites
 
-You have to have [git](https://git-scm.com/downloads), [node](https://nodejs.org/en/download/package-manager) and [yarn](https://classic.yarnpkg.com/lang/en/docs/install/) installed.
+You have to have [git](https://git-scm.com/downloads) and [node](https://nodejs.org/en/download/package-manager) installed.
 
 ## Setup and Usage
 
@@ -45,13 +45,13 @@ cd cli-prototype
 3. In the cloned repository install the dependencies:
 
 ```bash
-yarn install
+npm install
 ```
 
 4. Run the development server:
 
 ```bash
-yarn run dev
+npm run dev
 ```
 
 5. Open the provided URL in your web browser to interact with your CLI prototype.
