@@ -28,17 +28,15 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: 20
-
-            - name: Install Yarn
-              run: npm install -g yarn
+                  cache: "npm"
 
             - name: Install dependencies
-              run: yarn install --frozen-lockfile
+              run: npm ci
 
             - name: Build
-              run: yarn build
+              run: npm run build
               env:
-                BASE_PATH: ${{ github.event.repository.name }}
+                  BASE_PATH: ${{ github.event.repository.name }}
 
             - name: Setup Pages
               uses: actions/configure-pages@v4

@@ -1,5 +1,5 @@
 import { FitAddon } from "@xterm/addon-fit"
-import { Terminal as XTerminal } from "xterm"
+import { Terminal as XTerminal } from "@xterm/xterm"
 import LocalEchoController from "./io/LocalEchoController.js"
 import inputHandler from "./io/inputHandler.js"
 import initializeYargs from "./io/yargs/initializeYargs.js"

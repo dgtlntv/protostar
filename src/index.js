@@ -1,4 +1,4 @@
-import "xterm/css/xterm.css"
+import "@xterm/xterm/css/xterm.css"
 import { Terminal } from "./Terminal"
 import commandsData from "./commands.json"
 import "./styles.css"
