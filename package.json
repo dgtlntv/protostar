@@ -1,9 +1,15 @@
 {
-    "name": "cli-prototype",
-    "version": "0.0.0",
+    "name": "@dgtlntv/protostar",
+    "version": "0.0.1",
     "type": "module",
-    "main": "dist/index.js",
+    "main": "dist/index.umd.js",
     "module": "dist/index.es.js",
+    "exports": {
+        ".": {
+            "import": "./dist/index.es.js",
+            "require": "./dist/index.umd.js"
+        }
+    },
     "files": [
         "dist"
     ],
@@ -11,7 +17,8 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "build:lib": "vite build --mode lib"
+        "build:lib": "vite build --mode lib",
+        "prepublishOnly": "npm run build:lib"
     },
     "devDependencies": {
         "vite": "^5.3.1"
@@ -40,5 +47,18 @@
         "vite-plugin-node-polyfills": "^0.22.0",
         "yargs": "^17.7.2",
         "yargs-parser": "^21.1.1"
+    },
+    "description": "A CLI prototyping library",
+    "keywords": [
+        "cli",
+        "terminal",
+        "prototype",
+        "console"
+    ],
+    "author": "dgtlntv",
+    "license": "GPL-3.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dgtlntv/protostar.git"
     }
 }

@@ -103,6 +103,38 @@ This project is set up to deploy automatically to GitHub Pages using GitHub Acti
     </li>
 </ol>
 
+## Using Protostar as a Library
+
+In addition to using Protostar as a standalone CLI prototyping tool, you can also integrate it as a library in your JavaScript projects:
+
+### Installation
+
+```bash
+npm install protostar
+```
+
+### Usage as a library
+
+```javascript
+// Import the required styles
+import "@xterm/xterm/css/xterm.css"
+import "./styles.css"
+
+// Import the Terminal component
+import { Terminal } from "protostar"
+
+// Import your commands configuration
+import commandsData from "./commands.json"
+
+// Initialize the terminal when the DOM is ready
+document.addEventListener("DOMContentLoaded", () => {
+    const terminal = new Terminal(
+        document.getElementById("terminal"),
+        commandsData
+    )
+})
+```
+
 ## Customizing Your CLI
 
 This prototyping tool is build in a way so that the only file you need to change to customize your CLI prototype is the `src/commands.json` file.
