@@ -40,19 +40,10 @@ const getLibConfig = () => ({
     ...baseConfig,
     build: {
         lib: {
-            entry: "src/react.js",
+            entry: "src/library.js",
             name: "Protostar",
             formats: ["es", "umd"],
             fileName: (format) => `index.${format}.js`,
-        },
-        rollupOptions: {
-            external: ["react", "react-dom"],
-            output: {
-                globals: {
-                    react: "React",
-                    "react-dom": "ReactDOM",
-                },
-            },
         },
     },
 })
