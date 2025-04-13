@@ -1,12 +1,12 @@
+import chalk from "chalk"
+import { SingleBar } from "cli-progress"
+import Table from "cli-table3"
+import { prompt } from "enquirer"
+import ora from "ora"
+import stringWidth from "string-width"
+import stopSpinner from "../../components/spinner/stopSpinner"
 import interpolateVariables from "../../components/text/interpolateVariables"
 import sleep from "../../utils/sleep"
-import ora from "ora"
-import stopSpinner from "../../components/spinner/stopSpinner"
-import { SingleBar } from "cli-progress"
-import chalk from "chalk"
-import Table from "cli-table3"
-import stringWidth from "string-width"
-import { prompt } from "enquirer"
 
 export default async function componentsToYargsHandler(
     handlerComponents,

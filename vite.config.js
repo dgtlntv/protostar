@@ -27,8 +27,10 @@ const baseConfig = {
             // Since I don't want to have an additional network request and instead just package it
             // we are aliasing it here instead so it uses a local version.
             "https://unpkg.com/cliui@7.0.1/index.mjs": "cliui",
-            "https://unpkg.com/yargs-parser@19.0.0/browser.js":
-                "yargs-parser/browser.js",
+            "https://unpkg.com/yargs-parser@19.0.0/browser.js": path.resolve(
+                __dirname,
+                "node_modules/yargs-parser/browser.js"
+            ),
         },
     },
 }
