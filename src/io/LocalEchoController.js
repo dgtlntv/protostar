@@ -360,6 +360,34 @@ export default class LocalEchoController extends EventEmitter {
     }
 
     /**
+     * Replace the current input with a history item with hidden cursor to eliminate flickering
+     * Specialized for history navigation where cursor always goes to the end
+     */
+    setHistoryInputWithHiddenCursor(value) {
+        if (!value) value = ""
+
+        // Skip if no change in input
+        if (this._input === value) return
+
+        // Hide cursor during the operation
+        this.cursorHide()
+
+        // Clear current input
+        this.clearInput()
+
+        // Write the new input with prompt
+        const newPrompt = this.applyPrompts(value)
+        this.print(newPrompt)
+
+        // Update state
+        this._input = value
+        this._cursor = value.length
+
+        // Show cursor again
+        this.cursorShow()
+    }
+
+    /**
      * Helper method to position cursor accurately without flickering
      */
     setCursorPosition(col, row, moveUpRows) {
@@ -697,8 +725,7 @@ export default class LocalEchoController extends EventEmitter {
                 if (this.history) {
                     let value = this.history.getPrevious()
                     if (value) {
-                        this.setInput(value)
-                        this.setCursor(value.length)
+                        this.setHistoryInputWithHiddenCursor(value)
                     }
                 }
                 break
@@ -706,9 +733,7 @@ export default class LocalEchoController extends EventEmitter {
             case "down":
                 if (this.history) {
                     let value = this.history.getNext()
-                    if (!value) value = ""
-                    this.setInput(value)
-                    this.setCursor(value.length)
+                    this.setHistoryInputWithHiddenCursor(value)
                 }
                 break
 
