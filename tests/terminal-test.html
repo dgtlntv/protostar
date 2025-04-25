@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Terminal Test</title>
+        <link rel="stylesheet" href="../src/styles.css" />
+        <link
+            rel="stylesheet"
+            href="../node_modules/@xterm/xterm/css/xterm.css"
+        />
+        <style>
+            #terminal {
+                width: 800px;
+                height: 600px;
+            }
+            body {
+                padding: 20px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="terminal"></div>
+
+        <script type="module">
+            import { Terminal } from "../src/Terminal.js"
+
+            const commands = {
+                welcome: "Welcome to the Terminal Test",
+                commands: {
+                    hello: {
+                        description: "Say hello",
+                        handler: () => {
+                            return "Hello World!"
+                        },
+                    },
+                    echo: {
+                        description: "Echo text back",
+                        arguments: [{ name: "text", type: "string" }],
+                        handler: (argv) => {
+                            return argv.text || ""
+                        },
+                    },
+                },
+            }
+
+            window.terminal = new Terminal(
+                document.getElementById("terminal"),
+                commands
+            )
+
+            // Expose terminal for testing
+            window.getTerminal = () => window.terminal
+        </script>
+    </body>
+</html>
