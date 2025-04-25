@@ -1,13 +1,12 @@
 import { FitAddon } from "@xterm/addon-fit"
 import { Terminal as XTerminal } from "@xterm/xterm"
-import LocalEchoController from "./io/LocalEchoController.js"
 import inputHandler from "./io/inputHandler.js"
+import { TerminalEmulator } from "./io/terminalEmulator/TerminalEmulator.js"
 import initializeYargs from "./io/yargs/initializeYargs.js"
 import monkeyPatchStdout from "./shims/monkeyPatchStdout.js"
 
 // GENERAL TODO
 // 1. Write tests
-// 2. Somehow reduce flickering when typing
 
 export class Terminal {
     constructor(element, commands = {}) {
@@ -35,10 +34,10 @@ export class Terminal {
         })
 
         this.fitAddon = new FitAddon()
-        this.localEcho = new LocalEchoController()
+        this.terminalEmulator = new TerminalEmulator()
 
         this.term.loadAddon(this.fitAddon)
-        this.term.loadAddon(this.localEcho)
+        this.term.loadAddon(this.terminalEmulator)
 
         this.init(element, commands)
     }
@@ -56,8 +55,8 @@ export class Terminal {
 
         monkeyPatchStdout()
 
-        const yargs = initializeYargs(this.localEcho, commands)
-        inputHandler(this.localEcho, this.term, yargs)
+        const yargs = initializeYargs(this.terminalEmulator, commands)
+        inputHandler(this.terminalEmulator, this.term, yargs)
         this.term.focus()
     }
 
