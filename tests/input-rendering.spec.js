@@ -27,24 +27,15 @@ test.describe("Terminal Input Rendering", () => {
         // Wait for rendering to complete
         await page.waitForTimeout(100)
 
-        // Get the text content from the terminal
-        // We need to get the content of visible terminal rows
+        // Get the text content from the terminal - specifically from the first row
         const visibleText = await page.evaluate(() => {
-            // Get all terminal lines
-            const terminalLines = Array.from(
-                document.querySelectorAll(".xterm-rows > div")
-            )
-            // Get text content of those lines that contain our input
-            return terminalLines.map((line) => line.textContent).join("\n")
+            // Get the first div (index 0) in xterm-rows
+            const firstLine = document.querySelectorAll(".xterm-rows > div")[0]
+            return firstLine ? firstLine.textContent.replace(/\s+$/, "") : ""
         })
 
-        // Find the line with our prompt
-        const expectedLine = `${promptString}${testInput} `
-        const lines = visibleText.split("\n")
-        const inputLine = lines.find((line) => line.includes(promptString))
-
         // Verify the terminal displays exactly the expected text
-        expect(inputLine).toBe(expectedLine)
+        expect(visibleText).toBe(`${promptString}${testInput}`)
     })
 
     test("should handle special characters", async ({ page }) => {
@@ -56,21 +47,14 @@ test.describe("Terminal Input Rendering", () => {
         // Wait for rendering
         await page.waitForTimeout(100)
 
-        // Get text content
+        // Get text content from the first row
         const visibleText = await page.evaluate(() => {
-            const terminalLines = Array.from(
-                document.querySelectorAll(".xterm-rows > div")
-            )
-            return terminalLines.map((line) => line.textContent).join("\n")
+            const firstLine = document.querySelectorAll(".xterm-rows > div")[0]
+            return firstLine ? firstLine.textContent.replace(/\s+$/, "") : ""
         })
 
-        // Find the line with our prompt
-        const expectedLine = `${promptString}!@#$%^&*() `
-        const lines = visibleText.split("\n")
-        const inputLine = lines.find((line) => line.includes(promptString))
-
         // Verify special characters are displayed exactly
-        expect(inputLine).toBe(expectedLine)
+        expect(visibleText).toBe(`${promptString}!@#$%^&*()`)
     })
 
     test("should handle arrow key navigation", async ({ page }) => {
@@ -90,21 +74,14 @@ test.describe("Terminal Input Rendering", () => {
         // Wait for rendering
         await page.waitForTimeout(100)
 
-        // Get text content
+        // Get text content from the first row
         const visibleText = await page.evaluate(() => {
-            const terminalLines = Array.from(
-                document.querySelectorAll(".xterm-rows > div")
-            )
-            return terminalLines.map((line) => line.textContent).join("\n")
+            const firstLine = document.querySelectorAll(".xterm-rows > div")[0]
+            return firstLine ? firstLine.textContent.replace(/\s+$/, "") : ""
         })
 
-        // Find the line with our prompt
-        const expectedLine = `${promptString}testing navigated arrows`
-        const lines = visibleText.split("\n")
-        const inputLine = lines.find((line) => line.includes(promptString))
-
         // Verify the insertion happened at the correct position with exact match
-        expect(inputLine).toBe(expectedLine)
+        expect(visibleText).toBe(`${promptString}testing navigated arrows`)
     })
 
     test("should handle backspace", async ({ page }) => {
@@ -129,21 +106,14 @@ test.describe("Terminal Input Rendering", () => {
         // Wait for rendering
         await page.waitForTimeout(100)
 
-        // Get text content
+        // Get text content from the first row
         const visibleText = await page.evaluate(() => {
-            const terminalLines = Array.from(
-                document.querySelectorAll(".xterm-rows > div")
-            )
-            return terminalLines.map((line) => line.textContent).join("\n")
+            const firstLine = document.querySelectorAll(".xterm-rows > div")[0]
+            return firstLine ? firstLine.textContent.replace(/\s+$/, "") : ""
         })
 
-        // Find the line with our prompt
-        const expectedLine = `${promptString}typing mistake`
-        const lines = visibleText.split("\n")
-        const inputLine = lines.find((line) => line.includes(promptString))
-
         // Verify the correction was made with exact match
-        expect(inputLine).toBe(expectedLine)
+        expect(visibleText).toBe(`${promptString}typing mistake`)
     })
 
     test("should handle line wrapping with long input", async ({ page }) => {
@@ -157,12 +127,14 @@ test.describe("Terminal Input Rendering", () => {
         // Wait for rendering
         await page.waitForTimeout(100)
 
-        // Get text content
+        // Get text content - for multiline we still need to get all rows
         const visibleText = await page.evaluate(() => {
             const terminalLines = Array.from(
                 document.querySelectorAll(".xterm-rows > div")
             )
-            return terminalLines.map((line) => line.textContent).join("\n")
+            return terminalLines
+                .map((line) => line.textContent.replace(/\s+$/, ""))
+                .join("\n")
         })
 
         // For wrapped text, we need a different approach - concatenate all lines
