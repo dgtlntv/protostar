@@ -1,4 +1,4 @@
-name: Run Playwright Tests
+name: Playwright Tests
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: Run Playwright Tests
+    name: Verify Tests Pass
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
