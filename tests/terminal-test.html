@@ -29,27 +29,57 @@
                 commands: {
                     hello: {
                         description: "Say hello",
-                        handler: () => {
-                            return "Hello World!"
-                        },
+                        handler: [
+                            {
+                                component: "text",
+                                output: "Hello World!"
+                            }
+                        ]
                     },
                     echo: {
                         description: "Echo text back",
                         arguments: [{ name: "text", type: "string" }],
-                        handler: (argv) => {
-                            return argv.text || ""
-                        },
+                        handler: [
+                            {
+                                component: "text",
+                                output: "{{text}}"
+                            }
+                        ]
                     },
-                },
+                    test1: {
+                        description: "First test command",
+                        handler: [
+                            {
+                                component: "text",
+                                output: "First test command executed!"
+                            }
+                        ]
+                    },
+                    test2: {
+                        description: "Second test command",
+                        handler: [
+                            {
+                                component: "text",
+                                output: "Second test command executed!"
+                            }
+                        ]
+                    },
+                    test3: {
+                        description: "Third test command",
+                        handler: [
+                            {
+                                component: "text",
+                                output: "Third test command executed!"
+                            }
+                        ]
+                    }
+                }
             }
 
             window.terminal = new Terminal(
                 document.getElementById("terminal"),
                 commands
             )
-
-            // Expose terminal for testing
-            window.getTerminal = () => window.terminal
         </script>
     </body>
 </html>

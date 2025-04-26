@@ -127,22 +127,128 @@ test.describe("Terminal Input Rendering", () => {
         // Wait for rendering
         await page.waitForTimeout(100)
 
-        // Get text content - for multiline we still need to get all rows
-        const visibleText = await page.evaluate(() => {
-            const terminalLines = Array.from(
+        // Get all terminal row elements as individual lines
+        const terminalLines = await page.evaluate(() => {
+            const rows = Array.from(
                 document.querySelectorAll(".xterm-rows > div")
             )
-            return terminalLines
-                .map((line) => line.textContent.replace(/\s+$/, ""))
-                .join("\n")
+            return rows.map((line) => line.textContent.replace(/\s+$/, ""))
         })
 
-        // For wrapped text, we need a different approach - concatenate all lines
-        // and check if they contain the full expected text in order
-        const fullText = visibleText.replace(/\n/g, "")
-        const expectedText = `${promptString}${longString}`
+        // Verify we have multiple lines (text should wrap)
+        expect(terminalLines.length).toBeGreaterThan(1)
 
-        // Verify the entire string was rendered correctly
-        expect(fullText).toContain(expectedText)
+        expect(terminalLines[0]).toBe(
+            `${promptString}This is a very long string that should automatically wrap to t`
+        )
+        expect(terminalLines[1]).toBe(
+            "he next line because it exceeds the width of the terminal display and the ter"
+        )
+        expect(terminalLines[2]).toBe(
+            "minal should handle this properly by showing the text across multiple lines"
+        )
+    })
+
+    test("should handle multiline navigation with arrow keys", async ({
+        page,
+    }) => {
+        await page.click("#terminal")
+
+        // Type a long string that wraps to multiple lines
+        const longString =
+            "This is a multiline input test. We need to check if arrow navigation works correctly across line boundaries. The cursor should move up and down as expected."
+        await page.keyboard.type(longString)
+
+        // Wait for rendering
+        await page.waitForTimeout(100)
+
+        // Get current terminal state before navigation
+        const initialLines = await page.evaluate(() => {
+            const rows = Array.from(
+                document.querySelectorAll(".xterm-rows > div")
+            )
+            return rows.map((line) => line.textContent.replace(/\s+$/, ""))
+        })
+
+        // Navigate cursor to middle of second line
+        // First, go to start of input
+        for (let i = 0; i < longString.length; i++) {
+            await page.keyboard.press("ArrowLeft")
+        }
+
+        // Then, move forward to position in the second line (approximate position)
+        for (let i = 0; i < 77; i++) {
+            await page.keyboard.press("ArrowRight")
+        }
+
+        // Insert new text at this position
+        await page.keyboard.type("[INSERTED] ")
+
+        // Wait for rendering
+        await page.waitForTimeout(100)
+
+        // Get updated terminal lines
+        const updatedLines = await page.evaluate(() => {
+            const rows = Array.from(
+                document.querySelectorAll(".xterm-rows > div")
+            )
+            return rows.map((line) => line.textContent.replace(/\s+$/, ""))
+        })
+
+        // Verify insertion in correct position (should be in second line)
+        expect(updatedLines[1]).toContain("[INSERTED]")
+
+        // Verify the text after the insertion point shifted correctly
+        expect(updatedLines.join("")).toContain(
+            "works correctly [INSERTED] across line boundaries."
+        )
+    })
+
+    test("should handle deletion across line boundaries", async ({ page }) => {
+        await page.click("#terminal")
+
+        // Type a long string that wraps to multiple lines
+        const longString =
+            "This text will wrap across multiple lines. We want to test if deleting characters across line boundaries works correctly."
+        await page.keyboard.type(longString)
+
+        // Wait for rendering
+        await page.waitForTimeout(100)
+
+        // Get current terminal state before deletion
+        const initialLines = await page.evaluate(() => {
+            const rows = Array.from(
+                document.querySelectorAll(".xterm-rows > div")
+            )
+            return rows.map((line) => line.textContent.replace(/\s+$/, ""))
+        })
+
+        for (let i = 0; i < 52; i++) {
+            await page.keyboard.press("ArrowLeft")
+        }
+
+        // Delete characters across the line boundary
+        for (let i = 0; i < 12; i++) {
+            // +1 for the space
+            await page.keyboard.press("Backspace")
+        }
+
+        // Wait for rendering
+        await page.waitForTimeout(100)
+
+        // Get updated terminal lines
+        const updatedLines = await page.evaluate(() => {
+            const rows = Array.from(
+                document.querySelectorAll(".xterm-rows > div")
+            )
+            return rows.map((line) => line.textContent.replace(/\s+$/, ""))
+        })
+
+        // Verify the word was deleted and the text reflowed correctly
+        const joinedText = updatedLines.join("")
+        expect(joinedText).not.toContain("if deleting")
+        expect(joinedText).toBe(
+            `${promptString}This text will wrap across multiple lines. We want to test characters across line boundaries works correctly.`
+        )
     })
 })
