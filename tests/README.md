@@ -1,5 +1,4 @@
 -   flickering?
--   constraints of arrow navigation / cursor
 -   help prints as expected
 -   every component prints as expected (maybe even with different config)
 -   ansi sequences are properly encoded/decoded
