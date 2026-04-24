@@ -142,23 +142,70 @@ export async function getBufferText(page: Page): Promise<string> {
 }
 
 /**
- * Press Enter and wait for the next prompt to be ready.
+ * Count how many times the prompt banner currently appears in the rendered
+ * xterm rows. Used as a snapshot before submit/cancel so we can detect when
+ * a brand-new prompt line has been drawn below the submitted input.
+ *
+ * @param page - Playwright page.
+ * @returns The number of prompt occurrences in the visible buffer.
+ */
+async function countPrompts(page: Page): Promise<number> {
+    return page.evaluate(
+        ({ sel, prompt }) => {
+            const rows = document.querySelector(sel)
+            return (rows?.textContent ?? "").split(prompt).length - 1
+        },
+        { sel: SELECTORS.rows, prompt: PROMPT }
+    )
+}
+
+/**
+ * Wait until LocalEchoController is active again AND a new prompt line has
+ * been drawn past the given baseline count. This is stricter than
+ * `waitForPrompt`, which only checks that *some* prompt is visible — the
+ * original prompt is still on screen after Enter, so that looser check can
+ * resolve before the command's output has been rendered.
+ *
+ * @param page - Playwright page.
+ * @param beforeCount - Prompt count captured before the key was pressed.
+ * @param timeout - Max ms to wait before failing.
+ */
+async function waitForNextPrompt(page: Page, beforeCount: number, timeout = 10_000): Promise<void> {
+    await page.waitForFunction(
+        ({ rowsSel, prompt, before }) => {
+            const handle = window.__protostar
+            if (!handle) return false
+            if (!handle.localEcho._active) return false
+            const rows = document.querySelector(rowsSel)
+            const count = (rows?.textContent ?? "").split(prompt).length - 1
+            return count > before
+        },
+        { rowsSel: SELECTORS.rows, prompt: PROMPT, before: beforeCount },
+        { timeout }
+    )
+}
+
+/**
+ * Press Enter and wait for a new prompt line to appear below the submitted
+ * input — not just for the existing prompt to still be visible.
  *
  * @param page - Playwright page.
  */
 export async function submit(page: Page): Promise<void> {
+    const before = await countPrompts(page)
     await page.keyboard.press("Enter")
-    await waitForPrompt(page)
+    await waitForNextPrompt(page, before)
 }
 
 /**
- * Send Ctrl+C and wait for the next prompt to be ready.
+ * Send Ctrl+C and wait for a new prompt line to appear.
  *
  * @param page - Playwright page.
  */
 export async function cancel(page: Page): Promise<void> {
+    const before = await countPrompts(page)
     await page.keyboard.press("Control+c")
-    await waitForPrompt(page)
+    await waitForNextPrompt(page, before)
 }
 
 export { PROMPT, SELECTORS }
