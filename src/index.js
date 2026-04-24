@@ -8,4 +8,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.getElementById("terminal"),
         commandsData
     )
+
+    if (import.meta.env.DEV) {
+        window.__protostar = {
+            term: terminal.term,
+            localEcho: terminal.localEcho,
+        }
+    }
 })

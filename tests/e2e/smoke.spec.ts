@@ -1,19 +1,12 @@
-import { test, expect } from "@playwright/test"
+import { test } from "@playwright/test"
+import { waitForPrompt } from "./helpers/terminal"
+import { expectCursor, expectInput, expectPrompt } from "./helpers/assertions"
 
-test("terminal boots and renders the prompt", async ({ page }) => {
+test("terminal boots, exposes the handle, and renders the prompt", async ({ page }) => {
     await page.goto("/")
+    await waitForPrompt(page)
 
-    // The xterm.js terminal renders rows into `.xterm-rows`. The prompt
-    // banner `user@ubuntu:~$` appears once LocalEchoController has attached
-    // and `read()` has been called. Poll the DOM for it.
-    await expect
-        .poll(
-            async () =>
-                page.evaluate(() => {
-                    const rows = document.querySelector(".xterm-rows")
-                    return rows?.textContent ?? ""
-                }),
-            { timeout: 10_000 }
-        )
-        .toContain("user@ubuntu:~$")
+    await expectPrompt(page)
+    await expectInput(page, "")
+    await expectCursor(page, 0)
 })
