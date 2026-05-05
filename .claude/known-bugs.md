@@ -40,3 +40,10 @@ Bugs surfaced by the e2e suite. Each `test.fixme` in `tests/e2e/` links here by 
 - **Reproduction:** Type `echo "it\"s"`, press Enter — protostar enters continuation. Bash would submit.
 - **Suspected area:** `src/io/Utils.js:120` `(input.match(/"/g) || []).length % 2 !== 0` counts raw `"` characters with no awareness of `\"` escapes. Same issue applies to `'` on line 116.
 - **Status:** open
+
+### BUG-005: ArrowLeft across a wrap boundary does not move the cursor up a row
+- **Discovered in:** 1.F / `tests/e2e/line-wrap.spec.ts`
+- **Symptom:** When the input wraps onto a second visual row and the cursor is at col 0 of that row, ArrowLeft decrements `_cursor` correctly but the visible cursor stays put — it does not jump to the last column of the previous row.
+- **Reproduction:** With cols=N, type N-15+5 chars (forces wrap past the prompt), Left back to offset N-15 (visual col 0 row 1 of the input), Left once more — `_cursor` becomes N-16 but the rendered cursor is still at col 0.
+- **Suspected area:** `src/io/LocalEchoController.js:533-540` (`handleCursorMove(-1)`) emits a single `cursorBackward(1)` (CSI 1 D) regardless of position. CSI D at column 0 is a no-op per VT100, so the row never decrements. The fix is the same approach `setCursor` uses: compute target col/row via `applyPromptOffset` + `offsetToColRow` and write absolute movement when crossing rows.
+- **Status:** open
