@@ -6,8 +6,7 @@ import initializeYargs from "./io/yargs/initializeYargs.js"
 import monkeyPatchStdout from "./shims/monkeyPatchStdout.js"
 
 // GENERAL TODO
-// 1. Write tests
-// 2. Somehow reduce flickering when typing
+// 1. Somehow reduce flickering when typing
 
 export class Terminal {
     constructor(element, commands = {}) {

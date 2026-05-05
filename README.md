@@ -56,6 +56,26 @@ npm run dev
 
 5. Open the provided URL in your web browser to interact with your CLI prototype.
 
+## Running tests
+
+End-to-end tests live in `tests/e2e/` and run against the Vite dev server with [Playwright](https://playwright.dev/). They cover the terminal editing surface (input, history, multi-line continuation, paste, line wrap, resize). The same suite runs on every pull request via `.github/workflows/test.yml`.
+
+Install the browser binaries once after `npm install`:
+
+```bash
+npx playwright install --with-deps chromium
+```
+
+Then:
+
+```bash
+npm run test:e2e          # headless run
+npm run test:e2e:ui       # Playwright's interactive UI
+npm run test:e2e:headed   # run a visible Chromium window
+```
+
+Known UX bugs surfaced by the suite are tracked in `.claude/known-bugs.md`; tests that exercise them are marked `test.fixme` until the underlying issues are fixed.
+
 ## Deployment
 
 This project is set up to deploy automatically to GitHub Pages using GitHub Actions:

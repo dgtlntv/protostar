@@ -64,4 +64,4 @@ Protostar is a browser-based CLI prototyping library. It renders an xterm.js ter
 
 ## Testing State
 
-No tests exist. No test runner configured. `Terminal.js` has a top-of-file TODO: "Write tests". See `.claude/testing-strategy.md`.
+Phase 1 of the testing strategy is complete: an end-to-end Playwright suite under `tests/e2e/` covers the terminal editing surface (input, history, Ctrl+C, multi-line continuation, paste, line wrap, resize, ignored keys). Tests drive the real xterm via `window.__protostar` (exposed in dev/test builds only) and assert against the xterm buffer plus `localEcho._input` / `_cursor`. CI runs the suite on every PR via `.github/workflows/test.yml`. Known UX bugs surfaced by the suite are tracked in `.claude/known-bugs.md`; the matching tests are marked `test.fixme`. See `.claude/testing-strategy.md` for scope and `.claude/implementation-plan-phase-1.md` for the rollout plan.
