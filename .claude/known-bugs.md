@@ -33,3 +33,10 @@ Bugs surfaced by the e2e suite. Each `test.fixme` in `tests/e2e/` links here by 
 - **Reproduction:** With default size 10, submit `cmd1` … `cmd12`, then press Up repeatedly. Walking back lands on `cmd10` (then `cmd9`, …, `cmd1`); `cmd11` and `cmd12` are unreachable.
 - **Suspected area:** `src/io/HistoryController.js:40` calls `this.entries.pop(0)`. `Array.prototype.pop` ignores its argument and removes the **last** element, so each overflow discards the just-pushed entry. Should be `this.entries.shift()`.
 - **Status:** open
+
+### BUG-004: Backslash-escaped quotes still trigger continuation
+- **Discovered in:** 1.E / `tests/e2e/multiline-continuation.spec.ts`
+- **Symptom:** Input with a backslash-escaped quote inside a string is treated as having an unclosed quote — Enter inserts a newline instead of submitting.
+- **Reproduction:** Type `echo "it\"s"`, press Enter — protostar enters continuation. Bash would submit.
+- **Suspected area:** `src/io/Utils.js:120` `(input.match(/"/g) || []).length % 2 !== 0` counts raw `"` characters with no awareness of `\"` escapes. Same issue applies to `'` on line 116.
+- **Status:** open
