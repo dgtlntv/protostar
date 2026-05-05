@@ -26,3 +26,10 @@ Bugs surfaced by the e2e suite. Each `test.fixme` in `tests/e2e/` links here by 
 - **Reproduction:** Type `hello world `, press Ctrl+Backspace — input becomes `hello world` instead of `hello `.
 - **Suspected area:** `src/io/Utils.js:303-311` matches `\b` / `\x7f` as `backspace` and never sets `key.ctrl`, so `LocalEchoController.js:771` (`if (key.ctrl)`) is always false for keyboard-driven Backspace.
 - **Status:** open
+
+### BUG-003: History ring buffer drops the newest entry instead of the oldest
+- **Discovered in:** 1.D / `tests/e2e/history.spec.ts`
+- **Symptom:** Once the buffer reaches its size limit, new submissions are silently lost — older entries stick around forever instead of rolling off the front.
+- **Reproduction:** With default size 10, submit `cmd1` … `cmd12`, then press Up repeatedly. Walking back lands on `cmd10` (then `cmd9`, …, `cmd1`); `cmd11` and `cmd12` are unreachable.
+- **Suspected area:** `src/io/HistoryController.js:40` calls `this.entries.pop(0)`. `Array.prototype.pop` ignores its argument and removes the **last** element, so each overflow discards the just-pushed entry. Should be `this.entries.shift()`.
+- **Status:** open

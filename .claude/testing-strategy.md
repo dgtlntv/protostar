@@ -29,8 +29,8 @@ This is the highest-risk surface (stateful input, cursor math, rendering) and th
 
 Behavior to confirm from the code at test-writing time, then pin:
 - Home / End on multi-line input (whole-input bounds vs. current-visual-line).
-- Ctrl+C while mid-input — cancelled input not added to history, history pointer rewound so next Up doesn't recall the partial.
-- Up arrow when the user has typed a partial — does protostar preserve the partial or discard it?
+- ~~Ctrl+C while mid-input — cancelled input not added to history, history pointer rewound so next Up doesn't recall the partial.~~ **Pinned in 1.D:** Ctrl+C does not call `handleReadComplete`, so the cancelled input is never pushed to history. It also calls `history.rewind()`, so the next Up returns the most recent submitted command, not the cancelled partial.
+- ~~Up arrow when the user has typed a partial — does protostar preserve the partial or discard it?~~ **Pinned in 1.D:** the partial is **discarded**. Up calls `history.getPrevious()` and `setHistoryInputWithHiddenCursor` overwrites `_input` with the history entry. Typed text is not stashed and is not restored by walking Down past the newest entry.
 - Multi-line paste containing a line with incomplete shell syntax — does it continue across the newline or submit as-is?
 
 ## Test Plan

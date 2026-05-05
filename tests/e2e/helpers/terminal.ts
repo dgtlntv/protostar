@@ -142,21 +142,31 @@ export async function getBufferText(page: Page): Promise<string> {
 }
 
 /**
- * Count how many times the prompt banner currently appears in the rendered
- * xterm rows. Used as a snapshot before submit/cancel so we can detect when
- * a brand-new prompt line has been drawn below the submitted input.
+ * Count how many times the prompt banner currently appears anywhere in the
+ * xterm buffer (scrollback included). Used as a snapshot before submit/cancel
+ * so we can detect when a brand-new prompt line has been drawn below the
+ * submitted input.
+ *
+ * Reading from the buffer rather than `.xterm-rows` matters: a command whose
+ * output is taller than the viewport pushes earlier prompts out of the
+ * rendered rows, and a viewport-only count would go down even though more
+ * prompts have actually been written.
  *
  * @param page - Playwright page.
- * @returns The number of prompt occurrences in the visible buffer.
+ * @returns The number of prompt occurrences in the buffer.
  */
 async function countPrompts(page: Page): Promise<number> {
-    return page.evaluate(
-        ({ sel, prompt }) => {
-            const rows = document.querySelector(sel)
-            return (rows?.textContent ?? "").split(prompt).length - 1
-        },
-        { sel: SELECTORS.rows, prompt: PROMPT }
-    )
+    return page.evaluate((prompt) => {
+        const buffer = window.__protostar.term.buffer.active
+        let count = 0
+        for (let i = 0; i < buffer.length; i++) {
+            const line = buffer.getLine(i)
+            if (!line) continue
+            const text = line.translateToString(true)
+            count += text.split(prompt).length - 1
+        }
+        return count
+    }, PROMPT)
 }
 
 /**
@@ -172,15 +182,21 @@ async function countPrompts(page: Page): Promise<number> {
  */
 async function waitForNextPrompt(page: Page, beforeCount: number, timeout = 10_000): Promise<void> {
     await page.waitForFunction(
-        ({ rowsSel, prompt, before }) => {
+        ({ prompt, before }) => {
             const handle = window.__protostar
             if (!handle) return false
             if (!handle.localEcho._active) return false
-            const rows = document.querySelector(rowsSel)
-            const count = (rows?.textContent ?? "").split(prompt).length - 1
+            const buffer = handle.term.buffer.active
+            let count = 0
+            for (let i = 0; i < buffer.length; i++) {
+                const line = buffer.getLine(i)
+                if (!line) continue
+                const text = line.translateToString(true)
+                count += text.split(prompt).length - 1
+            }
             return count > before
         },
-        { rowsSel: SELECTORS.rows, prompt: PROMPT, before: beforeCount },
+        { prompt: PROMPT, before: beforeCount },
         { timeout }
     )
 }
