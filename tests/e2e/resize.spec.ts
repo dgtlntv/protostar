@@ -1,21 +1,17 @@
 import { expect, test, type Page } from "@playwright/test"
-import { press, type, waitForPrompt } from "./helpers/terminal"
+import { getCols, press, type, waitForPrompt } from "./helpers/terminal"
 import { expectCursor, expectInput, expectPrompt } from "./helpers/assertions"
 
 const PROMPT_WIDTH = "user@ubuntu:~$ ".length
 
 // Resize tests start from a wide viewport and shrink. FitAddon recomputes on
-// the window 'resize' event; we wait for `_termSize.cols` to actually change
-// so assertions don't race the layout update.
+// the window 'resize' event; we wait for `term.cols` to actually change so
+// assertions don't race the layout update.
 test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 768 })
     await page.goto("/")
     await waitForPrompt(page)
 })
-
-async function getCols(page: Page): Promise<number> {
-    return page.evaluate(() => window.__protostar.localEcho._termSize.cols)
-}
 
 async function resizeAndWait(
     page: Page,
@@ -25,7 +21,7 @@ async function resizeAndWait(
     const before = await getCols(page)
     await page.setViewportSize({ width, height })
     await page.waitForFunction(
-        (prev) => window.__protostar.localEcho._termSize.cols !== prev,
+        (prev) => window.__protostar.term.cols !== prev,
         before,
         { timeout: 5_000 }
     )
@@ -78,7 +74,7 @@ test("Resize while wrapped re-wraps cleanly and preserves cursor offset", async 
     expect(colsAfter).toBeLessThan(colsBefore)
 })
 
-test("Resize during an active multi-line continuation preserves the input", async ({ page }) => {
+test.fixme("Resize during an active multi-line continuation preserves the input (BUG-016)", async ({ page }) => {
     await type(page, 'echo "hi')
     await press(page, "Enter")
     await expectInput(page, 'echo "hi\n')

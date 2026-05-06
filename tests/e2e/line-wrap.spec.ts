@@ -1,21 +1,17 @@
 import { expect, test, type Page } from "@playwright/test"
-import { getInput, press, type, waitForPrompt } from "./helpers/terminal"
+import { getCols, getInput, press, type, waitForPrompt } from "./helpers/terminal"
 import { expectCursor, expectInput } from "./helpers/assertions"
 
 const PROMPT_WIDTH = "user@ubuntu:~$ ".length // 15
 
 // Use a fixed viewport so xterm derives a stable column count from FitAddon.
 // The exact `cols` value still depends on font metrics, so each test reads
-// it from `_termSize` rather than hard-coding.
+// it via `getCols(page)`.
 test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 1024, height: 768 })
     await page.goto("/")
     await waitForPrompt(page)
 })
-
-async function getCols(page: Page): Promise<number> {
-    return page.evaluate(() => window.__protostar.localEcho._termSize.cols)
-}
 
 async function getCursorXY(page: Page): Promise<{ x: number; y: number }> {
     return page.evaluate(() => {

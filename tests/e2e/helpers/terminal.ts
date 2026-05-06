@@ -11,8 +11,8 @@ const SELECTORS = {
 } as const
 
 /**
- * Wait until LocalEchoController is active and the prompt banner has been
- * rendered into the xterm viewport.
+ * Wait until the shell loop is idle (a prompt is mounted) and the prompt
+ * banner has been rendered into the xterm viewport.
  *
  * @param page - Playwright page driving the app.
  * @param timeout - Max ms to wait before failing.
@@ -22,7 +22,7 @@ export async function waitForPrompt(page: Page, timeout = 10_000): Promise<void>
         ({ prompt, rowsSel }) => {
             const handle = window.__protostar
             if (!handle) return false
-            if (!handle.localEcho._active) return false
+            if (!handle.shell.currentPrompt) return false
             const rows = document.querySelector(rowsSel)
             return !!rows && (rows.textContent ?? "").includes(prompt)
         },
@@ -88,23 +88,62 @@ export async function press(
 }
 
 /**
- * Read the current logical input buffer from LocalEchoController.
+ * Read the current logical input buffer from the live PromptLine. Returns
+ * the empty string while a command is running (no prompt mounted), which
+ * matches the legacy `_input` semantics during dispatch.
  *
  * @param page - Playwright page.
- * @returns The value of `localEcho._input`.
+ * @returns Editable buffer of the live PromptLine.
  */
 export async function getInput(page: Page): Promise<string> {
-    return page.evaluate(() => window.__protostar.localEcho._input)
+    return page.evaluate(() => {
+        const shell = window.__protostar.shell
+        const prompt = shell.currentPrompt
+        const live = prompt ? prompt.getValue() : ""
+        // During a continuation, the legacy `_input` carried the entire
+        // multi-line buffer. The new shell stores already-submitted lines in
+        // `pendingInput` and edits the next line through the live PromptLine;
+        // join them so callers see the same flat string.
+        return shell.pendingInput
+            ? shell.pendingInput + "\n" + live
+            : live
+    })
 }
 
 /**
- * Read the current cursor offset (within `_input`) from LocalEchoController.
+ * Read the cursor offset within the live PromptLine's editable buffer.
+ * Returns 0 while a command is running.
  *
  * @param page - Playwright page.
- * @returns The value of `localEcho._cursor`.
+ * @returns Cursor offset of the live PromptLine.
  */
 export async function getCursor(page: Page): Promise<number> {
-    return page.evaluate(() => window.__protostar.localEcho._cursor)
+    return page.evaluate(() => {
+        const prompt = window.__protostar.shell.currentPrompt
+        return prompt ? prompt.getCursor() : 0
+    })
+}
+
+/**
+ * Read the live column count off the xterm.js Terminal. Specs that need to
+ * wait for a resize to settle, or that compute prompt-relative offsets, go
+ * through this helper instead of poking at the terminal handle directly.
+ *
+ * @param page - Playwright page.
+ * @returns Active column count.
+ */
+export async function getCols(page: Page): Promise<number> {
+    return page.evaluate(() => window.__protostar.term.cols)
+}
+
+/**
+ * Read the live row count off the xterm.js Terminal.
+ *
+ * @param page - Playwright page.
+ * @returns Active row count.
+ */
+export async function getRows(page: Page): Promise<number> {
+    return page.evaluate(() => window.__protostar.term.rows)
 }
 
 /**
@@ -185,7 +224,7 @@ async function waitForNextPrompt(page: Page, beforeCount: number, timeout = 10_0
         ({ prompt, before }) => {
             const handle = window.__protostar
             if (!handle) return false
-            if (!handle.localEcho._active) return false
+            if (!handle.shell.currentPrompt) return false
             const buffer = handle.term.buffer.active
             let count = 0
             for (let i = 0; i < buffer.length; i++) {

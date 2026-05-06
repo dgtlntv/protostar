@@ -94,11 +94,12 @@ export class ShellLoop {
                     ? this.pending + "\n" + raw
                     : raw
                 if (isIncomplete(combined)) {
-                    // Roll into a continuation. Move the submitted line
-                    // into the scrollback so the next prompt starts fresh.
+                    // Roll into a continuation. The current prompt is
+                    // already flushed to scrollback (its rendered output
+                    // includes the typed line); just mount a fresh empty
+                    // prompt below for the next continuation line.
                     this.pending = combined
                     this.tui.removeChild(promptLine)
-                    this.tui.addChild(flatText(this.prompt + raw))
                     promptLine = this.mountPrompt()
                     promptLine.onSubmit = (next) => tryFinish(next)
                     return

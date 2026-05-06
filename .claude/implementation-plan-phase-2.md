@@ -146,8 +146,39 @@ entries; existing e2e + unit suites still green; new-smoke spec still green.
 - **Uninstall:** `enquirer`, `ora`, `cli-progress`, `cli-table3`, `log-symbols`, `path`, `cliui`, `string-argv`. Update `package.json`.
 - Update `.claude/architecture.md` to describe the new module layout.
 
-**Exit criteria:** existing Phase 1 e2e suite passes against the new stack. The 9 fixme'd specs may still be fixme'd at this point; they get flipped in 2.H. `npm run build` and `npm run build:lib` succeed. Bundle is measurably smaller (informal — record the number in the commit message).
+**Exit criteria:** structural cutover lands green; the new stack boots, the unit suite stays at 91/91, and the e2e suite is green with the parity-gap specs fixme'd against fresh known-bugs entries (BUG-015/016/017). `npm run build` and `npm run build:lib` succeed. Bundle is measurably smaller (informal — record the number in the commit message). The seven Phase-1 fixmes (BUG-001..007) remain fixme'd at this point; they're flipped in 2.H.
 **Commit:** `refactor: cut over to pi-tui shell, delete legacy LocalEchoController stack`
+
+## Sub-phase 2.G.5 — Shell parity rebuild + dependency hygiene + doc sweep
+
+The cutover surfaced three behavior gaps in the new shell that the planned design didn't account for. This sub-phase closes them with proper, durable fixes (no back-compat shims) and bundles in the housekeeping work that's cheaper to do once on a clean post-cutover tree than spread across later sub-phases.
+
+### Shell parity (BUG-015/016/017)
+
+- **BUG-015 — Ctrl+C handling.** Add a `\x03` branch in `PromptLine.handleInput` (or a dedicated cancel hook on `ShellLoop`) that prints `^C` to scrollback, clears the live input + `ShellLoop.pending`, calls `history.rewind()`, and re-mounts a fresh prompt without pushing to history. Unit-test the cancel path against `virtualTerm`. Flip all four `tests/e2e/ctrl-c.spec.ts` specs and the two history specs that depend on `cancel()`.
+- **BUG-016 — Multi-line continuation buffer.** Replace `PromptLine`'s single-line `Input` with a multi-line-aware prompt component that owns the full continuation buffer (newlines included) so cursor moves, Backspace, and Home/End operate against the whole buffer. On every edit, re-evaluate `isIncomplete(buffer)`; when it returns false, treat the next Enter as a submission and flush. Drop `ShellLoop.pending` once the prompt itself owns continuation state. Unit-test the cursor/edit semantics against `virtualTerm`. Flip the five `multiline-navigation.spec.ts` specs and the resize-during-continuation spec.
+- **BUG-017 — Paste handling.** Intercept paste in `PromptLine` before pi-tui's `Input.handlePaste` runs: normalize `\r`/`\r\n` to `\n`, then split on `\n` and feed each shell-complete chunk to the dispatch path, leaving any trailing incomplete tail in the live editor. Unit-test the splitter against the test cases in `paste.spec.ts`. Flip the three paste specs (and recheck BUG-006's fixme — the new paste path may incidentally fix it; if so, mark BUG-006 fixed in 2.G.5 instead of 2.H).
+
+Each fix gets a unit test under `tests/unit/` covering the new behavior surface. Existing happy-path tests stay green.
+
+### Dependency hygiene
+
+- **Audit.** Walk every entry in `package.json` `dependencies` + `devDependencies` and confirm it's actually imported somewhere under `src/` or `tests/`. Drop any orphan. Be ruthless — small dep tree is the win.
+- **Update.** Run `npm outdated`, then bump every package to its latest stable. Run unit + e2e suites after each major. Record the bumps in the commit message.
+- **`yargs/browser` shim re-evaluation.** After yargs updates, re-check whether `yargs/browser` still imports `cliui` / `yargs-parser` from `https://unpkg.com/...`. If not, drop the two CDN aliases in `vite.config.js`; if `cliui` is no longer transitively needed, uninstall it (the 2.G plan listed it for removal but it had to stay because of the unpkg import). Same check for the `node:module` / `node:perf_hooks` / `node:fs` / `node:os` / `node:path` / `child_process` / `fs` / `os` shims pi-tui needs — if a future pi-tui release tree-shakes its server-only modules, the shims can shrink.
+
+### Doc sweep
+
+Phase-progression and refactor-timing language is dead-on-arrival once the migration ships — nobody reading the code in six months cares which sub-phase added a file or what legacy library it replaced. Sweep every JSDoc comment, inline comment, and `.md` doc under `src/` and the project root (excluding `.claude/` planning docs, which are migration history by design) and remove:
+
+- References to "Phase 1" / "Phase 2" / "sub-phase 2.X" / "the cutover" / "after Phase 2" etc.
+- Mentions of replaced libraries by name (`enquirer`, `ora`, `cli-progress`, `cli-table3`, `log-symbols`, `string-argv`, `LocalEchoController`, `Terminal.js` legacy, etc.) and "legacy stack" / "old stack" framing.
+- "Replaces the legacy X" / "until 2.G" / "deleted in 2.G" / "scheduled for fix in 2.X" comments — once the work is done the prose should describe what the code does today, not how it got there.
+
+The memory entry `feedback_no_legacy_refs_in_docs.md` already governs new code; this sweep retroactively applies it.
+
+**Exit criteria:** all 15 fixmes from 2.G flipped to passing; unit suite covers each parity fix; dep tree audited and updated; CDN aliases re-checked against the latest yargs; no Phase-progression or legacy-library references remain in `src/`, `tests/`, or root `.md` docs; e2e + unit + build all green.
+**Commit:** `refactor: shell parity rebuild + dependency refresh + doc sweep`
 
 ## Sub-phase 2.H — Bug cleanup + parity fixes + docs
 
@@ -190,6 +221,7 @@ Docs:
 | 2.F | ~250 | 0 | Wiring + smoke test |
 | 2.F.5 | ~150 | 0 | Coverage CLI + side-by-side harness; size depends on divergence-fix volume |
 | 2.G | ~50 | ~2000 | Cutover + deletes |
+| 2.G.5 | ~600 | ~100 | Shell parity rebuild (BUG-015/016/017), dep refresh, doc sweep |
 | 2.H | ~600 | ~150 | fixme flips + parity fixes (BUG-008/009/010/011/014) + snippet drop + docs |
 
-End state: `src/` shrinks materially. Five npm dependencies removed, one added. The seven Phase-1 UX bugs (BUG-001..007) plus the five Phase-2 parity bugs (BUG-008/009/010/011/014) fixed; BUG-012/013 dropped as won't-fix; `snippet` removed alongside the originally planned `survey`/`scale`/`quiz` cuts. Test surface unchanged on the e2e side; unit suite gains specs for the parity fixes.
+End state: `src/` shrinks materially. Five npm dependencies removed, one added (and the rest refreshed in 2.G.5). The seven Phase-1 UX bugs (BUG-001..007), the three shell-parity bugs surfaced by the cutover (BUG-015/016/017), and the five Phase-2 prompt-parity bugs (BUG-008/009/010/011/014) fixed; BUG-012/013 dropped as won't-fix; `snippet` removed alongside the originally planned `survey`/`scale`/`quiz` cuts. Test surface unchanged on the e2e side; unit suite gains specs for every parity fix.

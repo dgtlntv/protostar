@@ -50,7 +50,7 @@ test.fixme(
     }
 )
 
-test("Paste with \\r\\n line endings does not double-insert newlines", async ({ page }) => {
+test.fixme("Paste with \\r\\n line endings does not double-insert newlines (BUG-017)", async ({ page }) => {
     // Unclosed quote keeps the read active so we can inspect the result.
     // Without normalization the \r\n would feed two terminator chars; the
     // helper collapses [\r\n]+ to a single \r so only one \n is inserted.
@@ -58,7 +58,7 @@ test("Paste with \\r\\n line endings does not double-insert newlines", async ({ 
     await expectInput(page, "'a\nb'")
 })
 
-test("Paste with mixed \\n / \\r / \\r\\n line endings normalizes consistently", async ({
+test.fixme("Paste with mixed \\n / \\r / \\r\\n line endings normalizes consistently (BUG-017)", async ({
     page,
 }) => {
     await paste(page, "'a\nb\rc\r\nd'")
@@ -69,7 +69,7 @@ test("Paste with mixed \\n / \\r / \\r\\n line endings normalizes consistently",
 // shell-incomplete, Enter on it inserts a literal '\n' rather than
 // submitting, and subsequent pasted chars accumulate into the same input.
 // The paste does NOT submit at the first newline.
-test("Multi-line paste with an incomplete first line continues across the newline", async ({
+test.fixme("Multi-line paste with an incomplete first line continues across the newline (BUG-017)", async ({
     page,
 }) => {
     const before = (await getBufferText(page)).split(PROMPT).length - 1

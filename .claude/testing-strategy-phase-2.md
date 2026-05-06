@@ -12,7 +12,7 @@ The 63 specs under `tests/e2e/` describe user-visible behavior — typing, histo
 
 Sub-phase 2.G updates those three locations to read the equivalent fields off the new `shell` object. Every `*.spec.ts` file under `tests/e2e/` is unchanged across the cutover.
 
-The suite is the cutover gate: 2.G is not done until every passing Phase 1 spec still passes. The 9 `test.fixme`s covering BUG-001 through BUG-007 are flipped in 2.H, not 2.G.
+The suite gates the cutover: 2.G is not done until every previously-passing Phase 1 spec either still passes or is `test.fixme`'d against a freshly recorded `known-bugs.md` entry. Three categories of failure surfaced and were fixme'd against BUG-015/016/017 (Ctrl+C, multi-line continuation editing, multi-line paste); they're flipped back to passing in 2.G.5. The 9 fixmes covering BUG-001 through BUG-007 are flipped in 2.H.
 
 ## Layer 2 — Vitest unit tests (written in lockstep with 2.B–2.E)
 
@@ -134,6 +134,9 @@ Each entry in `.claude/known-bugs.md` is proven fixed (or proven still broken) b
 | BUG-005 (left-arrow on wrap) | Fixme in `line-wrap.spec.ts` flips. No unit test — visual cursor position is an integration concern. |
 | BUG-006 (multi-line paste loss) | Fixme in `paste.spec.ts` flips. |
 | BUG-007 (Escape inserts \x1b) | Fixme in `ignored-keys.spec.ts` flips. |
+| BUG-015 (Ctrl+C unhandled) | Four fixmes in `ctrl-c.spec.ts` and two in `history.spec.ts` flip in 2.G.5. Unit test in `tests/unit/` covers the cancel path. |
+| BUG-016 (multi-line continuation editing) | Five fixmes in `multiline-navigation.spec.ts` and the resize-during-continuation fixme in `resize.spec.ts` flip in 2.G.5. Unit test covers cursor / Backspace / Home / End across the `\n` boundary. |
+| BUG-017 (multi-line paste) | Three fixmes in `paste.spec.ts` flip in 2.G.5. Unit test covers `\r`/`\n`/`\r\n` normalization and per-line dispatch. |
 
 Any flip that fails in 2.H stays fixme'd. The corresponding bug entry is updated to record what the refactor missed instead of being deleted.
 

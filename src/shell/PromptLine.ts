@@ -62,6 +62,20 @@ export class PromptLine implements Component, Focusable {
         return this.input.getValue()
     }
 
+    /**
+     * Read the cursor offset within the editable buffer.
+     *
+     * Used by the e2e helper module to satisfy the cursor-position contract
+     * the Phase 1 specs rely on. The pi-tui `Input` keeps `cursor` as a
+     * non-private class field, so this getter surfaces it without patching
+     * upstream.
+     *
+     * @returns Zero-based cursor offset into `getValue()`.
+     */
+    getCursor(): number {
+        return (this.input as unknown as { cursor: number }).cursor
+    }
+
     /** Reset the buffer after a submit so the next line starts blank. */
     reset(): void {
         this.input.setValue("")
