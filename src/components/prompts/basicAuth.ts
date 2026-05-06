@@ -4,9 +4,9 @@
  * expected credentials. Mirrors the legacy enquirer `BasicAuth` shape.
  */
 
-import { Text } from "@mariozechner/pi-tui"
 import type { BasicAuthComponent } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"
+import { flatText } from "../../tui/theme.js"
 import { MaskedInput } from "./MaskedInput.js"
 import {
     awaitInputLine,
@@ -30,7 +30,7 @@ export async function runBasicAuth(
     ctx: ComponentContext
 ): Promise<void> {
     const heading = renderMessage(component.message, ctx)
-    ctx.tui.addChild(new Text(heading))
+    ctx.tui.addChild(flatText(heading))
     ctx.tui.requestRender()
 
     const username = await awaitInputLine(ctx.tui, "Username:")

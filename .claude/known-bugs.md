@@ -55,6 +55,60 @@ Bugs surfaced by the e2e suite. Each `test.fixme` in `tests/e2e/` links here by 
 - **Suspected area:** `src/io/LocalEchoController.js:876` default branch in `handleActiveInput` calls `handleCursorInsert(data)` for any unrecognized key. `decodeANSIKeypressData("\x1b")` does not produce a `name` that matches one of the explicit cases, so the bare ESC byte falls through. Same family as the Ctrl-key fallthroughs already documented as out-of-scope in `testing-strategy.md`.
 - **Status:** open
 
+### BUG-008: Inline prompts render the message and editable input on separate rows
+- **Discovered in:** 2.F.5 / side-by-side comparison harness (`index-compare.html`)
+- **Symptom:** Every prompt that resolves to a single line — `input`, `number`, `password`, `invisible`, `list`, plus the per-field rows of `form` and `basicAuth` — renders `? <message>` on one row and the editable buffer on the next. The legacy enquirer stack puts both on the same row (`? Message: ▮`).
+- **Suspected area:** `src/components/prompts/promptUtils.ts` `runInline` mounts `messageLine(message)` and `body` as two separate TUI children; pi-tui has no first-class "inline message + input" composite. Fix requires either a custom `Component` that owns both segments and renders them on one row (similar to `PromptLine`'s prompt-prefix trick over `Input`) or upstream support for an Input prefix.
+- **Status:** open — deferred past Phase 2; not blocking the cutover. The new look is internally consistent across every prompt; users transitioning from the legacy stack will see one extra row per prompt.
+
+### BUG-009: `?` glyph and submitted value are not colored to match enquirer
+- **Discovered in:** 2.F.5 / side-by-side comparison harness
+- **Symptom:** Legacy prompts render the leading `?` in light blue while a prompt is open and replace it with a green `✔` once submitted; the user-typed text is shown in green and the cursor changes color. The new prompts render `? <message>` plain and use the muted theme color for the resolved value, with no glyph swap on submit.
+- **Suspected area:** `src/components/prompts/promptUtils.ts` `messageLine`/`answerLine`. Resolved-state styling lives in `runInline`'s "after submit" branch — adding a `LOG_SYMBOLS.success` swap for the leading glyph and a colored answer is a small change; matching enquirer's exact palette across glyph + cursor + buffer requires more theme work and a custom `Input` variant for the in-flight color.
+- **Status:** open — deferred past Phase 2.
+
+### BUG-010: `confirm` uses a SelectList[Yes/No] instead of a `(Y/n)` keystroke prompt
+- **Discovered in:** 2.F.5 / side-by-side comparison harness
+- **Symptom:** Legacy `confirm` prints `? <message> (Y/n)` and resolves the moment the user presses `y` or `n`. The new prompt mounts a two-item `SelectList` and requires arrow + Enter.
+- **Suspected area:** `src/components/prompts/confirm.ts`. Fix is a small custom `Component`/`Focusable` that listens for `y`/`Y`/`n`/`N`/Enter and renders `(Y/n)`-style hint text. Skipped here to keep 2.F.5 scope contained.
+- **Status:** open — deferred past Phase 2.
+
+### BUG-011: `toggle` lays Off / On vertically instead of horizontally
+- **Discovered in:** 2.F.5 / side-by-side comparison harness
+- **Symptom:** Legacy `toggle` renders the two labels side-by-side with the active one underlined and arrow-Left/Right to switch. The new prompt reuses `SelectList`, which stacks vertically and uses arrow-Up/Down.
+- **Suspected area:** `src/components/prompts/toggle.ts`. Fix is a small custom horizontal-toggle `Component` that decorates the active label and listens for arrow-Left/Right.
+- **Status:** open — deferred past Phase 2.
+
+### BUG-012: `multiSelect` uses `[ ]` / `[x]` checkboxes instead of grayed/green check glyphs
+- **Discovered in:** 2.F.5 / side-by-side comparison harness
+- **Symptom:** Legacy multiselect uses a muted glyph for unchecked and a green ✔ for checked rows. The new prompt renders `[ ]` / `[x]` ASCII brackets via `SelectList`'s multi-pick mode.
+- **Suspected area:** `src/components/prompts/multiSelect.ts` — pi-tui's `SelectList` does not expose a checkbox glyph theme. Fix is either a small theming PR upstream or a custom multiselect `Component` modeled on the existing one.
+- **Status:** open — deferred past Phase 2.
+
+### BUG-013: `autoComplete` does not highlight the matched substring
+- **Discovered in:** 2.F.5 / side-by-side comparison harness
+- **Symptom:** Legacy autocomplete bolds/colors the substring of each visible choice that matched the typed query. The new prompt — also backed by `SelectList`'s filter — renders the choices unhighlighted.
+- **Suspected area:** `src/components/prompts/select.ts` and pi-tui's filter pipeline. Highlighting requires a per-row decorator that knows the active filter; not currently exposed.
+- **Status:** open — deferred past Phase 2.
+
+### BUG-014: `form` does not match enquirer's all-fields-visible layout with placeholder suggestions
+- **Discovered in:** 2.F.5 / side-by-side comparison harness
+- **Symptom:** Legacy `form` renders a leading `?` + label per field with grayed-out placeholder text (Tab to accept, type to override), shows every field at once, and uses arrow-Up/Down to move between fields; submitting the focused row marks its bullet green. The new prompt sequences each field as a fresh inline `Input`: only one field is visible at a time, no per-field bullet/state, no Tab-to-accept-placeholder.
+- **Suspected area:** `src/components/prompts/form.ts`. A faithful reproduction is a sizable custom `Component` that owns N inline editors, manages cross-field focus, and renders placeholder-vs-typed state per row.
+- **Status:** open — deferred past Phase 2.
+
+### BUG-015: `snippet` does not match enquirer's inline placeholder editor
+- **Discovered in:** 2.F.5 / side-by-side comparison harness
+- **Symptom:** Legacy `snippet` was already broken on `main`; the new implementation prompts for each field sequentially and prints the rendered template, but does not reproduce enquirer's "edit placeholders inline against the live template" UX.
+- **Suspected area:** `src/components/prompts/snippet.ts`. As with `form`, a faithful reproduction requires a custom `Component` that renders the template and lets the user step through `${name}` placeholders in place.
+- **Status:** open — deferred past Phase 2.
+
+### BUG-016: `sort` lacks the `Shift+↑/↓` reorder hint and a stronger active-row indicator
+- **Discovered in:** 2.F.5 / side-by-side comparison harness
+- **Symptom:** Legacy `sort` printed an explicit `Shift+↑/↓ to reorder` hint and used a more prominent active-row marker. The new `SortList` renders a `→`/`↕` prefix and only shows a `(grabbed — arrows reorder)` line while in grab mode; the keybinding is Space-to-grab + arrow-up/down rather than Shift-modified arrows.
+- **Suspected area:** `src/components/prompts/sort.ts`. Fix is a small `render()` change to emit a permanent hint line plus a brighter active-row treatment, plus an optional Shift+↑/↓ branch in `handleInput`.
+- **Status:** open — deferred past Phase 2.
+
 ### BUG-006: Multi-line paste only submits the first complete line; rest is silently dropped
 - **Discovered in:** 1.G / `tests/e2e/paste.spec.ts`
 - **Symptom:** Pasting `cmd1\ncmd2\n` runs `cmd1` but `cmd2` is lost — protostar diverges from terminals like bash where each line in a multi-line paste runs sequentially.

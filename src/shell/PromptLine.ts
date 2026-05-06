@@ -13,6 +13,8 @@ import type { HistoryStore } from "./HistoryStore.js"
 const ARROW_UP = "\x1b[A"
 /** Default xterm-style cursor-down sequence. */
 const ARROW_DOWN = "\x1b[B"
+/** Ctrl+E — pi-tui's `tui.editor.cursorLineEnd` binding. */
+const CURSOR_TO_END = "\x05"
 
 /**
  * Composite component that displays the shell prompt and an inline
@@ -72,12 +74,20 @@ export class PromptLine implements Component, Focusable {
     handleInput(data: string): void {
         if (data === ARROW_UP) {
             const prev = this.history.getPrevious()
-            if (prev !== undefined) this.input.setValue(prev)
+            if (prev !== undefined) {
+                this.input.setValue(prev)
+                // pi-tui `Input.setValue` clamps the cursor but does not
+                // advance it to the end of the new buffer; sending Ctrl+E
+                // mirrors the bash-style "land at the end of the recalled
+                // line" expectation.
+                this.input.handleInput(CURSOR_TO_END)
+            }
             return
         }
         if (data === ARROW_DOWN) {
             const next = this.history.getNext()
             this.input.setValue(next ?? "")
+            this.input.handleInput(CURSOR_TO_END)
             return
         }
         this.input.focused = this.focused

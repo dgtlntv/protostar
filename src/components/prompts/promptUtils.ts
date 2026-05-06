@@ -7,7 +7,7 @@
 import { Input, Text } from "@mariozechner/pi-tui"
 import type { Component, TUI } from "@mariozechner/pi-tui"
 import { interpolate } from "../../shell/interpolate.js"
-import { mutedColor } from "../../tui/theme.js"
+import { flatText, mutedColor } from "../../tui/theme.js"
 import type { ComponentContext } from "../context.js"
 import type { VariableStore } from "../../shell/VariableStore.js"
 
@@ -18,7 +18,7 @@ import type { VariableStore } from "../../shell/VariableStore.js"
  * @returns A pi-tui `Text` ready to be added as a child.
  */
 export function messageLine(message: string): Text {
-    return new Text(`? ${message}`)
+    return flatText(`? ${message}`)
 }
 
 /**
@@ -30,7 +30,7 @@ export function messageLine(message: string): Text {
  * @returns A pi-tui `Text` ready to be added as a child.
  */
 export function answerLine(message: string, answer: string): Text {
-    return new Text(`? ${message} ${mutedColor(answer)}`)
+    return flatText(`? ${message} ${mutedColor(answer)}`)
 }
 
 /**

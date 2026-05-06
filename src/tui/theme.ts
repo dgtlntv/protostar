@@ -4,6 +4,7 @@
  */
 
 import chalk from "chalk"
+import { Text } from "@mariozechner/pi-tui"
 
 /**
  * Colored status glyphs used by the spinner's conclusion line and
@@ -31,3 +32,18 @@ export const accentColor = chalk.cyan
 
 /** Color used for muted/secondary text such as the loader message body. */
 export const mutedColor = chalk.dim
+
+/**
+ * Build a `Text` line that occupies exactly one terminal row with no
+ * surrounding gutter. pi-tui's `Text` defaults to `paddingX=1` and
+ * `paddingY=1`, which adds a one-column indent and a blank row above and
+ * below every line — undesirable for a shell where output should sit
+ * flush against the prompt. Every shell-flow `Text` should be built via
+ * this helper so the look stays consistent across modules.
+ *
+ * @param content Pre-rendered line (ANSI sequences allowed).
+ * @returns A `Text` with both axes of padding zeroed.
+ */
+export function flatText(content: string): Text {
+    return new Text(content, 0, 0)
+}

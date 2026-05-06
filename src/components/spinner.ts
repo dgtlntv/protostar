@@ -4,10 +4,10 @@
  * a final glyph (`✔`/`✖`/none) chosen by `component.conclusion`.
  */
 
-import { Loader, Text } from "@mariozechner/pi-tui"
+import { Loader } from "@mariozechner/pi-tui"
 import type { SpinnerComponent } from "../types/commands.js"
 import { interpolate } from "../shell/interpolate.js"
-import { LOG_SYMBOLS, accentColor, mutedColor } from "../tui/theme.js"
+import { LOG_SYMBOLS, accentColor, flatText, mutedColor } from "../tui/theme.js"
 import type { ComponentContext } from "./context.js"
 import { resolveDuration, sleep } from "./duration.js"
 
@@ -59,6 +59,6 @@ export async function runSpinner(
     loader.stop()
     ctx.tui.removeChild(loader)
     const finalLine = `${conclusionPrefix(component.conclusion)}${phrases[phrases.length - 1]}`
-    ctx.tui.addChild(new Text(finalLine))
+    ctx.tui.addChild(flatText(finalLine))
     ctx.tui.requestRender()
 }

@@ -5,7 +5,7 @@
 
 import type { FormComponent } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"
-import { Text } from "@mariozechner/pi-tui"
+import { flatText } from "../../tui/theme.js"
 import { awaitInputLine, persist, renderMessage } from "./promptUtils.js"
 
 /**
@@ -23,7 +23,7 @@ export async function runForm(
     ctx: ComponentContext
 ): Promise<void> {
     const heading = renderMessage(component.message, ctx)
-    ctx.tui.addChild(new Text(heading))
+    ctx.tui.addChild(flatText(heading))
     ctx.tui.requestRender()
 
     const result: Record<string, string> = {}

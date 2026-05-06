@@ -4,9 +4,9 @@
  * collected values.
  */
 
-import { Text } from "@mariozechner/pi-tui"
 import type { SnippetComponent } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"
+import { flatText } from "../../tui/theme.js"
 import { awaitInputLine, persist, renderMessage } from "./promptUtils.js"
 
 /** Replace every `${name}` in `template` with the value from `values`. */
@@ -32,7 +32,7 @@ export async function runSnippet(
     ctx: ComponentContext
 ): Promise<void> {
     const heading = renderMessage(component.message, ctx)
-    ctx.tui.addChild(new Text(heading))
+    ctx.tui.addChild(flatText(heading))
     ctx.tui.requestRender()
 
     const values: Record<string, string> = {}
@@ -43,7 +43,7 @@ export async function runSnippet(
         values[field.name] = value
     }
     const rendered = applyTemplate(component.template, values)
-    ctx.tui.addChild(new Text(rendered))
+    ctx.tui.addChild(flatText(rendered))
     ctx.tui.requestRender()
     persist(ctx.variables, component.name, rendered)
 }

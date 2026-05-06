@@ -6,12 +6,12 @@
  */
 
 import type { TUI } from "@mariozechner/pi-tui"
-import { Text } from "@mariozechner/pi-tui"
 import { parse } from "shell-quote"
 import type Yargs from "yargs/browser"
 import { PromptLine } from "./PromptLine.js"
 import type { HistoryStore } from "./HistoryStore.js"
 import { isIncomplete } from "./isIncomplete.js"
+import { flatText } from "../tui/theme.js"
 
 type YargsInstance = ReturnType<typeof Yargs>
 
@@ -98,7 +98,7 @@ export class ShellLoop {
                     // into the scrollback so the next prompt starts fresh.
                     this.pending = combined
                     this.tui.removeChild(promptLine)
-                    this.tui.addChild(new Text(this.prompt + raw))
+                    this.tui.addChild(flatText(this.prompt + raw))
                     promptLine = this.mountPrompt()
                     promptLine.onSubmit = (next) => tryFinish(next)
                     return
@@ -106,7 +106,7 @@ export class ShellLoop {
                 this.pending = ""
                 this.tui.removeChild(promptLine)
                 this.active = null
-                this.tui.addChild(new Text(this.prompt + raw))
+                this.tui.addChild(flatText(this.prompt + raw))
                 this.tui.requestRender()
                 resolve(combined)
             }
@@ -134,7 +134,7 @@ export class ShellLoop {
                 tokens,
                 (_err: Error | undefined, _argv: unknown, output: string) => {
                     if (output) {
-                        this.tui.addChild(new Text(output))
+                        this.tui.addChild(flatText(output))
                         this.tui.requestRender()
                     }
                     resolve()

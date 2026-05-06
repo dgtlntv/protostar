@@ -17,9 +17,9 @@ import type {
 } from "../types/commands.js"
 import type { ComponentContext, ComponentRunner } from "../components/context.js"
 import type { TUI } from "@mariozechner/pi-tui"
-import { Text } from "@mariozechner/pi-tui"
 import type { VariableStore } from "../shell/VariableStore.js"
 import type { XtermTerminalAdapter } from "../tui/XtermTerminal.js"
+import { flatText } from "../tui/theme.js"
 
 /**
  * Hooks the yargs handler binding needs in order to run components and
@@ -60,11 +60,10 @@ export function buildYargs(
         .strict()
         .fail((msg: string, _err: Error, y: YargsInstance) => {
             if (msg) {
-                ctx.tui.addChild(new Text(msg))
-                ctx.tui.addChild(new Text(""))
+                ctx.tui.addChild(flatText(msg))
             }
             y.showHelp((help: string) => {
-                ctx.tui.addChild(new Text(help))
+                ctx.tui.addChild(flatText(help))
                 ctx.tui.requestRender()
             })
         })

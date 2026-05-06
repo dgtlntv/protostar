@@ -5,9 +5,8 @@
  * one assignment doesn't tear down the rest of the component pipeline.
  */
 
-import { Text } from "@mariozechner/pi-tui"
 import type { VariableComponent } from "../types/commands.js"
-import { LOG_SYMBOLS } from "../tui/theme.js"
+import { LOG_SYMBOLS, flatText } from "../tui/theme.js"
 import type { ComponentContext } from "./context.js"
 
 /**
@@ -27,7 +26,7 @@ export async function runVariable(
         const result = ctx.variables.set(key, value)
         if (!result.ok) {
             ctx.tui.addChild(
-                new Text(
+                flatText(
                     `${LOG_SYMBOLS.warning} Attempt to set undeclared variable '${result.key}'`
                 )
             )

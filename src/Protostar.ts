@@ -7,11 +7,12 @@
 
 import { FitAddon } from "@xterm/addon-fit"
 import { Terminal as XTerminal } from "@xterm/xterm"
-import { TUI, Text } from "@mariozechner/pi-tui"
+import { TUI } from "@mariozechner/pi-tui"
 import chalk from "chalk"
 
 import type { Commands } from "./types/commands.js"
 import { XtermTerminalAdapter } from "./tui/XtermTerminal.js"
+import { flatText } from "./tui/theme.js"
 import { HistoryStore } from "./shell/HistoryStore.js"
 import { VariableStore } from "./shell/VariableStore.js"
 import { ShellLoop } from "./shell/ShellLoop.js"
@@ -115,8 +116,7 @@ export class Protostar {
         this.tui.start()
 
         if (this.commands.welcome) {
-            this.tui.addChild(new Text(this.commands.welcome))
-            this.tui.addChild(new Text(""))
+            this.tui.addChild(flatText(this.commands.welcome))
             this.tui.requestRender()
         }
 

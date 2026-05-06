@@ -38,24 +38,32 @@ export async function runInput(
 }
 
 /**
- * Numeric input. Reuses the plain `Input` and parses on submit; non-numeric
- * input is rejected by leaving the resolved value as `NaN`-stringified
- * — matches the legacy enquirer behaviour of trusting the user to type a
- * number.
+ * Numeric input. Reads a line, validates it parses as a finite number,
+ * and re-prompts on invalid input. Persists the canonical numeric string
+ * (e.g. `"42"`, `"3.14"`).
  *
  * @param component Number component definition.
  * @param ctx Shared execution context.
- * @returns A promise that resolves once the user submits or cancels.
+ * @returns A promise that resolves once the user submits a valid number
+ *   or cancels.
  */
 export async function runNumber(
     component: NumberComponent,
     ctx: ComponentContext
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
-    const raw = await awaitInputLine(ctx.tui, message)
-    if (raw === undefined) return
-    const parsed = Number(raw)
-    persist(ctx.variables, component.name, String(parsed))
+    while (true) {
+        const raw = await awaitInputLine(ctx.tui, message)
+        if (raw === undefined) return
+        const parsed = Number(raw)
+        if (raw.trim() !== "" && Number.isFinite(parsed)) {
+            persist(ctx.variables, component.name, String(parsed))
+            return
+        }
+        // Re-prompt on invalid entry. The `awaitInputLine` answer line
+        // already lands in scrollback, so the operator sees their bad
+        // input alongside the fresh prompt.
+    }
 }
 
 /**

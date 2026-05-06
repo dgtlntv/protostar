@@ -3,9 +3,9 @@
  * and mounts the result on the shared TUI as a pi-tui `Text` child.
  */
 
-import { Text } from "@mariozechner/pi-tui"
 import type { TextComponent } from "../types/commands.js"
 import { interpolate } from "../shell/interpolate.js"
+import { flatText } from "../tui/theme.js"
 import type { ComponentContext } from "./context.js"
 import { resolveDuration, sleep } from "./duration.js"
 
@@ -24,7 +24,7 @@ export async function runText(
     ctx: ComponentContext
 ): Promise<void> {
     const rendered = interpolate(component.output, ctx.argv, ctx.variables)
-    ctx.tui.addChild(new Text(rendered))
+    ctx.tui.addChild(flatText(rendered))
     ctx.tui.requestRender()
     if (component.duration !== undefined) {
         await sleep(resolveDuration(component.duration))
