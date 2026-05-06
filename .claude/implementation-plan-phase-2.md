@@ -91,13 +91,56 @@ Each component is a function `(component, ctx) => Promise<void>` that mounts pi-
 **Exit criteria:** new entry boots in dev, new smoke spec green, existing e2e (against the old entry) green.
 **Commit:** `refactor(shell): wire new shell loop alongside legacy entry`
 
+## Sub-phase 2.F.5 — Parity polish + comparison harness
+
+The cutover in 2.G **deletes the legacy stack**, so this is the last sub-phase
+where side-by-side comparison between old and new is cheap. Goal: prove —
+component by component — that the new stack reproduces the old one's
+user-visible output, and either fix the divergences or record them as
+known-bugs entries before they become invisible.
+
+- **Coverage CLI.** Add `src/test-commands.json` (or extend `commands.json`)
+  with a command per component type that exercises every meaningful option
+  combination. Concretely: at least one command per entry in the `Component`
+  union from `src/types/commands.ts` — `text` (with and without `duration`),
+  `progressBar`, `spinner` (single phrase + array of phrases), `table` (auto
+  width + explicit `colWidths`), `conditional` (true + false + nested),
+  `variable` (declared + undeclared key), and one command per prompt type
+  (`input`, `number`, `password`, `invisible`, `list`, `select`,
+  `autoComplete`, `multiSelect`, `confirm`, `form`, `basicAuth`, `toggle`,
+  `sort`, `snippet`). A `demo` parent command grouping the lot is fine.
+- **Side-by-side harness.** Add `index-compare.html` + `src/index-compare.ts`
+  that mounts the legacy `Terminal` and the new `Protostar` against the
+  coverage CLI in a two-pane CSS grid (e.g. `grid-template-columns: 1fr 1fr`)
+  so both run on the same page against the same `commands.json`. Each pane
+  gets its own `#terminal-old` / `#terminal-new` host element. No keystroke
+  syncing — the operator drives each pane independently. Deleted in 2.G
+  alongside `index-new.html`.
+- **Walk every command in both panes.** For each component, type the
+  triggering command in both, observe the output, and record a one-line
+  verdict — match / divergent (with the diff) / new-bug. The list lives in
+  the commit message and feeds `.claude/known-bugs.md`.
+- **Triage each divergence.** Three buckets:
+  1. Quick fix in the new module — fix it here, add a unit test where the
+     surface allows, no scope creep into other components.
+  2. Genuinely needs the legacy stack gone first (e.g. depends on the new
+     `window.__protostar` shape) — defer to 2.G with a TODO comment.
+  3. Won't fix in Phase 2 — new known-bugs entry with a clear reason.
+- **`BUG-001..007` are out of scope** — those flip in 2.H per the
+  `testing-strategy-phase-2.md` matrix. Don't touch their fixmes here.
+
+**Exit criteria:** every component in the coverage CLI has a recorded
+verdict; divergences are either fixed (with tests) or filed as known-bugs
+entries; existing e2e + unit suites still green; new-smoke spec still green.
+**Commit:** `refactor: parity polish + comparison harness pre-cutover`
+
 ## Sub-phase 2.G — Cutover
 
 - Replace `src/index.js` with `src/index.ts` (re-export from the new entry point) and have `index.html` load it.
 - Replace `src/library.js` with `src/library.ts` re-exporting from `src/index.ts`. Update `vite.config.js` library entry.
 - Update the dev-only test handle to `window.__protostar = { term, tui, shell, history, variables }`.
 - Update the e2e helper module (`tests/e2e/helpers/terminal.ts` and `types.ts`) per the contract in `testing-strategy-phase-2.md §E2E continuity contract`. Helper signatures stay stable so no `*.spec.ts` file changes.
-- Delete `tests/e2e/new-smoke.spec.ts` and `index-new.html` / `src/index-new.ts`.
+- Delete `tests/e2e/new-smoke.spec.ts` and `index-new.html` / `src/index-new.ts`. Also delete the 2.F.5 comparison harness: `index-compare.html`, `src/index-compare.ts`, and `src/test-commands.json` (if added as a separate file rather than folded into `commands.json`).
 - **Delete:** `src/io/LocalEchoController.js`, `src/io/HistoryController.js`, `src/io/Utils.js`, `src/io/inputHandler.js`, `src/io/yargs/initializeYargs.js`, `src/io/yargs/commandsToYargs.js`, `src/io/yargs/componentsToYargsHandler.js`, `src/shims/monkeyPatchStdout.js`, `src/shims/readlineShim.js`, `src/components/spinner/stopSpinner.js`, `src/components/text/interpolateVariables.js`, `src/utils/sleep.js`, `src/utils/getColoredText.js`, `src/Terminal.js`, `index-new.html`, `src/index-new.ts`.
 - **Update `vite.config.js`:** drop the `readline` alias. Drop `vite-plugin-node-polyfills` if pi-tui can run with just the lighter shims; otherwise narrow `include` to whatever pi-tui actually needs (`process`, `events`, `perf_hooks`). Keep the cliui/yargs-parser CDN aliases if `yargs/browser` still requires them.
 - **Uninstall:** `enquirer`, `ora`, `cli-progress`, `cli-table3`, `log-symbols`, `path`, `cliui`, `string-argv`. Update `package.json`.
@@ -126,6 +169,7 @@ Each component is a function `(component, ctx) => Promise<void>` that mounts pi-
 | 2.D | ~400 | 0 | Display components + unit tests |
 | 2.E | ~500 | ~80 | Prompt components; schema entries removed |
 | 2.F | ~250 | 0 | Wiring + smoke test |
+| 2.F.5 | ~150 | 0 | Coverage CLI + side-by-side harness; size depends on divergence-fix volume |
 | 2.G | ~50 | ~2000 | Cutover + deletes |
 | 2.H | ~10 | ~10 | fixme flips + docs |
 
