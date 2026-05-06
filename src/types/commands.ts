@@ -4,8 +4,8 @@
  * runners, and component dispatcher consume the discriminated `Component`
  * union for exhaustive switches.
  *
- * `survey`, `scale`, and `quiz` are still represented here pending removal
- * in 2.E (see `.claude/refactor-strategy.md` §Schema changes).
+ * `survey`, `scale`, and `quiz` were dropped in 2.E (see
+ * `.claude/refactor-strategy.md` §Schema changes).
  */
 
 /** Time in milliseconds, or the literal `"random"` for a 100–3000ms jitter. */
@@ -159,65 +159,6 @@ export interface PasswordComponent {
 }
 
 /**
- * Select prompt with a known correct answer.
- *
- * @deprecated Removed in 2.E. Authors should rebuild as `select` + a
- * follow-up `conditional`.
- */
-export interface QuizComponent {
-    component: "quiz"
-    name: string
-    message: string
-    choices: string[]
-    correctChoice: number
-}
-
-/** One axis label of a scale/survey rating. */
-export interface SurveyScalePoint {
-    name: string
-    message: string
-}
-
-/** One question in a {@link SurveyComponent}. */
-export interface SurveyChoice {
-    name: string
-    message: string
-}
-
-/**
- * Matrix prompt: each `choices` row is rated against each `scale` column.
- *
- * @deprecated Removed in 2.E.
- */
-export interface SurveyComponent {
-    component: "survey"
-    name: string
-    message: string
-    scale: SurveyScalePoint[]
-    choices: SurveyChoice[]
-}
-
-/** One question in a {@link ScaleComponent}. */
-export interface ScaleChoice {
-    name: string
-    message: string
-    initial?: number
-}
-
-/**
- * Compact Likert-scale prompt.
- *
- * @deprecated Removed in 2.E.
- */
-export interface ScaleComponent {
-    component: "scale"
-    name: string
-    message: string
-    scale: SurveyScalePoint[]
-    choices: ScaleChoice[]
-}
-
-/**
  * Object form of a `select` choice. The bare `string[]` form is also
  * accepted; both produce the same UI.
  */
@@ -288,9 +229,6 @@ export type Component =
     | MultiSelectComponent
     | NumberComponent
     | PasswordComponent
-    | QuizComponent
-    | SurveyComponent
-    | ScaleComponent
     | SelectComponent
     | SortComponent
     | SnippetComponent

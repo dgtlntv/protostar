@@ -67,6 +67,18 @@ export class VariableStore {
     }
 
     /**
+     * Unconditional write — creates the key if missing, overwrites otherwise.
+     * Used by prompt components to persist their resolved value under
+     * `component.name`, which is by design not part of the declared bag.
+     *
+     * @param key The variable name.
+     * @param value The new value.
+     */
+    define(key: string, value: string): void {
+        this.values[key] = value
+    }
+
+    /**
      * Defensive copy of the current key/value map. Used by `interpolate` to
      * build the merged `{ ...variables, ...argv }` context without exposing
      * the internal record.

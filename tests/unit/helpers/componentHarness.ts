@@ -1,8 +1,8 @@
 /**
- * @file Test harness for the display components landing in 2.D. Wires a
+ * @file Test harness for the display and prompt components. Wires a
  * `VirtualTerminal` to a real pi-tui `TUI`, owns a fresh `VariableStore`,
- * and provides a display-only dispatcher so `conditional` can recurse
- * during tests without depending on the 2.F dispatcher.
+ * and dispatches across the full component switch so `conditional` can
+ * recurse during tests without depending on the 2.F production dispatcher.
  */
 
 import { TUI } from "@mariozechner/pi-tui"
@@ -18,11 +18,29 @@ import { runSpinner } from "../../../src/components/spinner.js"
 import { runTable } from "../../../src/components/table.js"
 import { runVariable } from "../../../src/components/variable.js"
 import { runConditional } from "../../../src/components/conditional.js"
+import {
+    runInput,
+    runInvisible,
+    runNumber,
+    runPassword,
+} from "../../../src/components/prompts/input.js"
+import { runList } from "../../../src/components/prompts/list.js"
+import {
+    runAutoComplete,
+    runSelect,
+} from "../../../src/components/prompts/select.js"
+import { runMultiSelect } from "../../../src/components/prompts/multiSelect.js"
+import { runConfirm } from "../../../src/components/prompts/confirm.js"
+import { runToggle } from "../../../src/components/prompts/toggle.js"
+import { runForm } from "../../../src/components/prompts/form.js"
+import { runBasicAuth } from "../../../src/components/prompts/basicAuth.js"
+import { runSort } from "../../../src/components/prompts/sort.js"
+import { runSnippet } from "../../../src/components/prompts/snippet.js"
 
 /**
- * Display-only dispatcher. Switches over the discriminator field and
- * forwards to the matching component handler. Throws on prompt component
- * types — those land in 2.E and aren't available here yet.
+ * Full dispatcher: switches over the discriminator field and forwards to
+ * the matching component handler. Mirrors the production dispatcher
+ * landing in 2.F.
  */
 export const dispatch: ComponentRunner = async (components, ctx) => {
     const list = Array.isArray(components) ? components : [components]
@@ -46,10 +64,54 @@ export const dispatch: ComponentRunner = async (components, ctx) => {
             case "conditional":
                 await runConditional(c, ctx)
                 break
-            default:
+            case "input":
+                await runInput(c, ctx)
+                break
+            case "number":
+                await runNumber(c, ctx)
+                break
+            case "password":
+                await runPassword(c, ctx)
+                break
+            case "invisible":
+                await runInvisible(c, ctx)
+                break
+            case "list":
+                await runList(c, ctx)
+                break
+            case "select":
+                await runSelect(c, ctx)
+                break
+            case "autoComplete":
+                await runAutoComplete(c, ctx)
+                break
+            case "multiSelect":
+                await runMultiSelect(c, ctx)
+                break
+            case "confirm":
+                await runConfirm(c, ctx)
+                break
+            case "toggle":
+                await runToggle(c, ctx)
+                break
+            case "form":
+                await runForm(c, ctx)
+                break
+            case "basicAuth":
+                await runBasicAuth(c, ctx)
+                break
+            case "sort":
+                await runSort(c, ctx)
+                break
+            case "snippet":
+                await runSnippet(c, ctx)
+                break
+            default: {
+                const exhaustive: never = c
                 throw new Error(
-                    `Display harness: unsupported component '${c.component}'`
+                    `Component harness: unsupported component '${(exhaustive as { component: string }).component}'`
                 )
+            }
         }
     }
 }
