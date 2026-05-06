@@ -93,7 +93,10 @@ class SortList implements Component, Focusable {
             const line = `${prefix}${item}`
             return isCursor ? accentColor(line) : line
         })
-        if (this.grabbed) lines.push(mutedColor("  (grabbed — arrows reorder)"))
+        const hint = this.grabbed
+            ? "(grabbed — ↑/↓ to reorder, Space to drop, Enter to submit)"
+            : "(↑/↓ to move, Space to grab, Enter to submit)"
+        lines.push(mutedColor(`  ${hint}`))
         return lines
     }
 }

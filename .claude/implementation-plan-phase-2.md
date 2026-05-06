@@ -149,15 +149,34 @@ entries; existing e2e + unit suites still green; new-smoke spec still green.
 **Exit criteria:** existing Phase 1 e2e suite passes against the new stack. The 9 fixme'd specs may still be fixme'd at this point; they get flipped in 2.H. `npm run build` and `npm run build:lib` succeed. Bundle is measurably smaller (informal — record the number in the commit message).
 **Commit:** `refactor: cut over to pi-tui shell, delete legacy LocalEchoController stack`
 
-## Sub-phase 2.H — Bug cleanup + docs
+## Sub-phase 2.H — Bug cleanup + parity fixes + docs
+
+Bug cleanup (existing):
 
 - Flip each `test.fixme` to `test` per `testing-strategy-phase-2.md §Bug-fix verification matrix`. Run the full suite. Any flip that fails stays fixme'd and gets a fresh known-bugs entry recording what the refactor missed.
 - Update `.claude/known-bugs.md` to mark resolved bugs as `Status: fixed in Phase 2`.
-- Update `README.md` if any user-visible behavior changed (probably nothing — the schema is preserved). Note the dropped prompt types (`survey`/`scale`/`quiz`) prominently.
+
+Parity fixes surfaced by 2.F.5's comparison walkthrough (BUG-008/009/010/011/014 in `known-bugs.md`):
+
+- **BUG-008** — single-row prompts. Add a shared `InlinePrompt` component (or extend `PromptLine`'s prompt-prefix-over-`Input` trick) so `input`/`number`/`password`/`invisible`/`list` and the per-field rows of `form`/`basicAuth` render the message and editable buffer on the same row.
+- **BUG-009** — leading `?` swaps to a green `✔` on submit and the persisted answer renders in green (not muted). Touches `src/components/prompts/promptUtils.ts` `messageLine`/`answerLine`.
+- **BUG-010** — replace `confirm`'s `SelectList[Yes/No]` with a custom `(Y/n)` keystroke component.
+- **BUG-011** — replace `toggle`'s vertical `SelectList` with a horizontal Off/On layout driven by arrow-Left/Right with the active label underlined.
+- **BUG-014** — rebuild `form` as a single multi-field component: every field visible at once, per-field state bullet (muted → green on submit), grayed-out placeholder text for `initial` values that Tab accepts and typing overrides, arrow-Up/Down to move between fields. Sizeable custom `Component`.
+
+Each parity fix lands its own unit test in `tests/unit/prompt-components.spec.ts` covering the new behavior; existing happy-path tests stay green.
+
+Schema/component drop:
+
+- Drop `snippet` the same way `survey`/`scale`/`quiz` were dropped: remove it from `src/commands-schema.json`, from the `Component` discriminated union in `src/types/commands.ts`, from `runComponents`/`buildYargs` dispatch, from `tests/unit/helpers/componentHarness.ts`, and from `src/test-commands.json`. Delete `src/components/prompts/snippet.ts` and the snippet unit specs. The legacy `snippet` was broken anyway and the parity rebuild has been judged not worth the scope; authors using `snippet` need to migrate before consuming the new build.
+
+Docs:
+
+- Update `README.md` if any user-visible behavior changed. Note the dropped prompt types (`survey`/`scale`/`quiz`/`snippet`) prominently.
 - Update `.claude/refactor-strategy.md`, `testing-strategy-phase-2.md`, and this plan doc with any deviations the implementation surfaced.
 
-**Exit criteria:** suite at the highest pass count we can hit; any remaining fixmes have fresh known-bugs entries. Branch green.
-**Commit:** `test(e2e): un-fixme bugs resolved by the refactor + docs`
+**Exit criteria:** suite at the highest pass count we can hit; any remaining fixmes have fresh known-bugs entries; BUG-008/009/010/011/014 marked `fixed in Phase 2` in `known-bugs.md`; snippet fully removed. Branch green.
+**Commit:** `test(e2e): un-fixme bugs resolved by the refactor + parity polish + docs`
 
 ## Rough sizing
 
@@ -171,6 +190,6 @@ entries; existing e2e + unit suites still green; new-smoke spec still green.
 | 2.F | ~250 | 0 | Wiring + smoke test |
 | 2.F.5 | ~150 | 0 | Coverage CLI + side-by-side harness; size depends on divergence-fix volume |
 | 2.G | ~50 | ~2000 | Cutover + deletes |
-| 2.H | ~10 | ~10 | fixme flips + docs |
+| 2.H | ~600 | ~150 | fixme flips + parity fixes (BUG-008/009/010/011/014) + snippet drop + docs |
 
-End state: `src/` shrinks materially. Five npm dependencies removed, one added. All seven known UX bugs fixed. Test surface unchanged.
+End state: `src/` shrinks materially. Five npm dependencies removed, one added. The seven Phase-1 UX bugs (BUG-001..007) plus the five Phase-2 parity bugs (BUG-008/009/010/011/014) fixed; BUG-012/013 dropped as won't-fix; `snippet` removed alongside the originally planned `survey`/`scale`/`quiz` cuts. Test surface unchanged on the e2e side; unit suite gains specs for the parity fixes.

@@ -26,8 +26,9 @@ Drop these prompt types from `src/commands-schema.json` (and from the `Commands`
 - `survey` — matrix prompt, rarely used.
 - `scale` — matrix prompt with numeric scale.
 - `quiz` — `select` plus a correct-answer key.
+- `snippet` — added to the drop list during 2.F.5; the legacy implementation was broken and the parity rebuild was judged out-of-scope. Removed in 2.H.
 
-20 of the 23 component types remain. Authors using these three need to migrate before consuming the new build.
+19 of the 23 component types remain. Authors using these four need to migrate before consuming the new build.
 
 ## Target module layout
 
@@ -65,8 +66,7 @@ src/
 │       ├── form.ts
 │       ├── basicAuth.ts
 │       ├── toggle.ts
-│       ├── sort.ts
-│       └── snippet.ts
+│       └── sort.ts
 └── types/
     └── commands.ts           # TS types mirroring commands-schema.json
 ```
