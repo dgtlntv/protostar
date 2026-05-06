@@ -87,6 +87,7 @@ src/
 - `enquirer`, `ora`, `cli-progress`, `cli-table3`, `log-symbols`
 - `path` (browser polyfill)
 - `cliui` (was a transitive workaround; check whether `yargs/browser` still needs the CDN aliases — keep them if it does)
+- `string-argv` — `shell-quote.parse` covers both its tokenization role (for yargs) and the continuation-detection role in `isIncomplete.ts`. Drop in 2.F when `ShellLoop.ts` is wired against `shell-quote` directly. Filter operator tokens (or stop at the first one) before handing the array to `yargs.parse`.
 - `vite-plugin-node-polyfills` if pi-tui's `process.nextTick` / `events` / `perf_hooks` needs can be covered by lighter shims; otherwise keep with a narrowed `include`.
 
 ### Added
@@ -96,7 +97,7 @@ src/
 ### Kept
 
 - `@xterm/xterm`, `@xterm/addon-fit`
-- `yargs`, `yargs-parser`, `string-argv`, `shell-quote`
+- `yargs`, `yargs-parser`, `shell-quote`
 - `handlebars`, `chalk`
 
 ## Bugs resolved by construction

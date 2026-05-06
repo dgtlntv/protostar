@@ -7,6 +7,7 @@ Turns `.claude/refactor-strategy.md` into an ordered set of sub-phases. Continue
 - One commit per sub-phase. Same message style as Phase 1: short imperative title, blank line, 2–4 bullets summarizing what changed and why. Co-author Claude as before.
 - The Phase 1 e2e suite is the cutover gate — sub-phases 2.A–2.F add new code without wiring it into the running app, so the suite keeps passing automatically. 2.G is the only commit where the suite has to keep passing under freshly cut-over code; that is where the design either holds or doesn't.
 - New files are TypeScript. Old `.js` files keep working until they're deleted in 2.G.
+- Every class, function, method, and exported type in files we touch or create gets proper JSDoc — production code and unit-test helpers. Functions document each parameter with `@param` and the result with `@returns` when applicable; throwing functions add `@throws`. Spec files only need a top-of-file summary; individual `describe`/`it` titles document the rest. Don't merely restate what types already say — describe purpose, invariants, edge cases, and non-obvious choices — but do write the tags so each parameter gets a line.
 - Test responsibilities (e2e cutover gate, Vitest unit tests per module, the pre-cutover smoke) are spelled out in `.claude/testing-strategy-phase-2.md`. Each sub-phase below references the relevant section there for its exit criteria; this file only restates what's distinctive.
 - BUG fixmes are touched only in 2.H. If a bug survives the refactor it stays fixme'd and gets a new known-bugs entry explaining why.
 
@@ -78,7 +79,7 @@ Each component is a function `(component, ctx) => Promise<void>` that mounts pi-
 
 ## Sub-phase 2.F — Wire the new shell
 
-- `src/shell/ShellLoop.ts` — read → tokenize via `string-argv` → `yargs.parse` → handler → repeat. Uses `PromptLine` for the idle state.
+- `src/shell/ShellLoop.ts` — read → tokenize via `shell-quote.parse` (filter operator tokens before handing the resulting `string[]` to `yargs.parse`) → handler → repeat. Uses `PromptLine` for the idle state. `string-argv` is unused after this sub-phase and is uninstalled in 2.G.
 - `src/shell/PromptLine.ts` — renders the prompt segments + a pi-tui `Input` while no command is running.
 - `src/commands/buildYargs.ts` — JSON tree → yargs commands. Mechanical port of `src/io/yargs/commandsToYargs.js`.
 - `src/commands/runComponents.ts` — component-list dispatcher. Switch over `component.component`.
@@ -99,7 +100,7 @@ Each component is a function `(component, ctx) => Promise<void>` that mounts pi-
 - Delete `tests/e2e/new-smoke.spec.ts` and `index-new.html` / `src/index-new.ts`.
 - **Delete:** `src/io/LocalEchoController.js`, `src/io/HistoryController.js`, `src/io/Utils.js`, `src/io/inputHandler.js`, `src/io/yargs/initializeYargs.js`, `src/io/yargs/commandsToYargs.js`, `src/io/yargs/componentsToYargsHandler.js`, `src/shims/monkeyPatchStdout.js`, `src/shims/readlineShim.js`, `src/components/spinner/stopSpinner.js`, `src/components/text/interpolateVariables.js`, `src/utils/sleep.js`, `src/utils/getColoredText.js`, `src/Terminal.js`, `index-new.html`, `src/index-new.ts`.
 - **Update `vite.config.js`:** drop the `readline` alias. Drop `vite-plugin-node-polyfills` if pi-tui can run with just the lighter shims; otherwise narrow `include` to whatever pi-tui actually needs (`process`, `events`, `perf_hooks`). Keep the cliui/yargs-parser CDN aliases if `yargs/browser` still requires them.
-- **Uninstall:** `enquirer`, `ora`, `cli-progress`, `cli-table3`, `log-symbols`, `path`, `cliui`. Update `package.json`.
+- **Uninstall:** `enquirer`, `ora`, `cli-progress`, `cli-table3`, `log-symbols`, `path`, `cliui`, `string-argv`. Update `package.json`.
 - Update `.claude/architecture.md` to describe the new module layout.
 
 **Exit criteria:** existing Phase 1 e2e suite passes against the new stack. The 9 fixme'd specs may still be fixme'd at this point; they get flipped in 2.H. `npm run build` and `npm run build:lib` succeed. Bundle is measurably smaller (informal — record the number in the commit message).

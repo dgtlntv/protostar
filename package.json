@@ -29,6 +29,7 @@
     "devDependencies": {
         "@playwright/test": "^1.59.1",
         "@types/node": "^25.6.0",
+        "@types/shell-quote": "^1.7.5",
         "@vitest/ui": "^4.1.5",
         "@xterm/headless": "^6.0.0",
         "typescript": "^6.0.3",

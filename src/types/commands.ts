@@ -1,17 +1,34 @@
+/**
+ * @file TypeScript mirror of `src/commands-schema.json`. Authors of
+ * `commands.json` files type their config against `Commands`; the new shell,
+ * runners, and component dispatcher consume the discriminated `Component`
+ * union for exhaustive switches.
+ *
+ * `survey`, `scale`, and `quiz` are still represented here pending removal
+ * in 2.E (see `.claude/refactor-strategy.md` §Schema changes).
+ */
+
+/** Time in milliseconds, or the literal `"random"` for a 100–3000ms jitter. */
 export type Duration = number | "random"
 
+/** Plain text line. Optional `duration` introduces an artificial pause. */
 export interface TextComponent {
     component: "text"
     output: string
     duration?: Duration
 }
 
+/** Animated progress bar that fills over `duration`. */
 export interface ProgressBarComponent {
     component: "progressBar"
     output: string
     duration: Duration
 }
 
+/**
+ * Animated spinner. `output` may be a single phrase or an array of phrases
+ * the spinner cycles through. `conclusion` controls the final glyph.
+ */
 export interface SpinnerComponent {
     component: "spinner"
     output: string | string[]
@@ -19,12 +36,17 @@ export interface SpinnerComponent {
     conclusion?: "stop" | "succeed" | "fail"
 }
 
+/** Bordered table. First row is the header. `colWidths` overrides auto-fit. */
 export interface TableComponent {
     component: "table"
     output: string[][]
     colWidths?: number[]
 }
 
+/**
+ * Branch on `if` (evaluated by `evalCondition`) and run `then` or `else`.
+ * Either branch may be a single component or a list.
+ */
 export interface ConditionalComponent {
     component: "conditional"
     output: {
@@ -34,11 +56,13 @@ export interface ConditionalComponent {
     }
 }
 
+/** Assigns each key of `output` to the matching `VariableStore` key. */
 export interface VariableComponent {
     component: "variable"
     output: Record<string, string>
 }
 
+/** Type-to-filter selection that returns the chosen value. */
 export interface AutoCompleteComponent {
     component: "autoComplete"
     name: string
@@ -50,6 +74,7 @@ export interface AutoCompleteComponent {
     footer?: string
 }
 
+/** Username/password challenge. Resolves to `true` only on a correct match. */
 export interface BasicAuthComponent {
     component: "basicAuth"
     name: string
@@ -59,6 +84,7 @@ export interface BasicAuthComponent {
     showPassword?: boolean
 }
 
+/** Yes/no question. Resolves to a boolean. */
 export interface ConfirmComponent {
     component: "confirm"
     name: string
@@ -66,12 +92,14 @@ export interface ConfirmComponent {
     initial?: boolean
 }
 
+/** One field within a {@link FormComponent}. */
 export interface FormChoice {
     name: string
     message: string
     initial?: string
 }
 
+/** Multi-field input form. Resolves to an object keyed by `choice.name`. */
 export interface FormComponent {
     component: "form"
     name: string
@@ -79,6 +107,7 @@ export interface FormComponent {
     choices: FormChoice[]
 }
 
+/** Single-line text input. */
 export interface InputComponent {
     component: "input"
     name: string
@@ -86,23 +115,27 @@ export interface InputComponent {
     initial?: string
 }
 
+/** Hidden text input — characters are not echoed. */
 export interface InvisibleComponent {
     component: "invisible"
     name: string
     message: string
 }
 
+/** Comma-separated input split into a string array. */
 export interface ListComponent {
     component: "list"
     name: string
     message: string
 }
 
+/** One choice within a {@link MultiSelectComponent}. */
 export interface MultiSelectChoice {
     name: string
     value: string
 }
 
+/** Pick zero or more from a list. Resolves to an array of `value`s. */
 export interface MultiSelectComponent {
     component: "multiSelect"
     name: string
@@ -111,18 +144,26 @@ export interface MultiSelectComponent {
     limit?: number
 }
 
+/** Numeric input. */
 export interface NumberComponent {
     component: "number"
     name: string
     message: string
 }
 
+/** Masked password input. */
 export interface PasswordComponent {
     component: "password"
     name: string
     message: string
 }
 
+/**
+ * Select prompt with a known correct answer.
+ *
+ * @deprecated Removed in 2.E. Authors should rebuild as `select` + a
+ * follow-up `conditional`.
+ */
 export interface QuizComponent {
     component: "quiz"
     name: string
@@ -131,16 +172,23 @@ export interface QuizComponent {
     correctChoice: number
 }
 
+/** One axis label of a scale/survey rating. */
 export interface SurveyScalePoint {
     name: string
     message: string
 }
 
+/** One question in a {@link SurveyComponent}. */
 export interface SurveyChoice {
     name: string
     message: string
 }
 
+/**
+ * Matrix prompt: each `choices` row is rated against each `scale` column.
+ *
+ * @deprecated Removed in 2.E.
+ */
 export interface SurveyComponent {
     component: "survey"
     name: string
@@ -149,12 +197,18 @@ export interface SurveyComponent {
     choices: SurveyChoice[]
 }
 
+/** One question in a {@link ScaleComponent}. */
 export interface ScaleChoice {
     name: string
     message: string
     initial?: number
 }
 
+/**
+ * Compact Likert-scale prompt.
+ *
+ * @deprecated Removed in 2.E.
+ */
 export interface ScaleComponent {
     component: "scale"
     name: string
@@ -163,9 +217,14 @@ export interface ScaleComponent {
     choices: ScaleChoice[]
 }
 
+/**
+ * Object form of a `select` choice. The bare `string[]` form is also
+ * accepted; both produce the same UI.
+ */
 export type SelectChoice =
     | { name: string; value: string; message?: string }
 
+/** Pick exactly one from a list. */
 export interface SelectComponent {
     component: "select"
     name: string
@@ -173,6 +232,7 @@ export interface SelectComponent {
     choices: string[] | SelectChoice[]
 }
 
+/** Reorder a list. Resolves to the reordered string array. */
 export interface SortComponent {
     component: "sort"
     name: string
@@ -180,11 +240,16 @@ export interface SortComponent {
     choices: string[]
 }
 
+/** One placeholder field in a {@link SnippetComponent}. */
 export interface SnippetField {
     name: string
     message: string
 }
 
+/**
+ * Fill `${name}`-style placeholders in `template`. Resolves to the rendered
+ * string.
+ */
 export interface SnippetComponent {
     component: "snippet"
     name: string
@@ -193,6 +258,7 @@ export interface SnippetComponent {
     template: string
 }
 
+/** Two-state toggle with custom labels. Resolves to a boolean. */
 export interface ToggleComponent {
     component: "toggle"
     name: string
@@ -201,6 +267,10 @@ export interface ToggleComponent {
     disabled: string
 }
 
+/**
+ * Discriminated union over every component type. Exhaustive switches on
+ * `component.component` get full coverage from this union.
+ */
 export type Component =
     | TextComponent
     | ProgressBarComponent
@@ -226,9 +296,13 @@ export type Component =
     | SnippetComponent
     | ToggleComponent
 
+/** yargs primitive types valid on a positional argument. */
 export type ArgType = "boolean" | "number" | "string"
+
+/** yargs primitive types valid on an option (superset of {@link ArgType}). */
 export type OptionArgType = "array" | "count" | ArgType
 
+/** Configuration for a yargs positional argument. */
 export interface PositionalOptions {
     alias?: string | string[]
     choices?: unknown[]
@@ -240,6 +314,7 @@ export interface PositionalOptions {
     type?: ArgType
 }
 
+/** Configuration for a yargs option (flag). */
 export interface CommandOptions {
     alias?: string | string[]
     choices?: unknown[]
@@ -256,8 +331,14 @@ export interface CommandOptions {
     type?: OptionArgType
 }
 
+/** Single example or list of `[command, description]` pairs for `--help`. */
 export type CommandExample = [string, string] | [string, string][]
 
+/**
+ * One entry in the command tree. May nest `commands` recursively for
+ * subcommands. `handler` is the component (or component list) executed when
+ * the command runs.
+ */
 export interface Command {
     description?: string
     desc?: string
@@ -270,6 +351,10 @@ export interface Command {
     handler?: Component | Component[]
 }
 
+/**
+ * Top-level shape of a `commands.json` file: welcome banner, declared
+ * variables, and the root command tree.
+ */
 export interface Commands {
     $schema?: string
     welcome: string

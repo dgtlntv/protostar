@@ -1,3 +1,10 @@
+/**
+ * @file Unit specs for `XtermTerminalAdapter` covering every assertion in
+ * `.claude/testing-strategy-phase-2.md` §XtermTerminal: write fan-out,
+ * dimension getters, start/stop wiring, ANSI-sequence emission, and the
+ * documented no-ops (drainInput, setTitle, setProgress, kittyProtocolActive).
+ */
+
 import { describe, it, expect, vi } from "vitest"
 import xterm from "@xterm/headless"
 import { XtermTerminalAdapter } from "../../src/tui/XtermTerminal.js"
