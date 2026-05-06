@@ -23,6 +23,13 @@ const baseConfig = {
         alias: {
             readline: path.resolve(__dirname, "./src/shims/readlineShim.js"),
 
+            // pi-tui's terminal.js eagerly imports `createRequire` from
+            // node:module to support its Node-only ProcessTerminal class.
+            // We never instantiate that class in the browser, so a no-op
+            // shim is sufficient to keep the eager import from crashing.
+            "node:module": path.resolve(__dirname, "./src/shims/nodeModuleShim.js"),
+            "node:perf_hooks": path.resolve(__dirname, "./src/shims/nodePerfHooksShim.js"),
+
             // The browser version of yargs for some reason imports cliui and yargs from unpkg
             // Since I don't want to have an additional network request and instead just package it
             // we are aliasing it here instead so it uses a local version.
