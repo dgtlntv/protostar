@@ -42,9 +42,7 @@
         "@xterm/xterm": "^6.0.0",
         "chalk": "^5.3.0",
         "cliui": "^8.0.1",
-        "handlebars": "^4.7.9",
         "shell-quote": "^1.8.3",
-        "vite-plugin-node-polyfills": "^0.26.0",
         "yargs": "^18.0.0",
         "yargs-parser": "^21.1.1"
     },

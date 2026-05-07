@@ -1,21 +1,10 @@
 import path from "path"
 import { defineConfig } from "vite"
-import { nodePolyfills } from "vite-plugin-node-polyfills"
 
 // Base configuration used by all build types
 const baseConfig = {
     base: process.env.BASE_PATH || "/",
-    plugins: [
-        nodePolyfills({
-            include: ["process"],
-            globals: {
-                Buffer: true,
-                global: true,
-                process: true,
-            },
-            protocolImports: true,
-        }),
-    ],
+    plugins: [],
     json: {
         stringify: true,
     },
@@ -27,6 +16,14 @@ const baseConfig = {
             // shim is sufficient to keep the eager import from crashing.
             "node:module": path.resolve(__dirname, "./src/shims/nodeModuleShim.js"),
             "node:perf_hooks": path.resolve(__dirname, "./src/shims/nodePerfHooksShim.js"),
+
+            // pi-tui's `stdin-buffer.js` does `class StdinBuffer extends
+            // EventEmitter`, so the `extends` evaluates at module load.
+            // StdinBuffer is only instantiated by pi-tui's ProcessTerminal,
+            // which never runs in the browser — an empty extendable class
+            // is enough.
+            events: path.resolve(__dirname, "./src/shims/nodeEventsShim.js"),
+            "node:events": path.resolve(__dirname, "./src/shims/nodeEventsShim.js"),
 
             // pi-tui's autocomplete.js eagerly imports `child_process`, `fs`,
             // and `os` for its file-path autocomplete provider. We never

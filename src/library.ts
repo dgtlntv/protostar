@@ -5,6 +5,10 @@
  * as the dev application uses.
  */
 
+// Side-effect import — installs a minimal `process` global before any
+// pi-tui module body runs. See `./shims/processPolyfill.js` for why.
+import "./shims/processPolyfill.js"
+
 export { Protostar } from "./Protostar.js"
 export type {
     Command,

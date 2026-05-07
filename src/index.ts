@@ -7,6 +7,9 @@
  * types from `./library.ts`.
  */
 
+// Side-effect import — installs a minimal `process` global before any
+// pi-tui module body runs. See `./shims/processPolyfill.js` for why.
+import "./shims/processPolyfill.js"
 import "@xterm/xterm/css/xterm.css"
 import { Protostar } from "./Protostar.js"
 import commandsData from "./commands.json"
