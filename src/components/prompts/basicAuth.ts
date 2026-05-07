@@ -7,13 +7,7 @@
 import type { BasicAuthComponent } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"
 import { flatText } from "../../tui/theme.js"
-import { MaskedInput } from "./MaskedInput.js"
-import {
-    awaitInputLine,
-    persist,
-    renderMessage,
-    runInline,
-} from "./promptUtils.js"
+import { persist, renderMessage, runInlinePrompt } from "./promptUtils.js"
 
 /**
  * Run a username input followed by a password input (masked unless
@@ -22,8 +16,6 @@ import {
  *
  * @param component BasicAuth component definition.
  * @param ctx Shared execution context.
- * @returns A promise that resolves once both fields are submitted or the
- *   user cancels.
  */
 export async function runBasicAuth(
     component: BasicAuthComponent,
@@ -33,24 +25,17 @@ export async function runBasicAuth(
     ctx.tui.addChild(flatText(heading))
     ctx.tui.requestRender()
 
-    const username = await awaitInputLine(ctx.tui, "Username:")
+    const username = await runInlinePrompt(ctx.tui, "Username:")
     if (username === undefined) return
 
-    let password: string | undefined
-    if (component.showPassword) {
-        password = await awaitInputLine(ctx.tui, "Password:")
-    } else {
-        const body = new MaskedInput({ kind: "mask", char: "•" })
-        password = await runInline<string>(
-            ctx.tui,
-            "Password:",
-            body,
-            (done) => {
-                body.onSubmit = (v) => done(v, "•".repeat(v.length))
-                body.onEscape = () => done(undefined, null)
-            }
-        )
-    }
+    const password = component.showPassword
+        ? await runInlinePrompt(ctx.tui, "Password:")
+        : await runInlinePrompt(
+              ctx.tui,
+              "Password:",
+              { mask: { kind: "mask", char: "•" } },
+              (v) => "•".repeat([...v].length)
+          )
     if (password === undefined) return
 
     const ok =

@@ -71,8 +71,8 @@ test("Up with a typed partial replaces the partial with the last history entry",
     await expectInput(page, "cmd1")
 })
 
-test.fixme(
-    "Ring buffer drops the oldest entries once size is exceeded (BUG-003)",
+test(
+    "Ring buffer drops the oldest entries once size is exceeded",
     async ({ page }) => {
         for (let i = 1; i <= 12; i++) {
             await type(page, `cmd${i}`)
@@ -86,7 +86,7 @@ test.fixme(
     }
 )
 
-test("Consecutive duplicates dedupe; non-consecutive duplicates are kept (BUG-015)", async ({ page }) => {
+test("Consecutive duplicates dedupe; non-consecutive duplicates are kept", async ({ page }) => {
     await type(page, "dup")
     await submit(page)
     await type(page, "dup")
@@ -117,7 +117,7 @@ test("Consecutive duplicates dedupe; non-consecutive duplicates are kept (BUG-01
 // Pinned behavior (testing-strategy.md §5): Ctrl+C clears the partial without
 // pushing it to history and calls history.rewind(), so the next Up returns
 // the most recent SUBMITTED command — never the cancelled partial.
-test("Ctrl+C followed by Up does not recall the cancelled partial (BUG-015)", async ({ page }) => {
+test("Ctrl+C followed by Up does not recall the cancelled partial", async ({ page }) => {
     await type(page, "saved")
     await submit(page)
     await type(page, "partial")

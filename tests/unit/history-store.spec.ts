@@ -1,6 +1,6 @@
 /**
- * @file Specs for `HistoryStore` covering testing-strategy-phase-2.md
- * §HistoryStore: traversal, dedupe, ring-buffer overflow (BUG-003), rewind.
+ * @file Specs for `HistoryStore`: traversal, dedupe, ring-buffer overflow,
+ * rewind.
  */
 
 import { describe, it, expect } from "vitest"
@@ -44,7 +44,7 @@ describe("HistoryStore", () => {
         expect(h.snapshot()).toEqual(["a", "b", "a"])
     })
 
-    it("ring buffer at overflow drops the oldest entry, not the newest (BUG-003)", () => {
+    it("ring buffer at overflow drops the oldest entry, not the newest", () => {
         const h = new HistoryStore(3)
         h.push("a")
         h.push("b")

@@ -35,7 +35,6 @@ import { runToggle } from "../../../src/components/prompts/toggle.js"
 import { runForm } from "../../../src/components/prompts/form.js"
 import { runBasicAuth } from "../../../src/components/prompts/basicAuth.js"
 import { runSort } from "../../../src/components/prompts/sort.js"
-import { runSnippet } from "../../../src/components/prompts/snippet.js"
 
 /**
  * Full dispatcher: switches over the discriminator field and forwards to
@@ -102,9 +101,6 @@ export const dispatch: ComponentRunner = async (components, ctx) => {
                 break
             case "sort":
                 await runSort(c, ctx)
-                break
-            case "snippet":
-                await runSnippet(c, ctx)
                 break
             default: {
                 const exhaustive: never = c

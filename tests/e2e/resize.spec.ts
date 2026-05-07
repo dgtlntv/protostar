@@ -74,7 +74,7 @@ test("Resize while wrapped re-wraps cleanly and preserves cursor offset", async 
     expect(colsAfter).toBeLessThan(colsBefore)
 })
 
-test("Resize during an active multi-line continuation preserves the input (BUG-016)", async ({ page }) => {
+test("Resize during an active multi-line continuation preserves the input", async ({ page }) => {
     await type(page, 'echo "hi')
     await press(page, "Enter")
     await expectInput(page, 'echo "hi\n')

@@ -33,6 +33,12 @@ export const accentColor = chalk.cyan
 /** Color used for muted/secondary text such as the loader message body. */
 export const mutedColor = chalk.dim
 
+/** Light-blue color used for the leading `?` glyph on a live prompt. */
+export const promptOpenColor = chalk.blueBright
+
+/** Green color used for the leading `✔` glyph and the resolved answer. */
+export const successColor = chalk.green
+
 /**
  * Build a `Text` line that occupies exactly one terminal row with no
  * surrounding gutter. pi-tui's `Text` defaults to `paddingX=1` and

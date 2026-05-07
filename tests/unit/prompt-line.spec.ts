@@ -1,10 +1,10 @@
 /**
- * @file Specs for the multi-line shell `PromptLine`. Covers the three
+ * @file Specs for the multi-line shell `PromptLine`. Covers three
  * shell-parity surfaces:
- *   - Ctrl+C cancel (BUG-015)
- *   - Cross-line cursor / Backspace / Home/End (BUG-016)
+ *   - Ctrl+C cancel.
+ *   - Cross-line cursor / Backspace / Home/End.
  *   - Bracketed-paste line-ending normalization, per-line dispatch, and
- *     incomplete-first-line continuation (BUG-017, also fixes BUG-006).
+ *     incomplete-first-line continuation.
  */
 
 import { describe, it, expect } from "vitest"
@@ -86,7 +86,7 @@ describe("PromptLine — basic editing", () => {
         expect(prompt.getCursor()).toBe(5)
     })
 
-    it("rejects bare control characters (BUG-007 by construction)", () => {
+    it("rejects bare control characters", () => {
         const { term, prompt } = mount()
         term.sendInput("\x1b") // Escape
         expect(prompt.getValue()).toBe("")
@@ -139,7 +139,7 @@ describe("PromptLine — Enter / submit", () => {
     })
 })
 
-describe("PromptLine — multi-line cursor (BUG-016)", () => {
+describe("PromptLine — multi-line cursor", () => {
     /**
      * Build a deterministic two-line buffer using the unclosed-quote
      * continuation trick: type `'a`, Enter, type `b'`. Final state is
@@ -208,7 +208,7 @@ describe("PromptLine — multi-line cursor (BUG-016)", () => {
     })
 })
 
-describe("PromptLine — Ctrl+C cancel (BUG-015)", () => {
+describe("PromptLine — Ctrl+C cancel", () => {
     it("fires onCancel without firing onComplete", () => {
         const { term, completed, cancelCount } = mount()
         type(term, "partial")
@@ -234,7 +234,7 @@ describe("PromptLine — Ctrl+C cancel (BUG-015)", () => {
     })
 })
 
-describe("PromptLine — paste (BUG-017, also closes BUG-006)", () => {
+describe("PromptLine — paste", () => {
     it("inserts a single-line paste at the cursor", () => {
         const { term, prompt, completed } = mount()
         paste(term, "hello")

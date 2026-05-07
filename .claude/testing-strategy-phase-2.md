@@ -127,16 +127,17 @@ Each entry in `.claude/known-bugs.md` is proven fixed (or proven still broken) b
 
 | Bug | Proof |
 |---|---|
-| BUG-001 (alt+arrow word nav) | Three fixme'd specs in `cursor-correctness.spec.ts` flip to passing. |
-| BUG-002 (ctrl+backspace word delete) | Fixme'd spec in `deletion.spec.ts` flips. |
-| BUG-003 (history drops newest) | Unit test in `tests/unit/history-store.spec.ts` (2.C) + ring-buffer fixme in `history.spec.ts` flips. |
-| BUG-004 (escaped quotes) | Unit test in `tests/unit/is-incomplete.spec.ts` (2.C) + fixme in `multiline-continuation.spec.ts` flips. |
-| BUG-005 (left-arrow on wrap) | Fixme in `line-wrap.spec.ts` flips. No unit test — visual cursor position is an integration concern. |
-| BUG-006 (multi-line paste loss) | Fixme in `paste.spec.ts` flips. |
-| BUG-007 (Escape inserts \x1b) | Fixme in `ignored-keys.spec.ts` flips. |
-| BUG-015 (Ctrl+C unhandled) | Four fixmes in `ctrl-c.spec.ts` and two in `history.spec.ts` flip in 2.G.5. Unit test in `tests/unit/` covers the cancel path. |
-| BUG-016 (multi-line continuation editing) | Five fixmes in `multiline-navigation.spec.ts` and the resize-during-continuation fixme in `resize.spec.ts` flip in 2.G.5. Unit test covers cursor / Backspace / Home / End across the `\n` boundary. |
-| BUG-017 (multi-line paste) | Three fixmes in `paste.spec.ts` flip in 2.G.5. Unit test covers `\r`/`\n`/`\r\n` normalization and per-line dispatch. |
+| BUG-001 (alt+arrow word nav) | Three fixme'd specs in `cursor-correctness.spec.ts` flipped to passing. |
+| BUG-002 (ctrl+backspace word delete) | Fixme'd spec in `deletion.spec.ts` flipped. Required adding `ctrl+h` to the `tui.editor.deleteWordBackward` keybinding (browser xterm emits `\x08` for Ctrl+Backspace) plus reordering `PromptLine` / `InlinePrompt` so the word-delete check runs before the char-delete check. |
+| BUG-003 (history drops newest) | Unit test in `tests/unit/history-store.spec.ts` (2.C) + ring-buffer fixme in `history.spec.ts` flipped. |
+| BUG-004 (escaped quotes) | Unit test in `tests/unit/is-incomplete.spec.ts` (2.C) + fixme in `multiline-continuation.spec.ts` flipped. |
+| BUG-005 (left-arrow on wrap) | Fixme in `line-wrap.spec.ts` flipped. `PromptLine.render` now pre-wraps each logical line into rows of exactly `terminal.columns` visible cells and places the cursor at `(cursorVisibleCol / cols, cursorVisibleCol % cols)`, so cursor moves cross visual rows. |
+| BUG-006 (multi-line paste loss) | Fixme in `paste.spec.ts` flipped in 2.G.5. |
+| BUG-007 (Escape inserts \x1b) | Fixme in `ignored-keys.spec.ts` flipped. |
+| BUG-015 (Ctrl+C unhandled) | Four fixmes in `ctrl-c.spec.ts` and two in `history.spec.ts` flipped in 2.G.5. Unit test in `tests/unit/` covers the cancel path. |
+| BUG-016 (multi-line continuation editing) | Five fixmes in `multiline-navigation.spec.ts` and the resize-during-continuation fixme in `resize.spec.ts` flipped in 2.G.5. Unit test covers cursor / Backspace / Home / End across the `\n` boundary. |
+| BUG-017 (multi-line paste) | Three fixmes in `paste.spec.ts` flipped in 2.G.5. Unit test covers `\r`/`\n`/`\r\n` normalization and per-line dispatch. |
+| BUG-008 / 009 / 010 / 011 / 014 (prompt parity) | Unit tests under `tests/unit/prompt-components.spec.ts` exercise the `InlinePrompt` single-row layout, the green-`✔` answer line, the `(Y/n)` keystroke confirm, the horizontal toggle, and the multi-field form. |
 
 Any flip that fails in 2.H stays fixme'd. The corresponding bug entry is updated to record what the refactor missed instead of being deleted.
 

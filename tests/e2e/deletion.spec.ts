@@ -41,8 +41,8 @@ test("Delete at End is a no-op", async ({ page }) => {
     await expectCursor(page, 5)
 })
 
-test.fixme(
-    "Ctrl+Backspace at end of 'hello world ' deletes back to the previous word boundary (BUG-002)",
+test(
+    "Ctrl+Backspace at end of 'hello world ' deletes back to the previous word boundary",
     async ({ page }) => {
         await type(page, "hello world ")
         await press(page, "Backspace", ["Control"])

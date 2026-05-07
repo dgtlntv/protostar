@@ -1,8 +1,10 @@
 /**
  * @file Single-line text prompt family: `input`, `number`, `password`, and
  * `invisible`. All four read one value from the user and persist it under
- * `component.name`; the masked variants swap pi-tui's `Input` for a small
- * {@link MaskedInput} that never echoes the buffer.
+ * `component.name`. Each renders the message and the editable buffer on
+ * one row via {@link runInlinePrompt}; password/invisible swap the value
+ * for a masked or hidden display, and number filters keystrokes to digits
+ * and the decimal/leading-sign characters.
  */
 
 import type {
@@ -12,13 +14,7 @@ import type {
     PasswordComponent,
 } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"
-import { MaskedInput } from "./MaskedInput.js"
-import {
-    awaitInputLine,
-    persist,
-    renderMessage,
-    runInline,
-} from "./promptUtils.js"
+import { persist, renderMessage, runInlinePrompt } from "./promptUtils.js"
 
 /**
  * Plain text input. Resolves to the submitted string and persists it
@@ -26,26 +22,35 @@ import {
  *
  * @param component Input component definition.
  * @param ctx Shared execution context.
- * @returns A promise that resolves once the user submits or cancels.
  */
 export async function runInput(
     component: InputComponent,
     ctx: ComponentContext
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
-    const value = await awaitInputLine(ctx.tui, message, component.initial ?? "")
+    const value = await runInlinePrompt(ctx.tui, message, {
+        initial: component.initial ?? "",
+    })
     if (value !== undefined) persist(ctx.variables, component.name, value)
 }
 
 /**
- * Numeric input. Reads a line, validates it parses as a finite number,
- * and re-prompts on invalid input. Persists the canonical numeric string
- * (e.g. `"42"`, `"3.14"`).
+ * Filter that accepts only characters that can be part of a JS number
+ * literal: digits, optional leading `-`, optional `.`, and exponent
+ * markers `e`/`E`/`+`. Re-validation happens after submit; the filter
+ * just keeps obvious garbage out of the buffer.
+ */
+function numberKey(ch: string): boolean {
+    return /[0-9.\-+eE]/.test(ch)
+}
+
+/**
+ * Numeric input. Filters keystrokes so non-numeric characters don't enter
+ * the buffer, then re-prompts on submit if the trimmed value still does
+ * not parse to a finite number. Persists the canonical numeric string.
  *
  * @param component Number component definition.
  * @param ctx Shared execution context.
- * @returns A promise that resolves once the user submits a valid number
- *   or cancels.
  */
 export async function runNumber(
     component: NumberComponent,
@@ -53,16 +58,15 @@ export async function runNumber(
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
     while (true) {
-        const raw = await awaitInputLine(ctx.tui, message)
+        const raw = await runInlinePrompt(ctx.tui, message, {
+            accept: numberKey,
+        })
         if (raw === undefined) return
         const parsed = Number(raw)
         if (raw.trim() !== "" && Number.isFinite(parsed)) {
             persist(ctx.variables, component.name, String(parsed))
             return
         }
-        // Re-prompt on invalid entry. The `awaitInputLine` answer line
-        // already lands in scrollback, so the operator sees their bad
-        // input alongside the fresh prompt.
     }
 }
 
@@ -72,18 +76,18 @@ export async function runNumber(
  *
  * @param component Password component definition.
  * @param ctx Shared execution context.
- * @returns A promise that resolves once the user submits or cancels.
  */
 export async function runPassword(
     component: PasswordComponent,
     ctx: ComponentContext
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
-    const body = new MaskedInput({ kind: "mask", char: "•" })
-    const value = await runInline<string>(ctx.tui, message, body, (done) => {
-        body.onSubmit = (v) => done(v, "•".repeat(v.length))
-        body.onEscape = () => done(undefined, null)
-    })
+    const value = await runInlinePrompt(
+        ctx.tui,
+        message,
+        { mask: { kind: "mask", char: "•" } },
+        (v) => "•".repeat([...v].length)
+    )
     if (value !== undefined) persist(ctx.variables, component.name, value)
 }
 
@@ -93,17 +97,17 @@ export async function runPassword(
  *
  * @param component Invisible component definition.
  * @param ctx Shared execution context.
- * @returns A promise that resolves once the user submits or cancels.
  */
 export async function runInvisible(
     component: InvisibleComponent,
     ctx: ComponentContext
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
-    const body = new MaskedInput({ kind: "hidden" })
-    const value = await runInline<string>(ctx.tui, message, body, (done) => {
-        body.onSubmit = (v) => done(v, "")
-        body.onEscape = () => done(undefined, null)
-    })
+    const value = await runInlinePrompt(
+        ctx.tui,
+        message,
+        { mask: { kind: "hidden" } },
+        () => ""
+    )
     if (value !== undefined) persist(ctx.variables, component.name, value)
 }

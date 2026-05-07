@@ -1,6 +1,6 @@
 /**
- * @file Happy-path specs for the 17 prompt components. Each test drives
- * the component through the virtual terminal, sends the minimum keystrokes
+ * @file Happy-path specs for the prompt components. Each test drives the
+ * component through the virtual terminal, sends the minimum keystrokes
  * to resolve, and asserts that the value lands in the harness's
  * `VariableStore` under `component.name`.
  */
@@ -31,10 +31,10 @@ async function start(
 
 /**
  * Send a string char-by-char so each printable byte is interpreted as a
- * separate keystroke. pi-tui's `Input` (and our `MaskedInput`) only treat
- * a chunk as Enter if the whole chunk equals `"\r"` / `"\n"`, so combined
- * sends like `"abc\r"` would otherwise be discarded as containing
- * embedded control bytes.
+ * separate keystroke. The inline-prompt component only treats a chunk as
+ * Enter if the whole chunk equals `"\r"` / `"\n"`, so combined sends like
+ * `"abc\r"` would otherwise be discarded as containing embedded control
+ * bytes.
  */
 function type(h: ReturnType<typeof makeHarness>, text: string): void {
     for (const ch of text) h.term.sendInput(ch)
@@ -222,7 +222,7 @@ describe("multiSelect prompt", () => {
 })
 
 describe("confirm prompt", () => {
-    it("Yes resolves to true", async () => {
+    it("Enter accepts the default Yes", async () => {
         const h = makeHarness()
         const c: Component = {
             component: "confirm",
@@ -235,7 +235,7 @@ describe("confirm prompt", () => {
         expect(h.variables.get("ok")).toBe("true")
     })
 
-    it("No resolves to false", async () => {
+    it("'y' resolves to true on a single keystroke", async () => {
         const h = makeHarness()
         const c: Component = {
             component: "confirm",
@@ -243,7 +243,50 @@ describe("confirm prompt", () => {
             message: "Proceed?",
         }
         const { done } = await start(h, c)
-        h.term.sendInput(ARROW_DOWN)
+        h.term.sendInput("y")
+        await done
+        expect(h.variables.get("ok")).toBe("true")
+    })
+
+    it("'n' resolves to false on a single keystroke", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "confirm",
+            name: "ok",
+            message: "Proceed?",
+        }
+        const { done } = await start(h, c)
+        h.term.sendInput("n")
+        await done
+        expect(h.variables.get("ok")).toBe("false")
+    })
+
+    it("renders the (Y/n) hint when the default is true", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "confirm",
+            name: "ok",
+            message: "Proceed?",
+            initial: true,
+        }
+        const { done } = await start(h, c)
+        const view = (await h.term.getViewport()).join("\n")
+        expect(view).toContain("(Y/n)")
+        h.term.sendInput("y")
+        await done
+    })
+
+    it("renders the (y/N) hint when the default is false", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "confirm",
+            name: "ok",
+            message: "Proceed?",
+            initial: false,
+        }
+        const { done } = await start(h, c)
+        const view = (await h.term.getViewport()).join("\n")
+        expect(view).toContain("(y/N)")
         h.term.sendInput(ENTER)
         await done
         expect(h.variables.get("ok")).toBe("false")
@@ -251,7 +294,7 @@ describe("confirm prompt", () => {
 })
 
 describe("toggle prompt", () => {
-    it("persists true when the enabled label is chosen", async () => {
+    it("persists true when the enabled label is the default", async () => {
         const h = makeHarness()
         const c: Component = {
             component: "toggle",
@@ -266,7 +309,7 @@ describe("toggle prompt", () => {
         expect(h.variables.get("wifi")).toBe("true")
     })
 
-    it("persists false when the disabled label is chosen", async () => {
+    it("ArrowLeft moves to the disabled label and Enter persists false", async () => {
         const h = makeHarness()
         const c: Component = {
             component: "toggle",
@@ -276,10 +319,28 @@ describe("toggle prompt", () => {
             disabled: "Off",
         }
         const { done } = await start(h, c)
-        h.term.sendInput(ARROW_DOWN)
+        h.term.sendInput("\x1b[D")
         h.term.sendInput(ENTER)
         await done
         expect(h.variables.get("wifi")).toBe("false")
+    })
+
+    it("renders both labels on the same row", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "toggle",
+            name: "x",
+            message: "Wifi:",
+            enabled: "On",
+            disabled: "Off",
+        }
+        const { done } = await start(h, c)
+        const lines = await h.term.getViewport()
+        const row = lines.find((l) => l.includes("Wifi:")) ?? ""
+        expect(row).toContain("Off")
+        expect(row).toContain("On")
+        h.term.sendInput(ENTER)
+        await done
     })
 })
 
@@ -304,6 +365,96 @@ describe("form prompt", () => {
         await done
         expect(h.variables.get("address")).toBe(
             JSON.stringify({ street: "123 Main", city: "Springfield" })
+        )
+    })
+
+    it("renders all fields at once", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "form",
+            name: "x",
+            message: "Profile",
+            choices: [
+                { name: "first", message: "First" },
+                { name: "last", message: "Last" },
+                { name: "email", message: "Email" },
+            ],
+        }
+        const { done } = await start(h, c)
+        const view = (await h.term.getViewport()).join("\n")
+        expect(view).toContain("First:")
+        expect(view).toContain("Last:")
+        expect(view).toContain("Email:")
+        type(h, "a")
+        h.term.sendInput(ENTER)
+        type(h, "b")
+        h.term.sendInput(ENTER)
+        type(h, "c")
+        h.term.sendInput(ENTER)
+        await done
+    })
+
+    it("Tab accepts the placeholder when the buffer is empty", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "form",
+            name: "p",
+            message: "Profile",
+            choices: [
+                { name: "first", message: "First", initial: "Ada" },
+                { name: "last", message: "Last", initial: "Lovelace" },
+            ],
+        }
+        const { done } = await start(h, c)
+        h.term.sendInput("\t") // accept "Ada"
+        h.term.sendInput(ENTER)
+        await flushRender(h.tui, h.term)
+        h.term.sendInput("\t") // accept "Lovelace"
+        h.term.sendInput(ENTER)
+        await done
+        expect(h.variables.get("p")).toBe(
+            JSON.stringify({ first: "Ada", last: "Lovelace" })
+        )
+    })
+
+    it("typing overrides the placeholder", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "form",
+            name: "p",
+            message: "Profile",
+            choices: [{ name: "first", message: "First", initial: "Ada" }],
+        }
+        const { done } = await start(h, c)
+        type(h, "Grace")
+        h.term.sendInput(ENTER)
+        await done
+        expect(h.variables.get("p")).toBe(JSON.stringify({ first: "Grace" }))
+    })
+
+    it("ArrowUp moves between fields", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "form",
+            name: "p",
+            message: "Profile",
+            choices: [
+                { name: "a", message: "A" },
+                { name: "b", message: "B" },
+            ],
+        }
+        const { done } = await start(h, c)
+        type(h, "first")
+        h.term.sendInput(ARROW_DOWN)
+        type(h, "second")
+        h.term.sendInput(ARROW_UP)
+        // Cursor is back on field "a"; appending should append to "first".
+        type(h, "X")
+        h.term.sendInput(ARROW_DOWN)
+        h.term.sendInput(ENTER)
+        await done
+        expect(h.variables.get("p")).toBe(
+            JSON.stringify({ a: "firstX", b: "second" })
         )
     })
 })
@@ -385,24 +536,6 @@ describe("sort prompt", () => {
     })
 })
 
-describe("snippet prompt", () => {
-    it("substitutes ${name} placeholders with collected field values", async () => {
-        const h = makeHarness()
-        const c: Component = {
-            component: "snippet",
-            name: "greeting",
-            message: "Greeting:",
-            fields: [{ name: "who", message: "Who?" }],
-            template: "Hello, ${who}!",
-        }
-        const { done } = await start(h, c)
-        type(h, "Ada")
-        h.term.sendInput(ENTER)
-        await done
-        expect(h.variables.get("greeting")).toBe("Hello, Ada!")
-    })
-})
-
 describe("cancellation", () => {
     it("escape on input prompt leaves the variable unset", async () => {
         const h = makeHarness()
@@ -415,5 +548,60 @@ describe("cancellation", () => {
         h.term.sendInput(ESC)
         await done
         expect(h.variables.has("skip")).toBe(false)
+    })
+})
+
+describe("inline prompt layout", () => {
+    it("renders the message and the editable buffer on a single row", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "input",
+            name: "x",
+            message: "Type:",
+        }
+        const { done } = await start(h, c)
+        type(h, "abc")
+        await flushRender(h.tui, h.term)
+        const lines = await h.term.getViewport()
+        const promptRow = lines.find((l) => l.includes("Type:")) ?? ""
+        expect(promptRow).toContain("? Type:")
+        expect(promptRow).toContain("abc")
+        h.term.sendInput(ENTER)
+        await done
+    })
+})
+
+describe("answer line color", () => {
+    it("submits with a leading ✔ glyph in the answer line", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "input",
+            name: "color",
+            message: "Color?",
+        }
+        const { done } = await start(h, c)
+        type(h, "red")
+        h.term.sendInput(ENTER)
+        await done
+        await flushRender(h.tui, h.term)
+        const visible = (await h.term.getViewport()).join("\n")
+        expect(visible).toContain("✔")
+        expect(visible).toContain("red")
+    })
+})
+
+describe("number prompt validation", () => {
+    it("rejects non-numeric keystrokes so NaN cannot be submitted", async () => {
+        const h = makeHarness()
+        const c: Component = {
+            component: "number",
+            name: "n",
+            message: "How many?",
+        }
+        const { done } = await start(h, c)
+        type(h, "12abc34")
+        h.term.sendInput(ENTER)
+        await done
+        expect(h.variables.get("n")).toBe("1234")
     })
 })

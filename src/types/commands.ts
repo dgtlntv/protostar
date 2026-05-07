@@ -178,24 +178,6 @@ export interface SortComponent {
     choices: string[]
 }
 
-/** One placeholder field in a {@link SnippetComponent}. */
-export interface SnippetField {
-    name: string
-    message: string
-}
-
-/**
- * Fill `${name}`-style placeholders in `template`. Resolves to the rendered
- * string.
- */
-export interface SnippetComponent {
-    component: "snippet"
-    name: string
-    message: string
-    fields: SnippetField[]
-    template: string
-}
-
 /** Two-state toggle with custom labels. Resolves to a boolean. */
 export interface ToggleComponent {
     component: "toggle"
@@ -228,7 +210,6 @@ export type Component =
     | PasswordComponent
     | SelectComponent
     | SortComponent
-    | SnippetComponent
     | ToggleComponent
 
 /** yargs primitive types valid on a positional argument. */

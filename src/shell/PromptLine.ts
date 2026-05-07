@@ -56,75 +56,133 @@ function isPunctuation(ch: string): boolean {
 }
 
 /**
- * Slice `line` to a `width`-wide window centered on `cursorCol` (the
- * grapheme-aware cursor column within `line`). Used to build a horizontal
- * scroll view of the focused logical line so a long line stays visible
- * around the cursor.
+ * Match a single ANSI escape sequence at the start of `s`. Recognises CSI
+ * (`\x1b[...letter`), OSC (`\x1b]...\x07`), and the common two-byte ESC
+ * sequences. ANSI sequences have zero visible width and pass through the
+ * wrap logic untouched.
  *
- * @param line Logical line text.
- * @param cursorCol Cursor's column position within `line` (visible cells).
- * @param width Target window width in visible cells.
- * @returns The visible window text and the cursor's column within it.
+ * @param s String whose first byte is `\x1b`.
+ * @returns The matched escape sequence, or `null` if `s` doesn't start
+ *   with one we recognise.
  */
-function windowAroundCursor(
-    line: string,
-    cursorCol: number,
-    width: number
-): { text: string; cursorOffset: number; startCol: number } {
-    const totalWidth = visibleWidth(line)
-    if (totalWidth <= width) {
-        return { text: line, cursorOffset: cursorCol, startCol: 0 }
-    }
-    // Reserve one column for the cursor when at end-of-line.
-    const scrollWidth = cursorCol >= totalWidth ? width - 1 : width
-    if (scrollWidth <= 0) {
-        return { text: "", cursorOffset: 0, startCol: 0 }
-    }
-    const half = Math.floor(scrollWidth / 2)
-    let startCol: number
-    if (cursorCol < half) {
-        startCol = 0
-    } else if (cursorCol > totalWidth - half) {
-        startCol = Math.max(0, totalWidth - scrollWidth)
-    } else {
-        startCol = Math.max(0, cursorCol - half)
-    }
-    const text = sliceByVisibleColumn(line, startCol, scrollWidth)
-    const cursorOffset = cursorCol - startCol
-    return { text, cursorOffset, startCol }
+function matchAnsi(s: string): string | null {
+    const match = s.match(/^\x1b(?:\[[\d;?]*[ -/]*[@-~]|\][^\x07]*\x07|[@-Z\\^_])/)
+    return match ? match[0] : null
 }
 
 /**
- * Grapheme-aware slice by visible-column range. Walks `line`'s graphemes,
- * accumulating visible width, and returns the substring that fits inside
- * the `[startCol, startCol + maxWidth)` window. Replaces wide-char-aware
- * `String.slice` for terminal rendering.
+ * Wrap `line` into rows of exactly `width` visible cells. Treats ANSI
+ * escape sequences as zero-width pass-through and uses grapheme-aware
+ * cell counting for printable text. Each emitted row is right-padded
+ * with spaces so it occupies the full width.
  *
- * @param line Source text.
- * @param startCol Starting column (visible cells).
- * @param maxWidth Maximum visible width to include.
- * @returns The sliced substring.
+ * @param line Source text (may contain ANSI escapes).
+ * @param width Target row width in visible cells.
+ * @returns One or more wrapped rows. An empty input still produces one
+ *   empty (padded) row.
  */
-function sliceByVisibleColumn(line: string, startCol: number, maxWidth: number): string {
-    let col = 0
-    let out = ""
-    for (const seg of segmenter.segment(line)) {
-        const w = visibleWidth(seg.segment)
-        if (col + w <= startCol) {
-            col += w
+function wrapToRows(line: string, width: number): string[] {
+    if (width <= 0) return [line]
+    const rows: string[] = []
+    let row = ""
+    let rowWidth = 0
+    let i = 0
+    while (i < line.length) {
+        if (line[i] === "\x1b") {
+            const ansi = matchAnsi(line.slice(i))
+            if (ansi) {
+                row += ansi
+                i += ansi.length
+                continue
+            }
+        }
+        const remainder = line.slice(i)
+        const segIter = segmenter.segment(remainder)[Symbol.iterator]()
+        const segNext = segIter.next()
+        if (segNext.done) break
+        const grapheme = segNext.value.segment
+        const w = visibleWidth(grapheme)
+        if (w === 0) {
+            // Zero-width grapheme (combining marks etc.) attaches to the
+            // current row without nudging the column counter.
+            row += grapheme
+            i += grapheme.length
             continue
         }
-        if (col >= startCol + maxWidth) break
-        if (col < startCol) {
-            // Grapheme straddles the start; skip it for clean alignment.
-            col += w
-            continue
+        if (rowWidth + w > width) {
+            rows.push(row + " ".repeat(Math.max(0, width - rowWidth)))
+            row = ""
+            rowWidth = 0
         }
-        if (col + w > startCol + maxWidth) break
-        out += seg.segment
-        col += w
+        row += grapheme
+        rowWidth += w
+        i += grapheme.length
     }
-    return out
+    rows.push(row + " ".repeat(Math.max(0, width - rowWidth)))
+    return rows
+}
+
+/**
+ * Walk the visible columns of `row`, returning the byte offset where the
+ * accumulated visible width equals `targetCol`. Skips ANSI escapes and
+ * counts graphemes by their visible width. Returns `row.length` if the
+ * target column is past the end of the row.
+ *
+ * @param row Row text (may contain ANSI escapes).
+ * @param targetCol Target visible column.
+ * @returns Byte offset corresponding to `targetCol`.
+ */
+function byteOffsetForVisibleCol(row: string, targetCol: number): number {
+    let col = 0
+    let i = 0
+    while (i < row.length) {
+        if (col === targetCol) return i
+        if (row[i] === "\x1b") {
+            const ansi = matchAnsi(row.slice(i))
+            if (ansi) {
+                i += ansi.length
+                continue
+            }
+        }
+        const remainder = row.slice(i)
+        const segNext = segmenter
+            .segment(remainder)
+            [Symbol.iterator]()
+            .next()
+        if (segNext.done) break
+        const grapheme = segNext.value.segment
+        const w = visibleWidth(grapheme)
+        if (col + w > targetCol) return i
+        col += w
+        i += grapheme.length
+    }
+    return row.length
+}
+
+/**
+ * Slice one grapheme starting at byte offset `start` in `row`, ignoring
+ * any ANSI escapes that immediately precede it. Returns the grapheme
+ * along with its byte length so the caller can splice around it.
+ *
+ * @param row Row text.
+ * @param start Byte offset to read from.
+ * @returns Grapheme and its byte length, or a single-space stand-in when
+ *   `start` is at the end of the row.
+ */
+function graphemeAt(
+    row: string,
+    start: number
+): { segment: string; length: number } {
+    let i = start
+    while (i < row.length && row[i] === "\x1b") {
+        const ansi = matchAnsi(row.slice(i))
+        if (!ansi) break
+        i += ansi.length
+    }
+    const remainder = row.slice(i)
+    const segNext = segmenter.segment(remainder)[Symbol.iterator]().next()
+    if (segNext.done) return { segment: " ", length: 0 }
+    return { segment: segNext.value.segment, length: segNext.value.segment.length }
 }
 
 /**
@@ -344,21 +402,23 @@ export class PromptLine implements Component, Focusable {
             return
         }
 
-        // Deletion.
-        if (kb.matches(data, "tui.editor.deleteCharBackward")) {
-            this.deleteBackward()
-            return
-        }
-        if (kb.matches(data, "tui.editor.deleteCharForward")) {
-            this.deleteForward()
-            return
-        }
+        // Deletion. Word-level matchers run first so the shared byte `\x08`
+        // (Ctrl+Backspace in browser xterm) routes to word delete; plain
+        // Backspace arrives as `\x7f` and falls through to char delete.
         if (kb.matches(data, "tui.editor.deleteWordBackward")) {
             this.deleteWordBackward()
             return
         }
         if (kb.matches(data, "tui.editor.deleteWordForward")) {
             this.deleteWordForward()
+            return
+        }
+        if (kb.matches(data, "tui.editor.deleteCharBackward")) {
+            this.deleteBackward()
+            return
+        }
+        if (kb.matches(data, "tui.editor.deleteCharForward")) {
+            this.deleteForward()
             return
         }
 
@@ -577,18 +637,21 @@ export class PromptLine implements Component, Focusable {
     }
 
     /**
-     * Render the prompt + multi-line buffer. The first logical line gets
-     * the colored prompt prefix; subsequent lines render flush at column 0.
-     * The logical line containing the cursor uses a horizontal-scroll
-     * window so the cursor stays visible; other lines are sliced from
-     * column 0. The cursor character is drawn with reverse video and
-     * preceded by `CURSOR_MARKER` when focused so the TUI can position the
-     * hardware cursor for IME support.
+     * Render the prompt + multi-line buffer with natural terminal-style
+     * wrapping. Each logical line (`\n`-split) is concatenated with the
+     * appropriate prefix (the colored prompt on line 0, empty string on
+     * continuation lines) and wrapped into rows of `width` visible cells.
+     * The cursor's visible column within its logical line determines
+     * which wrapped row receives the reverse-video cursor decoration; a
+     * cursor at the wrap boundary lands on column 0 of the next row,
+     * matching xterm's natural wrap behaviour.
      *
      * @param width Terminal width in cells.
-     * @returns One rendered line per logical line (newline-separated row).
+     * @returns Pre-wrapped rows, padded to `width`. The list spans every
+     *   visual row the prompt occupies.
      */
     render(width: number): string[] {
+        const safeWidth = Math.max(2, width)
         const lines = splitLines(this.value)
         const cursorPos = offsetToLineCol(this.value, this.cursor)
         const result: string[] = []
@@ -597,34 +660,42 @@ export class PromptLine implements Component, Focusable {
             const isCursorLine = i === cursorPos.line
             const prefix = isFirst ? this.prompt : ""
             const prefixWidth = isFirst ? this.promptWidth : 0
-            const available = Math.max(2, width - prefixWidth)
             const text = lines[i].text
+            const composed = prefix + text
+            const rows = wrapToRows(composed, safeWidth)
 
             if (!isCursorLine) {
-                // Static line — slice from col 0, no cursor decoration.
-                const visible = sliceByVisibleColumn(text, 0, available)
-                const pad = " ".repeat(Math.max(0, available - visibleWidth(visible)))
-                result.push(prefix + visible + pad)
+                result.push(...rows)
                 continue
             }
 
-            // Cursor line — windowed slice that follows the cursor.
-            const win = windowAroundCursor(text, cursorPos.col, available)
-            const localCursorCol = win.cursorOffset
-            // Map the visible cursor column back to a byte offset within
-            // the windowed text so we can split it correctly.
-            const splitOffset = sliceByVisibleColumn(win.text, 0, localCursorCol).length
-            const beforeCursor = win.text.slice(0, splitOffset)
-            const afterAll = win.text.slice(splitOffset)
-            const afterFirst = afterAll[Symbol.iterator]().next()
-            const cursorChar = afterFirst.value ?? " "
-            const afterCursor = afterAll.slice(cursorChar.length)
+            // Locate the cursor: visible column within the rendered line
+            // (prefix + text), mapped onto the wrapped row grid.
+            const cursorVisibleCol = prefixWidth + cursorPos.col
+            const cursorRow = Math.floor(cursorVisibleCol / safeWidth)
+            const cursorColInRow = cursorVisibleCol % safeWidth
+
+            // Ensure a row exists at `cursorRow`. The wrap loop only emits
+            // rows that contain content; if the cursor sits at the start
+            // of a fresh wrapped row (e.g. one cell past the last char),
+            // wrapToRows produces only `cursorRow` rows. Append an empty
+            // padded row so the cursor has somewhere to land.
+            while (rows.length <= cursorRow) {
+                rows.push(" ".repeat(safeWidth))
+            }
+
+            const targetRow = rows[cursorRow]
+            const splitOffset = byteOffsetForVisibleCol(targetRow, cursorColInRow)
+            const before = targetRow.slice(0, splitOffset)
+            const { segment: cursorChar, length: cursorByteLen } = graphemeAt(
+                targetRow,
+                splitOffset
+            )
+            const after = targetRow.slice(splitOffset + cursorByteLen)
             const marker = this.focused ? CURSOR_MARKER : ""
             const cursorRendered = `\x1b[7m${cursorChar}\x1b[27m`
-            const composed = prefix + beforeCursor + marker + cursorRendered + afterCursor
-            const visualLength = visibleWidth(composed) - prefixWidth
-            const pad = " ".repeat(Math.max(0, available - visualLength))
-            result.push(composed + pad)
+            rows[cursorRow] = before + marker + cursorRendered + after
+            result.push(...rows)
         }
         return result
     }

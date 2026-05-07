@@ -4,33 +4,38 @@
  * so each prompt module can describe just its UX, not the lifecycle.
  */
 
-import { Input, Text } from "@mariozechner/pi-tui"
+import { Text } from "@mariozechner/pi-tui"
 import type { Component, TUI } from "@mariozechner/pi-tui"
 import { interpolate } from "../../shell/interpolate.js"
-import { flatText, mutedColor } from "../../tui/theme.js"
+import { flatText, promptOpenColor, successColor } from "../../tui/theme.js"
 import type { ComponentContext } from "../context.js"
 import type { VariableStore } from "../../shell/VariableStore.js"
+import { InlinePrompt } from "./InlinePrompt.js"
+import type { InlinePromptOptions } from "./InlinePrompt.js"
 
 /**
- * Build the leading prompt line shown above the active input UI.
+ * Build the leading prompt line shown above the active input UI. The `?`
+ * glyph is light blue while the prompt is live to signal that input is
+ * being captured.
  *
  * @param message Pre-interpolated message line.
  * @returns A pi-tui `Text` ready to be added as a child.
  */
 export function messageLine(message: string): Text {
-    return flatText(`? ${message}`)
+    return flatText(`${promptOpenColor("?")} ${message}`)
 }
 
 /**
- * Build the line shown after the prompt resolves. Mirrors the leading
- * line plus the muted resolved answer so scrollback reads naturally.
+ * Build the line shown after the prompt resolves: the leading glyph swaps
+ * to a green `✔` and the resolved answer is rendered in green so the
+ * scrollback distinguishes captured input from prompt prose.
  *
  * @param message Pre-interpolated message line.
  * @param answer User-facing rendering of the resolved value.
  * @returns A pi-tui `Text` ready to be added as a child.
  */
 export function answerLine(message: string, answer: string): Text {
-    return flatText(`? ${message} ${mutedColor(answer)}`)
+    return flatText(`${successColor("✔")} ${message} ${successColor(answer)}`)
 }
 
 /**
@@ -112,26 +117,41 @@ export function runInline<T>(
 }
 
 /**
- * Run a single pi-tui `Input`, optionally seeded with `initial`. Convenience
- * for the many prompts that are "ask a question, get a string back."
+ * Mount an {@link InlinePrompt} so the message and editable buffer share a
+ * row, then resolve when the user submits or cancels. After resolution
+ * the live prompt is removed and an {@link answerLine} is appended so the
+ * captured input is preserved in scrollback.
  *
  * @param tui Owning TUI.
  * @param message Pre-interpolated message text.
- * @param initial Seed value for the input.
+ * @param opts Forwarded to the {@link InlinePrompt}; `message` is filled
+ *   in automatically.
  * @param renderAnswer Maps the submitted string to the line shown after
  *   resolution; defaults to the raw value.
  * @returns The submitted string, or `undefined` if cancelled.
  */
-export function awaitInputLine(
+export function runInlinePrompt(
     tui: TUI,
     message: string,
-    initial = "",
+    opts: Omit<InlinePromptOptions, "message"> = {},
     renderAnswer: (value: string) => string = (v) => v
 ): Promise<string | undefined> {
-    const input = new Input()
-    input.setValue(initial)
-    return runInline<string>(tui, message, input, (done) => {
-        input.onSubmit = (value) => done(value, renderAnswer(value))
-        input.onEscape = () => done(undefined, null)
+    const prompt = new InlinePrompt({ ...opts, message })
+    tui.addChild(prompt)
+    tui.setFocus(prompt)
+    tui.requestRender()
+    return new Promise<string | undefined>((resolve) => {
+        let settled = false
+        const finish = (value: string | undefined, answer: string | null) => {
+            if (settled) return
+            settled = true
+            tui.setFocus(null)
+            tui.removeChild(prompt)
+            if (answer !== null) tui.addChild(answerLine(message, answer))
+            tui.requestRender()
+            resolve(value)
+        }
+        prompt.onSubmit = (value) => finish(value, renderAnswer(value))
+        prompt.onCancel = () => finish(undefined, null)
     })
 }

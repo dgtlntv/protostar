@@ -34,7 +34,7 @@ test("Function keys and PageUp/PageDown do not insert characters or corrupt the 
     await expectPrompt(page)
 })
 
-test.fixme("Escape does not insert a literal control character (BUG-007)", async ({ page }) => {
+test("Escape does not insert a literal control character", async ({ page }) => {
     await press(page, "Escape")
     await expectInput(page, "")
     await expectCursor(page, 0)

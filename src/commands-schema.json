@@ -273,7 +273,6 @@
                 { "$ref": "#/definitions/passwordComponent" },
                 { "$ref": "#/definitions/selectComponent" },
                 { "$ref": "#/definitions/sortComponent" },
-                { "$ref": "#/definitions/snippetComponent" },
                 { "$ref": "#/definitions/toggleComponent" }
             ]
         },
@@ -767,47 +766,6 @@
             },
             "additionalProperties": false,
             "description": "Prompt for sorting items in a list"
-        },
-        "snippetComponent": {
-            "type": "object",
-            "required": ["component", "name", "message", "fields", "template"],
-            "properties": {
-                "component": {
-                    "const": "snippet"
-                },
-                "name": {
-                    "type": "string",
-                    "description": "Identifier for accessing the completed snippet"
-                },
-                "message": {
-                    "type": "string",
-                    "description": "Message to display with the snippet prompt"
-                },
-                "fields": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["name", "message"],
-                        "properties": {
-                            "name": {
-                                "type": "string",
-                                "description": "Identifier for the field"
-                            },
-                            "message": {
-                                "type": "string",
-                                "description": "Prompt message for the field"
-                            }
-                        }
-                    },
-                    "description": "List of fields to be filled in the snippet"
-                },
-                "template": {
-                    "type": "string",
-                    "description": "Template string with placeholders marked as ${name}"
-                }
-            },
-            "additionalProperties": false,
-            "description": "Prompt for replacing placeholders in a snippet of code or text"
         },
         "toggleComponent": {
             "type": "object",

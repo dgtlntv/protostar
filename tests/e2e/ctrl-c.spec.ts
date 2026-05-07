@@ -15,7 +15,7 @@ test.beforeEach(async ({ page }) => {
     await waitForPrompt(page)
 })
 
-test("Ctrl+C with a typed partial prints ^C, clears input, and reprompts (BUG-015)", async ({ page }) => {
+test("Ctrl+C with a typed partial prints ^C, clears input, and reprompts", async ({ page }) => {
     await type(page, "partial")
     await cancel(page)
     const text = await getBufferText(page)
@@ -25,7 +25,7 @@ test("Ctrl+C with a typed partial prints ^C, clears input, and reprompts (BUG-01
     await expectPrompt(page)
 })
 
-test("Ctrl+C on empty input prints ^C and reprompts (BUG-015)", async ({ page }) => {
+test("Ctrl+C on empty input prints ^C and reprompts", async ({ page }) => {
     const before = (await getBufferText(page)).split(PROMPT).length - 1
     await cancel(page)
     const text = await getBufferText(page)
@@ -36,7 +36,7 @@ test("Ctrl+C on empty input prints ^C and reprompts (BUG-015)", async ({ page })
     await expectCursor(page, 0)
 })
 
-test("Ctrl+C during multi-line continuation exits cleanly to a fresh prompt (BUG-015)", async ({ page }) => {
+test("Ctrl+C during multi-line continuation exits cleanly to a fresh prompt", async ({ page }) => {
     // Unclosed quote forces continuation rather than submission.
     await type(page, 'echo "hi')
     await press(page, "Enter")
@@ -53,7 +53,7 @@ test("Ctrl+C during multi-line continuation exits cleanly to a fresh prompt (BUG
     expect(text).toContain("You are not currently logged in.")
 })
 
-test("Cancelled input is not added to history (BUG-015)", async ({ page }) => {
+test("Cancelled input is not added to history", async ({ page }) => {
     await type(page, "kept")
     await submit(page)
     await type(page, "cancelled")

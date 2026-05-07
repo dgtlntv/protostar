@@ -58,9 +58,12 @@ npm run dev
 
 ## Running tests
 
-End-to-end tests live in `tests/e2e/` and run against the Vite dev server with [Playwright](https://playwright.dev/). They cover the terminal editing surface (input, history, multi-line continuation, paste, line wrap, resize). The same suite runs on every pull request via `.github/workflows/test.yml`.
+Two test suites run on every pull request via `.github/workflows/test.yml`:
 
-Install the browser binaries once after `npm install`:
+- **Unit suite** — Vitest specs under `tests/unit/`. Cover the shell primitives (`HistoryStore`, `VariableStore`, `interpolate`, `evalCondition`, `isIncomplete`), the xterm adapter, every display component, and at least one happy-path test per prompt component.
+- **End-to-end suite** — Playwright specs under `tests/e2e/` running against the Vite dev server. Cover the terminal editing surface (input, history, Ctrl+C, multi-line continuation, paste, line wrap, resize) and per-component happy paths.
+
+Install the Playwright browser binaries once after `npm install`:
 
 ```bash
 npx playwright install --with-deps chromium
@@ -69,7 +72,9 @@ npx playwright install --with-deps chromium
 Then:
 
 ```bash
-npm run test:e2e          # headless run
+npm run test:unit         # Vitest run
+npm run test:unit:ui      # Vitest's interactive UI
+npm run test:e2e          # Playwright headless run
 npm run test:e2e:ui       # Playwright's interactive UI
 npm run test:e2e:headed   # run a visible Chromium window
 ```
@@ -140,18 +145,19 @@ npm install protostar
 import "@xterm/xterm/css/xterm.css"
 import "./styles.css"
 
-// Import the Terminal component
-import { Terminal } from "protostar"
+// Import the Protostar class
+import { Protostar } from "protostar"
 
 // Import your commands configuration
 import commandsData from "./commands.json"
 
-// Initialize the terminal when the DOM is ready
+// Mount once the DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-    const terminal = new Terminal(
+    const protostar = new Protostar(
         document.getElementById("terminal"),
         commandsData
     )
+    protostar.start()
 })
 ```
 
@@ -405,13 +411,11 @@ Under `handler` the response to a command is defined. The handler accepts the co
 | multiSelect  | Prompt allowing selection of multiple items from a list of options.                                       |
 | number       | Prompt that takes a number as input.                                                                      |
 | password     | Prompt that takes user input and masks it in the terminal.                                                |
-| quiz         | Prompt for multiple-choice quiz questions.                                                                |
-| survey       | Prompt for user feedback on a list of questions using a defined scale.                                    |
-| scale        | Compact version of Survey prompt using a Likert Scale for quick feedback.                                 |
 | select       | Prompt for selecting from a list of options.                                                              |
 | sort         | Prompt for sorting items in a list.                                                                       |
-| snippet      | Prompt for replacing placeholders in a snippet of code or text.                                           |
 | toggle       | Prompt for toggling between two values.                                                                   |
+
+> **Removed prompt types.** Earlier releases shipped `quiz`, `survey`, `scale`, and `snippet` prompts. They have been removed from the schema and the runtime; existing prototypes that referenced them must drop those components before consuming a current build.
 
 The handler accepts either a single component:
 
@@ -980,152 +984,6 @@ The password component prompts for a password, masking the input in the terminal
 
 ---
 
-### Quiz
-
-![](media/quiz.gif)
-
-The quiz component presents multiple-choice quiz questions.
-
-| field         | required/optional | Description                                        |
-| ------------- | ----------------- | -------------------------------------------------- |
-| name          | required          | Identifier for accessing the quiz result           |
-| message       | required          | Quiz question to display                           |
-| choices       | required          | List of possible answers to the quiz question      |
-| correctChoice | required          | Index of the correct choice from the choices array |
-
-```json5
-{
-    commands: {
-        quiz: {
-            handler: {
-                component: "quiz",
-                name: "capitalQuiz",
-                message: "What is the capital of France?",
-                choices: ["London", "Berlin", "Paris", "Madrid"],
-                correctChoice: 2,
-            },
-        },
-    },
-}
-```
-
----
-
-### Survey
-
-![](media/survey.gif)
-
-The survey component prompts for user feedback on a list of questions using a defined scale.
-
-| field   | required/optional | Description                                 |
-| ------- | ----------------- | ------------------------------------------- |
-| name    | required          | Identifier for accessing the survey results |
-| message | required          | Message to display with the survey prompt   |
-| scale   | required          | Definition of the survey scale              |
-| choices | required          | List of survey questions                    |
-
-Each item in the scale array should have:
-
-| field   | required/optional | Description                          |
-| ------- | ----------------- | ------------------------------------ |
-| name    | required          | Label for the scale point            |
-| message | required          | Explanation text for the scale point |
-
-Each item in the choices array should have:
-
-| field   | required/optional | Description                        |
-| ------- | ----------------- | ---------------------------------- |
-| name    | required          | Identifier for the survey question |
-| message | required          | Survey question text               |
-
-```json5
-{
-    commands: {
-        feedback: {
-            handler: {
-                component: "survey",
-                name: "userSatisfaction",
-                message: "Please rate your experience:",
-                scale: [
-                    { name: "1", message: "Strongly Disagree" },
-                    { name: "3", message: "Neutral" },
-                    { name: "5", message: "Strongly Agree" },
-                ],
-                choices: [
-                    {
-                        name: "easeOfUse",
-                        message: "The product was easy to use",
-                    },
-                    {
-                        name: "features",
-                        message: "The product had all the features I needed",
-                    },
-                ],
-            },
-        },
-    },
-}
-```
-
----
-
-### Scale
-
-![](media/scale.gif)
-
-The scale component is a compact version of the Survey prompt, using a Likert Scale for quick feedback.
-
-| field   | required/optional | Description                                |
-| ------- | ----------------- | ------------------------------------------ |
-| name    | required          | Identifier for accessing the scale results |
-| message | required          | Message to display with the scale prompt   |
-| scale   | required          | Definition of the scale                    |
-| choices | required          | List of scale questions                    |
-
-Each item in the scale array should have:
-
-| field   | required/optional | Description                          |
-| ------- | ----------------- | ------------------------------------ |
-| name    | required          | Label for the scale point            |
-| message | required          | Explanation text for the scale point |
-
-Each item in the choices array should have:
-
-| field   | required/optional | Description                 |
-| ------- | ----------------- | --------------------------- |
-| name    | required          | Identifier for the question |
-| message | required          | Question text               |
-| initial | optional          | Index of the initial value  |
-
-```json5
-{
-    commands: {
-        feedback: {
-            handler: {
-                component: "scale",
-                name: "productRating",
-                message: "Rate our product:",
-                scale: [
-                    { name: "1", message: "Poor" },
-                    { name: "3", message: "Average" },
-                    { name: "5", message: "Excellent" },
-                ],
-                choices: [
-                    {
-                        name: "overall",
-                        message: "Overall satisfaction",
-                        initial: 3,
-                    },
-                    { name: "support", message: "Customer support" },
-                ],
-            },
-        },
-    },
-}
-```
-
----
-
 ### Select
 
 ![](media/select.gif)
@@ -1192,57 +1050,6 @@ The sort component prompts for sorting items in a list.
                     "Write documentation",
                     "Refactor code",
                 ],
-            },
-        },
-    },
-}
-```
-
----
-
-### Snippet
-
-![](media/snippet.gif)
-
-The snippet component prompts for replacing placeholders in a snippet of code or text.
-
-| field    | required/optional | Description                                                                                                                                                                                                                                                                                                             |
-| -------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| name     | required          | Identifier for accessing the completed snippet                                                                                                                                                                                                                                                                          |
-| message  | required          | Message to display with the snippet prompt                                                                                                                                                                                                                                                                              |
-| fields   | required          | List of fields to be filled in the snippet                                                                                                                                                                                                                                                                              |
-| template | required          | String with placeholders marked as ${name}. Linebreaks in the template need to be indicated with newline characters `\n`. You can use [online tools](https://karl-horning.github.io/replace-newlines/) to do the conversion for you. Make sure to use single quotes if your template uses double quotes and vice versa. |
-
-Each item in the fields array should have:
-
-| field   | required/optional | Description                  |
-| ------- | ----------------- | ---------------------------- |
-| name    | required          | Identifier for the field     |
-| message | required          | Prompt message for the field |
-
-```json5
-{
-    commands: {
-        generate: {
-            handler: {
-                component: "snippet",
-                name: "package",
-                message: "Fill out the fields in package.json",
-                fields: [
-                    { name: "name", message: "Name of the package" },
-                    {
-                        name: "description",
-                        message: "Description of the package",
-                    },
-                    { name: "version", message: "Version of the package" },
-                    { name: "username", message: "Your username" },
-                    { name: "author_name", message: "Your name" },
-                    {
-                        name: "license",
-                        message: "The license of the package",
-                    },
-                ],
-                template: '{\n  "name": "${name}",\n  "description": "${description}",\n  "version": "${version}",\n  "homepage": "https://github.com/${username}/${name}",\n  "author": "${author_name} (https://github.com/${username})",\n  "repository": "${username}/${name}",\n  "license": "${license:ISC}"\n}\n',
             },
         },
     },

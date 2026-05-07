@@ -27,7 +27,6 @@ import { runForm } from "../components/prompts/form.js"
 import { runBasicAuth } from "../components/prompts/basicAuth.js"
 import { runToggle } from "../components/prompts/toggle.js"
 import { runSort } from "../components/prompts/sort.js"
-import { runSnippet } from "../components/prompts/snippet.js"
 
 /**
  * Run `components` against `ctx`, sequencing them in order. Accepts either a
@@ -96,8 +95,6 @@ async function runOne(
             return runToggle(component, ctx)
         case "sort":
             return runSort(component, ctx)
-        case "snippet":
-            return runSnippet(component, ctx)
         default: {
             const _exhaustive: never = component
             void _exhaustive

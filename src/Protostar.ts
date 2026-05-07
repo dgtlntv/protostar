@@ -6,7 +6,13 @@
 
 import { FitAddon } from "@xterm/addon-fit"
 import { Terminal as XTerminal } from "@xterm/xterm"
-import { TUI } from "@mariozechner/pi-tui"
+import {
+    KeybindingsManager,
+    setKeybindings,
+    TUI,
+    TUI_KEYBINDINGS,
+    type KeybindingsConfig,
+} from "@mariozechner/pi-tui"
 import chalk from "chalk"
 
 import type { Commands } from "./types/commands.js"
@@ -19,9 +25,31 @@ import type { PromptLine } from "./shell/PromptLine.js"
 import { buildYargs } from "./commands/buildYargs.js"
 import { runComponents } from "./commands/runComponents.js"
 
-/** Default colored shell prompt: `user@ubuntu:~$ ` (matches the legacy look). */
+/** Default colored shell prompt: `user@ubuntu:~$ `. */
 const DEFAULT_PROMPT =
     chalk.green("user@ubuntu") + ":" + chalk.blue("~") + "$ "
+
+/**
+ * Browser xterm.js emits the raw byte `\x08` for Ctrl+Backspace and the
+ * raw byte `\x7f` for plain Backspace. pi-tui's default `ctrl+backspace`
+ * matcher only recognises Kitty / modifyOtherKeys sequences, so the raw
+ * `\x08` falls through to plain Backspace. Adding `ctrl+h` (which pi-tui
+ * canonicalises to `\x08`) to the word-delete keybinding restores the
+ * expected behaviour. Plain Backspace continues to fire on `\x7f`.
+ *
+ * `PromptLine` deliberately checks `deleteWordBackward` before
+ * `deleteCharBackward` so the shared-byte case routes to word delete.
+ */
+const KEYBINDING_OVERRIDES: KeybindingsConfig = {
+    "tui.editor.deleteWordBackward": [
+        "ctrl+w",
+        "alt+backspace",
+        "ctrl+backspace",
+        "ctrl+h",
+    ],
+}
+
+setKeybindings(new KeybindingsManager(TUI_KEYBINDINGS, KEYBINDING_OVERRIDES))
 
 /**
  * Top-level wiring class. Construct with the host element and the parsed

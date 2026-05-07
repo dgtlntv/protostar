@@ -27,7 +27,8 @@ Protostar is a browser-based CLI prototyping library. It renders an xterm.js ter
 | `commands/buildYargs.ts` | Builds a yargs command tree from the `Commands` config and binds each handler to a component-list runner. |
 | `commands/runComponents.ts` | Component-list dispatcher; switches on `component.component` and invokes the matching component module. |
 | `components/text.ts`, `progressBar.ts`, `spinner.ts`, `table.ts`, `variable.ts`, `conditional.ts`, `duration.ts` | Display components built on pi-tui primitives. |
-| `components/prompts/*` | Interactive prompt components (input, number, password, invisible, list, select, autoComplete, multiSelect, confirm, form, basicAuth, toggle, sort, snippet) backed by pi-tui `Input` / `SelectList` / custom focusables. |
+| `components/prompts/InlinePrompt.ts` | One-row inline prompt (message + editable buffer + cursor) used by every text-input prompt. Owns its editing primitives; supports plain / mask / hidden render modes plus an optional keystroke filter. |
+| `components/prompts/*` | Interactive prompt components (input, number, password, invisible, list, select, autoComplete, multiSelect, confirm, form, basicAuth, toggle, sort) backed by `InlinePrompt`, pi-tui `SelectList`, and custom focusables. `confirm`, `toggle`, and `form` use bespoke focusables that match the legacy enquirer layouts. |
 | `components/context.ts` | Shared component-execution context (`tui`, `variables`, `terminal`). |
 | `types/commands.ts` | TypeScript surface mirroring `commands-schema.json`: `Commands`, the `Component` discriminated union, option/positional types. |
 | `commands.json` / `commands-schema.json` | Default CLI definition + JSON Schema; `commands.json` is bundled at build time. |

@@ -209,6 +209,16 @@ Docs:
 **Exit criteria:** suite at the highest pass count we can hit; any remaining fixmes have fresh known-bugs entries; BUG-008/009/010/011/014 marked `fixed in Phase 2` in `known-bugs.md`; snippet fully removed. Branch green.
 **Commit:** `test(e2e): un-fixme bugs resolved by the refactor + parity polish + docs`
 
+### Implementation notes (post-landing)
+
+- **BUG-002 (Ctrl+Backspace).** Browser xterm sends raw `\x08` for Ctrl+Backspace and raw `\x7f` for plain Backspace. pi-tui's `ctrl+backspace` matcher only recognises Kitty / modifyOtherKeys sequences (raw `\x08` only matches in a Windows Terminal session), so the natural fix is to extend `tui.editor.deleteWordBackward` with `ctrl+h` (which pi-tui canonicalises to `\x08`). `Protostar` installs the override at module load via `setKeybindings(new KeybindingsManager(TUI_KEYBINDINGS, …))`; `PromptLine` and `InlinePrompt` check the word-delete keybinding before the char-delete one so the shared byte routes to word delete.
+- **BUG-005 (cursor across wrap boundary).** `PromptLine.render` pre-wraps each logical line into rows of exactly `terminal.columns` visible cells (matching xterm's natural wrap) and places the cursor decoration at `(cursorVisibleCol / cols, cursorVisibleCol % cols)`. The line-wrap fixme flipped to passing. The wrap helpers (`wrapToRows`, `byteOffsetForVisibleCol`, `graphemeAt`) treat ANSI escape sequences as zero-width pass-through and use grapheme-aware cell counting so wide characters split rows cleanly.
+- **`InlinePrompt`.** Lands as the foundation for BUG-008. Owns the editing primitives (grapheme-aware cursor moves, word-wise nav, bracketed paste, paste-strip-newlines) plus a render-mode flag (`plain` / `mask` / `hidden`) and an optional `accept` predicate. `MaskedInput` was deleted — `password`/`invisible`/`basicAuth` route through `InlinePrompt`. `awaitInputLine` was also deleted as a redundant wrapper; callers use `runInlinePrompt` directly.
+- **Number prompt validation.** The user feedback flagged that the new `number` prompt accepted non-numeric keystrokes and produced `NaN` on submit. Fixed by passing an `accept` predicate to `InlinePrompt` that rejects anything outside `[0-9.\-+eE]`.
+- **`autoComplete` match highlighting.** Configured the `SelectList`'s `truncatePrimary` callback so the matched prefix on each visible item is wrapped in cyan; the active filter is read from the `AutoCompleteCombo`.
+- **`multiSelect` glyphs.** Replaced the `[ ]` / `[x]` text with a muted `◯` → green `✔` glyph pair to match the parity baseline.
+- **Spinner reflow.** The pi-tui `Loader` rendered with `paddingX=1` and prepended an empty top row, which contributed to the "indented + extra blank row" feedback. Replaced with a custom `SpinnerLine` component that renders one row, no padding.
+
 ## Rough sizing
 
 | Sub-phase | Net new (LOC) | Net deleted (LOC) | Notes |

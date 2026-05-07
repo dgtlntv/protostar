@@ -20,7 +20,21 @@ async function getCursorXY(page: Page): Promise<{ x: number; y: number }> {
     })
 }
 
-test.fixme("ArrowLeft across the wrap boundary lands on the last column of the previous visual row (BUG-005)", async ({
+/**
+ * Wait for the visible xterm cursor to satisfy `predicate`, then return the
+ * matching (x, y). xterm processes writes asynchronously and pi-tui throttles
+ * its renders, so a fresh `getCursorXY` may still report the previous frame's
+ * position even after the logical cursor has been confirmed via `expectCursor`.
+ */
+async function expectCursorXY(
+    page: Page,
+    predicate: (xy: { x: number; y: number }) => boolean
+): Promise<{ x: number; y: number }> {
+    await expect.poll(async () => predicate(await getCursorXY(page))).toBe(true)
+    return getCursorXY(page)
+}
+
+test("ArrowLeft across the wrap boundary lands on the last column of the previous visual row", async ({
     page,
 }) => {
     const cols = await getCols(page)
@@ -37,14 +51,16 @@ test.fixme("ArrowLeft across the wrap boundary lands on the last column of the p
         await press(page, "ArrowLeft")
     }
     await expectCursor(page, boundary)
-    const before = await getCursorXY(page)
-    expect(before.x).toBe(0)
+    const before = await expectCursorXY(page, (xy) => xy.x === 0)
 
     // Crossing the boundary: the cursor must reappear on the previous row
     // at the last column.
     await press(page, "ArrowLeft")
     await expectCursor(page, boundary - 1)
-    const after = await getCursorXY(page)
+    const after = await expectCursorXY(
+        page,
+        (xy) => xy.x === cols - 1 && xy.y === before.y - 1
+    )
     expect(after.y).toBe(before.y - 1)
     expect(after.x).toBe(cols - 1)
 })

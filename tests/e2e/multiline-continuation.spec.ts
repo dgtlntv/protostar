@@ -72,8 +72,8 @@ test("Single trailing backslash triggers continuation", async ({ page }) => {
     expect(after).toBe(before)
 })
 
-test.fixme(
-    'Escaped quote within a string still submits (BUG-004)',
+test(
+    'Escaped quote within a string still submits',
     async ({ page }) => {
         await type(page, 'echo "it\\"s"')
         await submit(page)

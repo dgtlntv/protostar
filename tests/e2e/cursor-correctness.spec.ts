@@ -24,8 +24,8 @@ test("Inserting at Home prepends the character", async ({ page }) => {
     await expectCursor(page, 1)
 })
 
-test.fixme(
-    "Alt+Left from end of 'hello world' lands at the start of 'world' (BUG-001)",
+test(
+    "Alt+Left from end of 'hello world' lands at the start of 'world'",
     async ({ page }) => {
         await type(page, "hello world")
         await press(page, "ArrowLeft", ["Alt"])
@@ -33,8 +33,8 @@ test.fixme(
     }
 )
 
-test.fixme(
-    "Alt+Left then insert produces 'hello Xworld' (BUG-001)",
+test(
+    "Alt+Left then insert produces 'hello Xworld'",
     async ({ page }) => {
         await type(page, "hello world")
         await press(page, "ArrowLeft", ["Alt"])
@@ -44,8 +44,8 @@ test.fixme(
     }
 )
 
-test.fixme(
-    "Alt+Right from input start lands at the end of 'hello' (BUG-001)",
+test(
+    "Alt+Right from input start lands at the end of 'hello'",
     async ({ page }) => {
         await type(page, "hello world")
         await press(page, "Home")

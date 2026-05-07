@@ -5,7 +5,7 @@
 
 import type { ListComponent } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"
-import { awaitInputLine, persist, renderMessage } from "./promptUtils.js"
+import { persist, renderMessage, runInlinePrompt } from "./promptUtils.js"
 
 /**
  * Prompt for a comma-separated list. The submitted line is split on `,`
@@ -14,14 +14,13 @@ import { awaitInputLine, persist, renderMessage } from "./promptUtils.js"
  *
  * @param component List component definition.
  * @param ctx Shared execution context.
- * @returns A promise that resolves once the user submits or cancels.
  */
 export async function runList(
     component: ListComponent,
     ctx: ComponentContext
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
-    const raw = await awaitInputLine(ctx.tui, message)
+    const raw = await runInlinePrompt(ctx.tui, message)
     if (raw === undefined) return
     const items = raw
         .split(",")

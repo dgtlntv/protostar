@@ -37,7 +37,7 @@ describe("isIncomplete", () => {
         expect(isIncomplete("echo hi\\")).toBe(true)
     })
 
-    it("escaped quote inside a string still submits (BUG-004)", () => {
+    it("escaped quote inside a string still submits", () => {
         expect(isIncomplete('echo "it\\"s"')).toBe(false)
     })
 

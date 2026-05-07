@@ -5,7 +5,7 @@
  */
 
 import type { Component, Focusable } from "@mariozechner/pi-tui"
-import { accentColor, mutedColor } from "../../tui/theme.js"
+import { accentColor, mutedColor, successColor } from "../../tui/theme.js"
 import type {
     MultiSelectChoice,
     MultiSelectComponent,
@@ -89,7 +89,7 @@ class MultiSelectList implements Component, Focusable {
         for (let i = start; i < end; i++) {
             const item = this.items[i]
             const cursor = i === this.cursor ? "→ " : "  "
-            const box = this.checked[i] ? "[x]" : "[ ]"
+            const box = this.checked[i] ? successColor("✔") : mutedColor("◯")
             const line = `${cursor}${box} ${item.name}`
             lines.push(i === this.cursor ? accentColor(line) : line)
         }

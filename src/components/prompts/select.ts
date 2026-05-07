@@ -11,6 +11,7 @@ import type {
     SelectItem,
     SelectListTheme,
 } from "@mariozechner/pi-tui"
+import chalk from "chalk"
 import { accentColor, mutedColor } from "../../tui/theme.js"
 import type {
     AutoCompleteComponent,
@@ -76,6 +77,9 @@ export async function runSelect(
  * Composite component for `autoComplete`: an `Input` drives a `SelectList`
  * via `setFilter`. Up/Down arrows navigate the list; everything else goes
  * to the input. Enter resolves with the currently-highlighted item.
+ *
+ * The combo also passes the live filter into the `SelectList` layout so
+ * the matched prefix on each visible item is highlighted in cyan.
  */
 class AutoCompleteCombo implements Component, Focusable {
     /** Set by TUI when focus changes. */
@@ -86,6 +90,7 @@ class AutoCompleteCombo implements Component, Focusable {
     onCancel?: () => void
 
     private readonly input = new Input()
+    private filter = ""
 
     /**
      * @param list The list to filter and pick from.
@@ -96,6 +101,11 @@ class AutoCompleteCombo implements Component, Focusable {
             if (item) this.onSelect?.(item)
         }
         this.input.onEscape = () => this.onCancel?.()
+    }
+
+    /** @returns The current filter string. */
+    getFilter(): string {
+        return this.filter
     }
 
     /** Forward arrow/cancel/confirm to the list and the rest to the input. */
@@ -111,7 +121,10 @@ class AutoCompleteCombo implements Component, Focusable {
         const before = this.input.getValue()
         this.input.handleInput(data)
         const after = this.input.getValue()
-        if (after !== before) this.list.setFilter(after)
+        if (after !== before) {
+            this.filter = after
+            this.list.setFilter(after)
+        }
     }
 
     /** Forward focus state to the input so it owns the cursor marker. */
@@ -125,7 +138,6 @@ class AutoCompleteCombo implements Component, Focusable {
      * Stack the input above the filtered list.
      *
      * @param width Available width.
-     * @returns Combined line array.
      */
     render(width: number): string[] {
         this.input.focused = this.focused
@@ -135,12 +147,12 @@ class AutoCompleteCombo implements Component, Focusable {
 
 /**
  * `autoComplete` prompt. Stacks a filter input above a `SelectList`;
- * resolves with the selected item's `value`.
+ * resolves with the selected item's `value`. The `SelectList` is
+ * configured with a `truncatePrimary` callback that wraps the matched
+ * prefix in cyan so the user can see what their typed filter is matching.
  *
  * @param component AutoComplete component definition.
  * @param ctx Shared execution context.
- * @returns A promise that resolves once a choice is made or the prompt
- *   is cancelled.
  */
 export async function runAutoComplete(
     component: AutoCompleteComponent,
@@ -149,12 +161,24 @@ export async function runAutoComplete(
     const message = renderMessage(component.message, ctx)
     const items = toSelectItems(component.choices)
     const limit = component.limit ?? Math.min(items.length || 1, 8)
-    const list = new SelectList(items, limit, SELECT_THEME)
+    let combo: AutoCompleteCombo | null = null
+    const list = new SelectList(items, limit, SELECT_THEME, {
+        truncatePrimary: ({ text }) => {
+            const filter = combo?.getFilter() ?? ""
+            if (filter === "") return text
+            const lowerText = text.toLowerCase()
+            const lowerFilter = filter.toLowerCase()
+            if (!lowerText.startsWith(lowerFilter)) return text
+            const head = text.slice(0, filter.length)
+            const tail = text.slice(filter.length)
+            return `${chalk.cyan(head)}${tail}`
+        },
+    })
     if (component.initial !== undefined) list.setSelectedIndex(component.initial)
-    const combo = new AutoCompleteCombo(list)
+    combo = new AutoCompleteCombo(list)
     const value = await runInline<string>(ctx.tui, message, combo, (done) => {
-        combo.onSelect = (item) => done(item.value, item.label)
-        combo.onCancel = () => done(undefined, null)
+        combo!.onSelect = (item) => done(item.value, item.label)
+        combo!.onCancel = () => done(undefined, null)
     })
     if (value !== undefined) persist(ctx.variables, component.name, value)
 }
