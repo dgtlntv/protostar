@@ -1,7 +1,6 @@
 /**
- * @file Per-Protostar key/value variable store. Replaces the module-level
- * `globalVariables` global from the legacy stack so each `Protostar` instance
- * owns its own bag.
+ * @file Per-Protostar key/value variable store. Each `Protostar` instance
+ * owns its own bag so multiple instances on the same page do not share state.
  */
 
 /**

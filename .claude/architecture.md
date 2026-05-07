@@ -17,8 +17,8 @@ Protostar is a browser-based CLI prototyping library. It renders an xterm.js ter
 | `library.ts` | Library entry. |
 | `tui/XtermTerminal.ts` | Adapter implementing pi-tui's `Terminal` interface against an xterm.js `Terminal`. |
 | `tui/theme.ts` | Shared color / style helpers (`flatText`, log-symbol prefixes). |
-| `shell/ShellLoop.ts` | Read → tokenize (`shell-quote`) → dispatch (yargs) → repeat. Manages the live `PromptLine` and the multi-line continuation buffer. |
-| `shell/PromptLine.ts` | Idle-state prompt component: renders the prompt prefix on the same row as a pi-tui `Input`, wires Up/Down to `HistoryStore`. |
+| `shell/ShellLoop.ts` | Event-driven read → tokenize (`shell-quote`) → dispatch (yargs) → repeat. Reacts to `PromptLine.onComplete` (one or more shell-complete lines from a submit or a multi-line paste) and `onCancel` (Ctrl+C). |
+| `shell/PromptLine.ts` | Multi-line shell prompt component. Owns the entire continuation buffer (newlines included) plus a single cursor offset; intercepts Ctrl+C, runs Enter through `isIncomplete` to decide between submit and continuation, and routes both bracketed-paste and raw-bytes paste through a normalize-and-split path that dispatches each shell-complete chunk in order. Up/Down recall via `HistoryStore`. |
 | `shell/HistoryStore.ts` | Ring buffer with `push` / `getPrevious` / `getNext` / `rewind`; consecutive-duplicate dedupe. |
 | `shell/VariableStore.ts` | Per-instance variable map; declared-key enforcement. |
 | `shell/interpolate.ts` | Handlebars wrapper for `{{var}}` substitution against the merged argv + variables context. |
@@ -36,14 +36,14 @@ Protostar is a browser-based CLI prototyping library. It renders an xterm.js ter
 ## Core Flow
 
 1. `Protostar.start()` opens xterm in the host element, runs the FitAddon, starts the pi-tui `TUI`, optionally writes the welcome banner, then calls `ShellLoop.start()`.
-2. `ShellLoop` mounts a `PromptLine` and awaits a complete command. If `isIncomplete(buffer)` returns true on Enter, the partial line is buffered and a fresh prompt is mounted to read the next continuation line; otherwise the assembled multi-line input is parsed with `shell-quote` and handed to yargs as `string[]`.
-3. The matched yargs handler invokes `runComponents(...)`, which walks the component list, mounting each component onto the shared `TUI`. When the handler resolves, `ShellLoop` re-mounts the prompt.
+2. `ShellLoop` mounts a `PromptLine` and wires its `onComplete` / `onCancel`. The prompt holds the editable buffer; on Enter it consults `isIncomplete(buffer)` to either insert a literal `\n` (continuation) or emit `onComplete([buffer])`. A multi-line paste fans out to one `onComplete([line1, line2, …])` call, with any post-last-`\n` tail left in the buffer to seed the next prompt.
+3. `ShellLoop` flushes each submitted line plus the prompt prefix to scrollback, pushes each to history, and drains the queue by awaiting `yargs.parse(...)` for each line in turn. The matched handler runs the component list via `runComponents(...)`. After the queue empties, a fresh prompt is mounted (with any paste tail seeded as the initial value).
 
 ## TUI Integration
 
 - pi-tui owns the live region at the bottom of the terminal; components added to the `TUI`'s child list are differential-rendered there. Older content is scrolled into history naturally as new content is added.
 - `XtermTerminalAdapter` translates pi-tui's `Terminal` operations (write, move, clear, columns/rows) into xterm.js calls.
-- The shell prompt is rendered by `PromptLine` as `<colored prompt prefix><pi-tui Input>` on a single row, so editing always operates on the editable buffer — the prompt prefix is unreachable.
+- The shell prompt is rendered by `PromptLine` directly: the colored prompt prefix on the first row, continuation rows flush at column 0. Cursor placement uses pi-tui's `CURSOR_MARKER` + reverse-video. Per-logical-line horizontal scrolling follows the cursor when a line exceeds the viewport width.
 
 ## Notable Dependencies
 

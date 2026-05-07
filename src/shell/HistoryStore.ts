@@ -1,18 +1,16 @@
 /**
+/**
  * @file Bounded ring buffer for command history with cursor-based traversal.
- * Replaces the legacy `HistoryController` and fixes BUG-003 (the legacy code
- * called `entries.pop(0)` — a no-op typo of `shift()` — so overflow dropped
- * the *newest* entry instead of the oldest).
  */
 
 /**
  * Ring buffer that records command-line history.
  *
- * Semantics inherited from the legacy controller:
+ * Semantics:
  * - Empty / whitespace-only entries are ignored.
  * - Consecutive duplicates collapse to one entry; non-consecutive duplicates
  *   are kept (so `a b a` stores all three).
- * - On overflow the *oldest* entry is dropped (BUG-003 fix).
+ * - On overflow the *oldest* entry is dropped.
  *
  * Traversal uses an internal cursor: `getPrevious` walks backward (and pins
  * at the oldest entry), `getNext` walks forward (returning `undefined` once

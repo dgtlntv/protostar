@@ -1,8 +1,8 @@
 /**
- * @file Happy-path specs for the 17 prompt components landing in 2.E.
- * Each test drives the component through the virtual terminal, sends the
- * minimum keystrokes to resolve, and asserts that the value lands in the
- * harness's `VariableStore` under `component.name`.
+ * @file Happy-path specs for the 17 prompt components. Each test drives
+ * the component through the virtual terminal, sends the minimum keystrokes
+ * to resolve, and asserts that the value lands in the harness's
+ * `VariableStore` under `component.name`.
  */
 
 import { describe, it, expect } from "vitest"

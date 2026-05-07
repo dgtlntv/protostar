@@ -20,8 +20,7 @@ const THEME: SelectListTheme = {
 
 /**
  * Yes/no confirmation. Resolves to a boolean and persists `"true"` /
- * `"false"` under `component.name` (matching the legacy enquirer wire
- * format).
+ * `"false"` under `component.name`.
  *
  * @param component Confirm component definition.
  * @param ctx Shared execution context.

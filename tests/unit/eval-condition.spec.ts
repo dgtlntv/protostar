@@ -1,8 +1,8 @@
 /**
- * @file Specs for `evalCondition` covering testing-strategy-phase-2.md
- * §evalCondition: each operator's result, precedence, identifier lookup, and
- * the safelist-rejection cases that the legacy `new Function(...)` would
- * have happily executed.
+/**
+ * @file Specs for `evalCondition`: each operator's result, precedence,
+ * identifier lookup, and the safelist-rejection cases (function calls,
+ * dotted property access, assignment, `new`, ternary, regex literals).
  */
 
 import { describe, it, expect } from "vitest"

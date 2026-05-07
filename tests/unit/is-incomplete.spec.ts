@@ -1,8 +1,7 @@
 /**
- * @file Specs for `isIncomplete` covering testing-strategy-phase-2.md
- * §isIncomplete: empty input, unclosed quotes, trailing operators, trailing
- * backslash, and the BUG-004 escape-aware cases that the legacy regex
- * implementation got wrong.
+ * @file Specs for `isIncomplete`: empty input, unclosed quotes, trailing
+ * operators, trailing backslash, and escape-aware cases (e.g. an escaped
+ * quote inside a string does not extend continuation).
  */
 
 import { describe, it, expect } from "vitest"

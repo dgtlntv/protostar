@@ -12,7 +12,8 @@ export async function expectPrompt(page: Page): Promise<void> {
 }
 
 /**
- * Assert (with polling) that `localEcho._input` equals the given value.
+ * Assert (with polling) that the live prompt's editable buffer equals the
+ * given value.
  *
  * @param page - Playwright page.
  * @param value - Expected logical input string.
@@ -22,10 +23,11 @@ export async function expectInput(page: Page, value: string): Promise<void> {
 }
 
 /**
- * Assert (with polling) that `localEcho._cursor` equals the given offset.
+ * Assert (with polling) that the live prompt's cursor offset equals the
+ * given value.
  *
  * @param page - Playwright page.
- * @param offset - Expected cursor offset within `_input`.
+ * @param offset - Expected cursor offset within the editable buffer.
  */
 export async function expectCursor(page: Page, offset: number): Promise<void> {
     await expect.poll(() => getCursor(page)).toBe(offset)

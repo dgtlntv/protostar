@@ -4,10 +4,10 @@
  * Components are functions of the shape `(component, ctx) => Promise<void>`.
  * They mount pi-tui `Component`s onto the shared `TUI` for rendering, read
  * argv values for interpolation, and write back to the `VariableStore` when
- * resolving prompts. `run` is provided by the dispatcher (lives in
- * `src/commands/runComponents.ts` from 2.F onward) so recursive components
- * such as `conditional` can dispatch a sub-list without depending directly
- * on the dispatcher module.
+ * resolving prompts. `run` is provided by the dispatcher in
+ * `src/commands/runComponents.ts` so recursive components such as
+ * `conditional` can dispatch a sub-list without depending directly on the
+ * dispatcher module.
  */
 
 import type { TUI } from "@mariozechner/pi-tui"

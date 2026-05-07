@@ -1,8 +1,7 @@
 /**
  * @file Public Protostar class. Wires xterm.js, the pi-tui adapter, the
  * pi-tui `TUI`, the `ShellLoop`, and the yargs command tree built from a
- * `Commands` config. The legacy `Terminal` class will be replaced by this
- * in 2.G.
+ * `Commands` config.
  */
 
 import { FitAddon } from "@xterm/addon-fit"

@@ -42,11 +42,12 @@ const baseConfig = {
             path: path.resolve(__dirname, "./src/shims/nodePathShim.js"),
             "node:path": path.resolve(__dirname, "./src/shims/nodePathShim.js"),
 
-            // The browser version of yargs for some reason imports cliui and yargs from unpkg
-            // Since I don't want to have an additional network request and instead just package it
-            // we are aliasing it here instead so it uses a local version.
-            "https://unpkg.com/cliui@7.0.1/index.mjs": "cliui",
-            "https://unpkg.com/yargs-parser@19.0.0/browser.js": path.resolve(
+            // `yargs/browser` imports `cliui` and `yargs-parser` from unpkg
+            // URLs hard-coded into yargs's browser shim. Aliasing those URLs
+            // to the locally installed copies avoids a runtime network
+            // request (and the hard-coded version pins).
+            "https://unpkg.com/cliui@8.0.1/index.mjs": "cliui",
+            "https://unpkg.com/yargs-parser@21.1.1/browser.js": path.resolve(
                 __dirname,
                 "node_modules/yargs-parser/browser.js"
             ),

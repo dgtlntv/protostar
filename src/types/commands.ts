@@ -1,11 +1,8 @@
 /**
  * @file TypeScript mirror of `src/commands-schema.json`. Authors of
- * `commands.json` files type their config against `Commands`; the new shell,
+ * `commands.json` files type their config against `Commands`; the shell,
  * runners, and component dispatcher consume the discriminated `Component`
  * union for exhaustive switches.
- *
- * `survey`, `scale`, and `quiz` were dropped in 2.E (see
- * `.claude/refactor-strategy.md` §Schema changes).
  */
 
 /** Time in milliseconds, or the literal `"random"` for a 100–3000ms jitter. */

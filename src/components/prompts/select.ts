@@ -32,8 +32,8 @@ const SELECT_THEME: SelectListTheme = {
 /**
  * Normalize the union of choice shapes that `select` accepts (a bare
  * `string[]` or a list of `SelectChoice` objects) into the `SelectItem`
- * shape pi-tui expects. The legacy enquirer behaviour of returning the
- * raw `value` field (or the string itself) is preserved.
+ * shape pi-tui expects. Returns the raw `value` field (or the string
+ * itself when the choice is a string) on submit.
  *
  * @param choices Choices as authored in `commands.json`.
  * @returns Items ready to feed into a pi-tui `SelectList`.

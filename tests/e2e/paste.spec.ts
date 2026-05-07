@@ -34,23 +34,28 @@ test("Paste in the middle of existing input lands at the cursor position", async
     await expectCursor(page, 6)
 })
 
-// BUG-006: only the first complete line of a multi-line paste actually
-// submits. The remaining characters are fed through `decodeTermData` while
-// `_active` is false (handleReadComplete flipped it), so they hit the
-// no-op `emit("keypress")` branch and are silently dropped. The documented
-// behavior — each complete line submits as its own command — never holds.
-test.fixme(
+// BUG-006: every complete line in a multi-line paste should run as its own
+// command. The new paste path normalizes line endings, splits on `\n`, and
+// dispatches each shell-complete chunk in order — leaving any trailing
+// incomplete tail in the live buffer.
+test(
     "Multi-line paste runs each complete line as a separate command (BUG-006)",
     async ({ page }) => {
         await paste(page, "logout\nlogout\n")
+        // Both dispatches happen sequentially; poll until the second one
+        // has rendered. Reading the buffer too early (e.g. while the first
+        // dispatch is still running) sees only one occurrence.
+        await expect
+            .poll(async () => {
+                const text = await getBufferText(page)
+                return text.split("You are not currently logged in.").length - 1
+            })
+            .toBe(2)
         await expectInput(page, "")
-        const text = await getBufferText(page)
-        const occurrences = text.split("You are not currently logged in.").length - 1
-        expect(occurrences).toBe(2)
     }
 )
 
-test.fixme("Paste with \\r\\n line endings does not double-insert newlines (BUG-017)", async ({ page }) => {
+test("Paste with \\r\\n line endings does not double-insert newlines (BUG-017)", async ({ page }) => {
     // Unclosed quote keeps the read active so we can inspect the result.
     // Without normalization the \r\n would feed two terminator chars; the
     // helper collapses [\r\n]+ to a single \r so only one \n is inserted.
@@ -58,7 +63,7 @@ test.fixme("Paste with \\r\\n line endings does not double-insert newlines (BUG-
     await expectInput(page, "'a\nb'")
 })
 
-test.fixme("Paste with mixed \\n / \\r / \\r\\n line endings normalizes consistently (BUG-017)", async ({
+test("Paste with mixed \\n / \\r / \\r\\n line endings normalizes consistently (BUG-017)", async ({
     page,
 }) => {
     await paste(page, "'a\nb\rc\r\nd'")
@@ -69,7 +74,7 @@ test.fixme("Paste with mixed \\n / \\r / \\r\\n line endings normalizes consiste
 // shell-incomplete, Enter on it inserts a literal '\n' rather than
 // submitting, and subsequent pasted chars accumulate into the same input.
 // The paste does NOT submit at the first newline.
-test.fixme("Multi-line paste with an incomplete first line continues across the newline (BUG-017)", async ({
+test("Multi-line paste with an incomplete first line continues across the newline (BUG-017)", async ({
     page,
 }) => {
     const before = (await getBufferText(page)).split(PROMPT).length - 1

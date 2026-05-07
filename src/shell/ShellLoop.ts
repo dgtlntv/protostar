@@ -1,8 +1,11 @@
 /**
  * @file Top-level shell read-eval loop. Mounts a {@link PromptLine}, awaits
- * a complete command line, parses it with `shell-quote` + yargs, runs the
- * matched handler, then loops. Replaces the legacy
- * `inputHandler(localEcho, term, yargs)` flow.
+ * one or more shell-complete lines, parses each with `shell-quote` + yargs,
+ * runs the matched handler, then loops. The prompt itself owns the full
+ * continuation buffer (newlines included), so this loop is event-driven:
+ * it reacts to `onComplete` (a list of submitted lines, possibly more than
+ * one when a multi-line paste lands several complete chunks at once) and
+ * `onCancel` (Ctrl+C) without managing intermediate continuation state.
  */
 
 import type { TUI } from "@mariozechner/pi-tui"
@@ -10,7 +13,6 @@ import { parse } from "shell-quote"
 import type Yargs from "yargs/browser"
 import { PromptLine } from "./PromptLine.js"
 import type { HistoryStore } from "./HistoryStore.js"
-import { isIncomplete } from "./isIncomplete.js"
 import { flatText } from "../tui/theme.js"
 
 type YargsInstance = ReturnType<typeof Yargs>
@@ -20,9 +22,8 @@ type YargsInstance = ReturnType<typeof Yargs>
  * dispatch → repeat loop.
  *
  * The loop is "always running" once {@link start} is called: after a command
- * resolves, the prompt is re-mounted and another submit is awaited. There's
- * no terminal state — closing the page or `dispose()` on the host is the
- * only way out.
+ * (or a queued batch of commands from a multi-line paste) resolves, the
+ * prompt is re-mounted and another submission is awaited.
  */
 export class ShellLoop {
     private readonly tui: TUI
@@ -30,15 +31,19 @@ export class ShellLoop {
     private readonly history: HistoryStore
     private readonly prompt: string
 
-    /** Buffer holding partial input across continuation lines. */
-    private pending = ""
-    /** Live PromptLine while idle; `null` while a command is running. */
+    /** Live prompt while idle; `null` while a command is running. */
     private active: PromptLine | null = null
+    /** Lines submitted but not yet dispatched (filled by paste). */
+    private readonly queue: string[] = []
+    /** Whether the drain loop is currently running. */
+    private dispatching = false
+    /** Paste tail that should seed the next prompt's buffer. */
+    private carryover = ""
 
     /**
      * @param opts.tui Shared TUI; the prompt mounts here.
      * @param opts.yargs Configured yargs instance (built by `buildYargs`).
-     * @param opts.history Shared history store; surviving across prompts.
+     * @param opts.history Shared history store; survives across prompts.
      * @param opts.prompt Pre-rendered prompt prefix.
      */
     constructor(opts: {
@@ -53,12 +58,9 @@ export class ShellLoop {
         this.prompt = opts.prompt
     }
 
-    /**
-     * Begin the loop. Mounts the first prompt; subsequent prompts are
-     * mounted automatically after each command resolves.
-     */
+    /** Begin the loop by mounting the first prompt. */
     start(): void {
-        void this.cycle()
+        this.mountPrompt()
     }
 
     /** @returns The PromptLine currently mounted, or `null` while running. */
@@ -66,81 +68,126 @@ export class ShellLoop {
         return this.active
     }
 
-    /** @returns The pending continuation buffer (empty between commands). */
-    get pendingInput(): string {
-        return this.pending
+    /**
+     * Mount a fresh prompt and wire its `onComplete` / `onCancel`
+     * callbacks. If a paste tail was carried over from a previous prompt,
+     * seed the new buffer with it so the user can continue editing.
+     */
+    private mountPrompt(): void {
+        const prompt = new PromptLine(this.prompt, this.history)
+        prompt.onComplete = (lines) => this.handleSubmissions(lines)
+        prompt.onCancel = () => this.handleCancel()
+        if (this.carryover) {
+            prompt.setValue(this.carryover)
+            this.carryover = ""
+        }
+        this.tui.addChild(prompt)
+        this.tui.setFocus(prompt)
+        this.tui.requestRender()
+        this.active = prompt
     }
 
-    private async cycle(): Promise<void> {
-        // Loop forever — every iteration mounts a prompt, awaits a complete
-        // line, then dispatches it.
-        // eslint-disable-next-line no-constant-condition
-        while (true) {
-            const line = await this.readLine()
+    /**
+     * One or more shell-complete lines were just submitted. Capture the
+     * paste tail (whatever the prompt has left in its buffer) as the next
+     * prompt's seed, flush the prompt + each submitted line to scrollback,
+     * push each to history, and kick off the drain loop.
+     *
+     * @param lines Submitted lines, in dispatch order.
+     */
+    private handleSubmissions(lines: string[]): void {
+        if (!this.active) return
+        // Whatever the prompt still holds becomes the seed for the next
+        // prompt — that's the post-last-`\n` paste tail.
+        this.carryover = this.active.getValue()
+        this.tui.removeChild(this.active)
+        this.active = null
+        for (const line of lines) {
+            this.tui.addChild(flatText(this.prompt + line))
             this.history.push(line)
-            this.history.rewind()
-            await this.dispatch(line)
+        }
+        this.history.rewind()
+        this.tui.requestRender()
+        this.queue.push(...lines)
+        if (!this.dispatching) {
+            void this.drainQueue()
         }
     }
 
     /**
-     * Mount a PromptLine and accumulate continuation lines until the result
-     * is a complete command. Resolves the assembled multi-line input.
+     * Cancel the current line via Ctrl+C. Flushes `<prompt><value>^C` to
+     * scrollback (the value may span multiple logical lines for a
+     * mid-continuation cancel), rewinds history so the next ArrowUp returns
+     * the most recent submitted command (not the cancelled partial), and
+     * remounts a fresh empty prompt. Does not push to history; does not
+     * dispatch.
      */
-    private readLine(): Promise<string> {
-        return new Promise((resolve) => {
-            const tryFinish = (raw: string) => {
-                const combined = this.pending
-                    ? this.pending + "\n" + raw
-                    : raw
-                if (isIncomplete(combined)) {
-                    // Roll into a continuation. The current prompt is
-                    // already flushed to scrollback (its rendered output
-                    // includes the typed line); just mount a fresh empty
-                    // prompt below for the next continuation line.
-                    this.pending = combined
-                    this.tui.removeChild(promptLine)
-                    promptLine = this.mountPrompt()
-                    promptLine.onSubmit = (next) => tryFinish(next)
-                    return
-                }
-                this.pending = ""
-                this.tui.removeChild(promptLine)
-                this.active = null
-                this.tui.addChild(flatText(this.prompt + raw))
-                this.tui.requestRender()
-                resolve(combined)
-            }
-
-            let promptLine = this.mountPrompt()
-            promptLine.onSubmit = (raw) => tryFinish(raw)
-        })
-    }
-
-    private mountPrompt(): PromptLine {
-        const promptLine = new PromptLine(this.prompt, this.history)
-        this.tui.addChild(promptLine)
-        this.tui.setFocus(promptLine)
+    private handleCancel(): void {
+        if (!this.active) return
+        const value = this.active.getValue()
+        this.tui.removeChild(this.active)
+        this.active = null
+        this.tui.addChild(flatText(this.prompt + value + "^C"))
+        this.history.rewind()
+        this.carryover = ""
         this.tui.requestRender()
-        this.active = promptLine
-        return promptLine
+        this.mountPrompt()
     }
 
+    /**
+     * Dispatch every queued line in turn, awaiting each command before
+     * starting the next. After the queue empties, mount a fresh prompt
+     * (which picks up any paste tail via `carryover`).
+     */
+    private async drainQueue(): Promise<void> {
+        this.dispatching = true
+        try {
+            while (this.queue.length > 0) {
+                const line = this.queue.shift()!
+                await this.dispatch(line)
+            }
+        } finally {
+            this.dispatching = false
+        }
+        this.mountPrompt()
+    }
+
+    /**
+     * Tokenize `input` with `shell-quote`, hand the resulting positional
+     * tokens to yargs, and surface any rendered output as scrollback.
+     *
+     * @param input The complete command line.
+     */
     private async dispatch(input: string): Promise<void> {
         if (input.trim() === "") return
-        const tokens = parse(input)
-            .filter((tok): tok is string => typeof tok === "string")
-        await new Promise<void>((resolve) => {
-            this.yargs.parse(
-                tokens,
-                (_err: Error | undefined, _argv: unknown, output: string) => {
-                    if (output) {
-                        this.tui.addChild(flatText(output))
-                        this.tui.requestRender()
-                    }
-                    resolve()
-                }
-            )
-        })
+        const tokens = parse(input).filter(
+            (tok): tok is string => typeof tok === "string"
+        )
+        // yargs uses an internal freeze/unfreeze guard during `parse`. For
+        // async handlers the parseFn callback fires before yargs unfreezes
+        // (the unfreeze runs in a `.finally`), so awaiting only the
+        // callback would let the next `parse` re-enter while still frozen
+        // — which makes yargs misparse the second command as an unknown
+        // argument to the first. Awaiting the Promise that `parse` returns
+        // waits past the unfreeze so re-entry is safe.
+        let captured = ""
+        const result = this.yargs.parse(
+            tokens,
+            (_err: Error | undefined, _argv: unknown, output: string) => {
+                captured = output ?? ""
+            }
+        )
+        if (
+            result !== null &&
+            typeof result === "object" &&
+            "then" in (result as Record<string, unknown>) &&
+            typeof (result as { then: unknown }).then === "function"
+        ) {
+            await (result as Promise<unknown>)
+        }
+        if (captured) {
+            this.tui.addChild(flatText(captured))
+            this.tui.requestRender()
+        }
     }
 }

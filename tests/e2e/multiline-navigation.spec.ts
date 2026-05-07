@@ -22,7 +22,7 @@ test.beforeEach(async ({ page }) => {
     await waitForPrompt(page)
 })
 
-test.fixme("Left at column 0 of line 2 lands on the newline (end of line 1) (BUG-016)", async ({ page }) => {
+test("Left at column 0 of line 2 lands on the newline (end of line 1) (BUG-016)", async ({ page }) => {
     await buildTwoLineInput(page)
     // Move from end (5) back to col 0 of line 2 (3).
     await press(page, "ArrowLeft")
@@ -32,7 +32,7 @@ test.fixme("Left at column 0 of line 2 lands on the newline (end of line 1) (BUG
     await expectCursor(page, 2)
 })
 
-test.fixme("Right at end of line 1 lands at column 0 of line 2 (BUG-016)", async ({ page }) => {
+test("Right at end of line 1 lands at column 0 of line 2 (BUG-016)", async ({ page }) => {
     await buildTwoLineInput(page)
     // From end (5), step back to offset 2 (end of line 1).
     for (let i = 0; i < 3; i++) await press(page, "ArrowLeft")
@@ -41,7 +41,7 @@ test.fixme("Right at end of line 1 lands at column 0 of line 2 (BUG-016)", async
     await expectCursor(page, 3)
 })
 
-test.fixme("Typing mid-line on line 2 inserts at the correct offset (BUG-016)", async ({ page }) => {
+test("Typing mid-line on line 2 inserts at the correct offset (BUG-016)", async ({ page }) => {
     await buildTwoLineInput(page)
     // Move to between 'b' and the closing quote — offset 4.
     await press(page, "ArrowLeft")
@@ -51,7 +51,7 @@ test.fixme("Typing mid-line on line 2 inserts at the correct offset (BUG-016)", 
     await expectCursor(page, 5)
 })
 
-test.fixme("Backspace at column 0 of line 2 removes the newline and joins the lines (BUG-016)", async ({
+test("Backspace at column 0 of line 2 removes the newline and joins the lines (BUG-016)", async ({
     page,
 }) => {
     await buildTwoLineInput(page)
@@ -65,7 +65,7 @@ test.fixme("Backspace at column 0 of line 2 removes the newline and joins the li
 // Pinned behavior (testing-strategy.md §7): Home and End operate on the
 // whole-input bounds, not the current visual line. setCursor(0) / setCursor
 // (_input.length) ignore the newline offset entirely.
-test.fixme("Home and End on multi-line input go to whole-input bounds, not visual-line bounds (BUG-016)", async ({
+test("Home and End on multi-line input go to whole-input bounds, not visual-line bounds (BUG-016)", async ({
     page,
 }) => {
     await buildTwoLineInput(page)

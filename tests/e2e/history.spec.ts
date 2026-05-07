@@ -86,7 +86,7 @@ test.fixme(
     }
 )
 
-test.fixme("Consecutive duplicates dedupe; non-consecutive duplicates are kept (BUG-015)", async ({ page }) => {
+test("Consecutive duplicates dedupe; non-consecutive duplicates are kept (BUG-015)", async ({ page }) => {
     await type(page, "dup")
     await submit(page)
     await type(page, "dup")
@@ -117,7 +117,7 @@ test.fixme("Consecutive duplicates dedupe; non-consecutive duplicates are kept (
 // Pinned behavior (testing-strategy.md §5): Ctrl+C clears the partial without
 // pushing it to history and calls history.rewind(), so the next Up returns
 // the most recent SUBMITTED command — never the cancelled partial.
-test.fixme("Ctrl+C followed by Up does not recall the cancelled partial (BUG-015)", async ({ page }) => {
+test("Ctrl+C followed by Up does not recall the cancelled partial (BUG-015)", async ({ page }) => {
     await type(page, "saved")
     await submit(page)
     await type(page, "partial")

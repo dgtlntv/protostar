@@ -1,7 +1,7 @@
 /**
  * @file `basicAuth` prompt. Sequenced username + password inputs with the
  * resolved value being a boolean: `true` iff both fields match the
- * expected credentials. Mirrors the legacy enquirer `BasicAuth` shape.
+ * expected credentials.
  */
 
 import type { BasicAuthComponent } from "../../types/commands.js"

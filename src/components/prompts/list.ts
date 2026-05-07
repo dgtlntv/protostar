@@ -1,6 +1,6 @@
 /**
- * @file `list` prompt. Reads a single line and splits it on commas, with
- * trimmed segments — matches the legacy enquirer `list` behaviour.
+ * @file `list` prompt. Reads a single line and splits it on commas with
+ * trimmed segments.
  */
 
 import type { ListComponent } from "../../types/commands.js"

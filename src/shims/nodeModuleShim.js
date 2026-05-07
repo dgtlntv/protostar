@@ -6,8 +6,6 @@
  * something with the same shape as a `require` function. The returned
  * `require` is a stub: any call resolves to an empty object, which is
  * sufficient because no consumer of `cjsRequire` runs in the browser.
- *
- * Removed in 2.G alongside the rest of the polyfill churn.
  */
 
 /**

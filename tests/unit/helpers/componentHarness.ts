@@ -2,7 +2,7 @@
  * @file Test harness for the display and prompt components. Wires a
  * `VirtualTerminal` to a real pi-tui `TUI`, owns a fresh `VariableStore`,
  * and dispatches across the full component switch so `conditional` can
- * recurse during tests without depending on the 2.F production dispatcher.
+ * recurse during tests without depending on the production dispatcher.
  */
 
 import { TUI } from "@mariozechner/pi-tui"
@@ -39,8 +39,8 @@ import { runSnippet } from "../../../src/components/prompts/snippet.js"
 
 /**
  * Full dispatcher: switches over the discriminator field and forwards to
- * the matching component handler. Mirrors the production dispatcher
- * landing in 2.F.
+ * the matching component handler. Mirrors the production dispatcher in
+ * `src/commands/runComponents.ts`.
  */
 export const dispatch: ComponentRunner = async (components, ctx) => {
     const list = Array.isArray(components) ? components : [components]

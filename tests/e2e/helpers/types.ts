@@ -16,7 +16,6 @@ export interface PromptLineHandle {
  */
 export interface ShellHandle {
     readonly currentPrompt: PromptLineHandle | null
-    readonly pendingInput: string
 }
 
 /**
@@ -34,9 +33,8 @@ export interface VariablesHandle {
 }
 
 /**
- * Dev-only browser handle the Phase 1 specs talk to. Replaces the legacy
- * `{ term, localEcho }` shape; helpers translate `_input` / `_cursor` /
- * `_active` reads into queries against `shell.currentPrompt`.
+ * Dev-only browser handle the e2e specs talk to. Helpers read editing
+ * state via queries against `shell.currentPrompt`.
  */
 export interface ProtostarHandle {
     term: XTerminal

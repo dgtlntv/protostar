@@ -32,8 +32,9 @@ export async function waitForPrompt(page: Page, timeout = 10_000): Promise<void>
 }
 
 /**
- * Type `text` one character at a time. Each char reaches `handleTermData`
- * on its own and never trips the paste threshold (`data.length > 3`).
+ * Type `text` one character at a time so each char reaches the prompt's
+ * `handleInput` as its own keystroke (avoiding the multi-byte raw-paste
+ * branch that triggers when a chunk contains an embedded newline).
  *
  * @param page - Playwright page.
  * @param text - Literal text to type.
@@ -45,8 +46,7 @@ export async function type(page: Page, text: string): Promise<void> {
 /**
  * Dispatch a real `paste` DOM event on xterm's helper textarea. xterm.js
  * reads `clipboardData` and forwards it to `onData` as a single chunk —
- * the same path Cmd/Ctrl+V travels, so `handleTermData` takes its paste
- * branch.
+ * the same path Cmd/Ctrl+V travels.
  *
  * @param page - Playwright page.
  * @param text - Text to paste, including any newlines.
@@ -88,25 +88,18 @@ export async function press(
 }
 
 /**
- * Read the current logical input buffer from the live PromptLine. Returns
- * the empty string while a command is running (no prompt mounted), which
- * matches the legacy `_input` semantics during dispatch.
+ * Read the current logical input buffer from the live PromptLine. The
+ * prompt owns the entire continuation buffer (newlines included), so this
+ * is just `getValue()`. Returns the empty string while a command is
+ * running (no prompt mounted).
  *
  * @param page - Playwright page.
  * @returns Editable buffer of the live PromptLine.
  */
 export async function getInput(page: Page): Promise<string> {
     return page.evaluate(() => {
-        const shell = window.__protostar.shell
-        const prompt = shell.currentPrompt
-        const live = prompt ? prompt.getValue() : ""
-        // During a continuation, the legacy `_input` carried the entire
-        // multi-line buffer. The new shell stores already-submitted lines in
-        // `pendingInput` and edits the next line through the live PromptLine;
-        // join them so callers see the same flat string.
-        return shell.pendingInput
-            ? shell.pendingInput + "\n" + live
-            : live
+        const prompt = window.__protostar.shell.currentPrompt
+        return prompt ? prompt.getValue() : ""
     })
 }
 
@@ -209,11 +202,11 @@ async function countPrompts(page: Page): Promise<number> {
 }
 
 /**
- * Wait until LocalEchoController is active again AND a new prompt line has
- * been drawn past the given baseline count. This is stricter than
- * `waitForPrompt`, which only checks that *some* prompt is visible — the
- * original prompt is still on screen after Enter, so that looser check can
- * resolve before the command's output has been rendered.
+ * Wait until the shell is idle again AND a new prompt line has been drawn
+ * past the given baseline count. This is stricter than `waitForPrompt`,
+ * which only checks that *some* prompt is visible — the original prompt is
+ * still on screen after Enter, so that looser check can resolve before the
+ * command's output has been rendered.
  *
  * @param page - Playwright page.
  * @param beforeCount - Prompt count captured before the key was pressed.
