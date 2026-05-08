@@ -180,9 +180,19 @@ This catches accidental format drift. Deliberate drift bumps `p1` to `p2`.
 
 If schema/type drift becomes painful, a follow-up could generate the type from the schema via `json-schema-to-typescript`. Out of scope for Phase 3.
 
-### Lint as a CI gate (3.G onward)
+### Security specs (3.G)
 
-ESLint isn't strictly a "test layer" in the same sense as unit/smoke/e2e — it doesn't verify behavior, it verifies code quality. But once 3.G lands, lint failures break CI, so it functions as a gate:
+Three new specs cover the security mitigations:
+
+- `decode.size-limit.spec.ts` (codec unit) — constructs a payload by compressing 1.5 MB of repeated bytes (a few KB compressed, very large decompressed). Asserts `decode` returns `{ ok: false, error: /size limit/ }` in well under 100 ms. The streaming size check aborts at 1 MB+ε, so the test never holds a real megabyte of data in memory and runs quickly.
+- `encode.size-limit.spec.ts` (codec unit) — calls `encode` with a synthetic >1 MB `Commands` value (programmatically generated, not loaded from a fixture file). Asserts the function throws with the documented oversized-prototype message.
+- `url-loader.banner.spec.ts` (playground e2e) — three cases: hash-with-valid-payload boots show the banner; no-hash boots don't; hash-with-malformed-payload boots still show the banner (it's a property of the boot mode, not of decode success). Also verifies the dismiss-collapse interaction round-trips through `sessionStorage`.
+
+The size-limit tests do not contain or run anything exploit-grade — both inputs are constructed programmatically by the test, with our own code on both sides of the boundary. There's no risk to CI or to a developer running `pnpm test:unit` locally.
+
+### Lint as a CI gate (3.H onward)
+
+ESLint isn't strictly a "test layer" in the same sense as unit/smoke/e2e — it doesn't verify behavior, it verifies code quality. But once 3.H lands, lint failures break CI, so it functions as a gate:
 
 - `pnpm lint` runs `pnpm -r lint`, which runs ESLint per package against the shared root config.
 - CI step `pnpm lint` runs after `pnpm typecheck` and before any test layer. Cheap, fails fast.
@@ -190,7 +200,7 @@ ESLint isn't strictly a "test layer" in the same sense as unit/smoke/e2e — it 
 
 If a lint rule turns out to be wrong for our codebase often enough that suppressions accumulate, the rule itself gets relaxed in `eslint.config.js` — not papered over with disable comments.
 
-### Release-time validation (3.I)
+### Release-time validation (3.J)
 
 Two checks gate a release, layered:
 
@@ -220,9 +230,10 @@ Subsequent releases after the first don't need the manual step — build-smoke c
 | 3.D | Build-smoke project compiles against `packages/protostar/dist/` with zero shim config. Lib unit + e2e green. |
 | 3.E | All six codec spec files pass. CLI spawn test passes against the built binary. Format-stability fixture passes. `pnpm publish --dry-run` validates the publishable artifact. |
 | 3.F | All five new playground e2e specs pass. Existing e2e green. Manual verification on Pages preview. |
-| 3.G | `pnpm ci` (typecheck + lint + unit + smoke + e2e) green from the workspace root. ESLint reports 0 problems on the existing tree. CI workflow runs the same six steps and matches local output. |
-| 3.H | No new tests; existing suites unchanged. |
-| 3.I | `pnpm release:dry-run` succeeds for both packages. Post-publish manual smoke (fresh `npm install @dgtlntv/protostar` and `@dgtlntv/protostar-codec` in a workspace-free tmp dir, import both, exercise basic API) passes. |
+| 3.G | Codec size-limit specs (`decode.size-limit.spec.ts`, `encode.size-limit.spec.ts`) green and fast (<100 ms each). Banner spec (`url-loader.banner.spec.ts`) green. Existing suites green. |
+| 3.H | `pnpm ci` (typecheck + lint + unit + smoke + e2e) green from the workspace root. ESLint reports 0 problems on the existing tree. CI workflow runs the same six steps and matches local output. |
+| 3.I | No new tests; existing suites unchanged. |
+| 3.J | `pnpm release:dry-run` succeeds for both packages. Post-publish manual smoke (fresh `npm install @dgtlntv/protostar` and `@dgtlntv/protostar-codec` in a workspace-free tmp dir, import both, exercise basic API) passes. |
 
 ## Out of scope for Phase 3
 

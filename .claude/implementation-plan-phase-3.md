@@ -129,7 +129,7 @@ Adds the standalone codec that encodes a `Commands` config into a URL-safe hash 
   - `cli.spec.ts` — spawn the built CLI, pipe JSON in, assert URL out and round-trip via `decode`.
 - Add a `pnpm --filter @dgtlntv/protostar-codec build` step to CI before tests so the smoke and CLI specs run against the built artifact.
 
-**Exit criteria:** all codec specs green. CLI runs in Node 18+ and produces a URL whose payload `decode` round-trips to the original input. Encoder rejects schema-invalid input with a useful message. Bundle ships the schema inline. Package is publishable in shape (verified by `pnpm publish --dry-run`); actual publish lands in 3.I.
+**Exit criteria:** all codec specs green. CLI runs in Node 18+ and produces a URL whose payload `decode` round-trips to the original input. Encoder rejects schema-invalid input with a useful message. Bundle ships the schema inline. Package is publishable in shape (verified by `pnpm publish --dry-run`); actual publish lands in 3.J.
 **Commit:** `feat(codec): add @dgtlntv/protostar-codec for URL encode/decode`
 
 ## Sub-phase 3.F — Wire URL loader into playground
@@ -161,7 +161,53 @@ Lands the user-visible feature. The playground reads the URL hash on boot, decod
 **Exit criteria:** all five new e2e specs green. Existing e2e green. `pnpm dev` boots the playground identically when no hash is present and runs a decoded prototype when a `#p1=...` hash is in the URL. Manual verification of the deployed Pages site after merge.
 **Commit:** `feat(playground): load commands from base64url URL hash`
 
-## Sub-phase 3.G — Workspace orchestration: scripts + linting
+## Sub-phase 3.G — Security hardening
+
+Adds the hardening that makes the URL loader safe to ship publicly. Three mitigations land together: a decompressed-size cap in the codec, an encoder-side size check so authors hit a clear error before shipping a too-large prototype, and a friendly banner in the playground that frames URL-loaded prototypes as mock environments. Nothing here changes the feature surface — it constrains it.
+
+### Codec: 1 MB decompressed-size cap (`decode`)
+
+- `decompressDeflateRaw` switches from "decompress all, then return" to a streaming pipeline that counts emitted bytes. As soon as cumulative output crosses 1 MB, the stream is aborted and the function returns `{ ok: false, error: "decompressed payload exceeds size limit" }`.
+- Implementation: a `TransformStream` between `DecompressionStream` and the consumer. Counts bytes per chunk and aborts the moment a chunk would push the running total past the cap. The full payload is never held in memory; pathological inputs fail fast.
+- Cap value lives in one place as `MAX_DECOMPRESSED_BYTES = 1_048_576` so future tuning is a single edit.
+
+### Codec: encoder size check (`encode`)
+
+- Before compressing, `encode` measures `JSON.stringify(commands).byteLength` (UTF-8 bytes via `TextEncoder`, not `String.length`).
+- If it exceeds 1 MB, throw with a message that explains why: `"Prototype is X.X MB raw JSON; the maximum supported size is 1 MB. The decoder rejects payloads that decompress beyond this limit, so a URL produced from this input would not load on the receiver."`
+- The check runs after schema validation — a malformed prototype is a more useful error than a size error, so we surface that first.
+- CLI surfaces the message to stderr and exits non-zero. Programmatic callers (agent skill, share button) get a rejected promise with the same message and can present it in their own UI.
+
+### Playground: "this is a prototype" banner
+
+When the playground boots from a URL hash (success or failure), a single-line notice sits above the terminal:
+
+> This is a prototype, not a real terminal. Don't enter real credentials.
+
+- Tone: informational, not alarming. No red, no warning iconography, no scary modal. Slim bar, lower-contrast text, blends with the chrome.
+- Banner DOM is owned by the playground, outside the xterm host element — prototype content cannot cover, restyle, or remove it.
+- Shown only on URL-hash boots. The bundled-demo path (no hash) is trusted local content; no banner there.
+- Small "dismiss" affordance at the right end collapses the banner to a tiny icon for the rest of the tab session (`sessionStorage`, not `localStorage` — a fresh tab always shows the full banner). Discoverable for repeat users, not nagging.
+
+### Mitigations explicitly NOT in scope
+
+Decisions captured here so they don't drift back in by accident:
+
+- **No xterm.js feature lockdown** (OSC 8 hyperlinks, OSC 52 clipboard, OSC 0/1/2 window title) for URL-loaded prototypes. The banner is the user-facing trust boundary; locking down terminal features beyond that fights the prototyping use case.
+- **No `{{var}}` interpolation sanitization.** Same rationale — the banner sets expectations; over-constraining the feature surface to defend against contrived phishing chains is not worth the cost in real-world expressiveness.
+- **No schema bounds (`maxLength`, `maxItems`, `maxProperties`).** The 1 MB decompressed cap bounds total parser/validator workload; per-field bounds add maintenance friction without meaningful additional protection.
+
+### Testing
+
+- Codec unit tests:
+  - `decode.size-limit.spec.ts` — constructs a payload by compressing 1.5 MB of repeated bytes (a few KB compressed). Asserts `decode` returns the size-limit error in well under 100 ms. We construct the input ourselves; nothing exploit-grade is in the repo.
+  - `encode.size-limit.spec.ts` — calls `encode` with a synthetic >1 MB `Commands` value. Asserts the function throws with the documented message.
+- Playground e2e: `url-loader.banner.spec.ts` — boots with a valid hash, asserts the banner is present and renders the expected text; boots without a hash, asserts no banner; boots with a malformed hash, asserts the banner is still present (it's a property of the boot mode, not of decode success).
+
+**Exit criteria:** size-limit specs green and fast (<100 ms each). Banner shows on URL-hash boots, hidden on bundled-demo boots, persists across prototype renders, dismiss-collapse stays collapsed within the tab session and resets in a new tab. Existing e2e green.
+**Commit:** `feat(security): cap decoded size, warn on oversized encode, banner URL-loaded prototypes`
+
+## Sub-phase 3.H — Workspace orchestration: scripts + linting
 
 Polishes the developer experience now that all packages exist and the URL feature has landed. Ad-hoc scripts added during 3.A–3.F get standardized; linting is added repo-wide so subsequent work has a consistent code-quality gate. This is the last sub-phase before the docs sweep — by the time it ends, `pnpm ci` from the root runs the full check matrix locally with the same commands CI runs.
 
@@ -235,7 +281,7 @@ The `ci` script is what `.github/workflows/test.yml` invokes (or rather, the CI 
 **Exit criteria:** `pnpm ci` passes locally on a clean checkout. Every package responds to `typecheck`, `lint`, and (where applicable) `test:unit` / `test:smoke` / `test:e2e`. ESLint reports 0 problems on the tree. CI workflow runs the same six commands.
 **Commit:** `chore: standardize workspace scripts and add ESLint`
 
-## Sub-phase 3.H — Docs + cleanup
+## Sub-phase 3.I — Docs + cleanup
 
 Sweeps docs to match the new reality and closes any deferred items from earlier sub-phases.
 
@@ -245,7 +291,7 @@ Sweeps docs to match the new reality and closes any deferred items from earlier 
   - How to add a new package to the workspace.
   - The standard script names every package exposes (`typecheck`, `lint`, `test:unit`, etc.) — so a new package fits the orchestration without retrofitting.
   - How to run each test suite (`pnpm --filter <pkg> test:unit`, `pnpm test:e2e`, `pnpm test:smoke`).
-  - The release flow (placeholder, populated in 3.I).
+  - The release flow (placeholder, populated in 3.J).
   - The "no `npm` invocations" rule.
   - The shim asymmetry between the lib build (deps bundled) and the playground dev build (deps not bundled, shim aliases needed).
 - Update `.claude/known-bugs.md` if any bug surfaced during the migration. None expected — this phase doesn't touch behavior — but check.
@@ -254,7 +300,7 @@ Sweeps docs to match the new reality and closes any deferred items from earlier 
 **Exit criteria:** docs match the layout. Branch green. No `npm` references remain in tracked files (sanity check via `git grep -n "npm " | grep -v lock` and similar).
 **Commit:** `docs: refresh for monorepo layout and URL-sharing feature`
 
-## Sub-phase 3.I — Publish to npm
+## Sub-phase 3.J — Publish to npm
 
 First real release of both `@dgtlntv/protostar` and `@dgtlntv/protostar-codec`. The lib has been publishable in shape since pre-Phase 3 but never actually shipped; the codec is new in 3.E. Both go up at `0.1.0` — first usable release, still pre-1.0 — so semver communicates "expect breaking changes" without the "wholly unstable, don't look" signal of `0.0.x`.
 
@@ -316,8 +362,8 @@ CI runs `pnpm release:dry-run` on every PR that touches `packages/*/package.json
 - **JSON.stringify key ordering in the codec.** Fixed key ordering would make encoded URLs stable across runs of the same input (nice for diffing, caching). Plain `JSON.stringify` is simpler and the encoded payload is opaque anyway. Default to plain unless we hit a use case for stable ordering.
 - **Lib bundle size after baking shims (3.D).** Estimated 200–400 KB minified self-contained. If real-world numbers come in significantly worse, revisit which deps are bundled vs externalized — a `peerDependencies` model for `@xterm/xterm` (consumers usually want their own copy of xterm) could be the right call later. Don't preempt; measure first.
 - **"Copy share link" UX in 3.F.** Keyboard shortcut is the minimum viable affordance. A visible button or a `/share` slash command in the prototype is a follow-up if the shortcut feels too hidden.
-- **Prettier.** Out of scope for 3.G; revisit once the lint baseline is established.
-- **Automated release workflow.** Deferred from 3.I; manual publish first.
+- **Prettier.** Out of scope for 3.H; revisit once the lint baseline is established.
+- **Automated release workflow.** Deferred from 3.J; manual publish first.
 
 ## Rough sizing
 
@@ -329,8 +375,9 @@ CI runs `pnpm release:dry-run` on every PR that touches `packages/*/package.json
 | 3.D | ~150 | ~10 | Build-smoke project + Vite config tweaks |
 | 3.E | ~700 | ~10 | Six modules + six spec files + CLI + schema relocation |
 | 3.F | ~250 | 0 | URL-loader wire-up + share shortcut + five e2e specs |
-| 3.G | ~120 | ~30 | ESLint config, root scripts, per-package script normalization, fixes for first-pass lint findings |
-| 3.H | ~150 | ~50 | Doc sweep, CONTRIBUTING, dead-link cleanup |
-| 3.I | ~30 | 0 | publishConfig fields, release scripts, version bumps |
+| 3.G | ~120 | ~10 | Streaming size cap in `decode`, encoder size check, banner DOM + dismiss, three new specs |
+| 3.H | ~120 | ~30 | ESLint config, root scripts, per-package script normalization, fixes for first-pass lint findings |
+| 3.I | ~150 | ~50 | Doc sweep, CONTRIBUTING, dead-link cleanup |
+| 3.J | ~30 | 0 | publishConfig fields, release scripts, version bumps |
 
 End state: three workspace packages (`protostar`, `protostar-codec`, `playground`), pnpm everywhere, library consumable with zero shim setup downstream, and a URL-shareable playground backed by a published-ready codec. Existing e2e + unit suites unchanged in shape; new specs land alongside the codec and the URL loader. No behavior regressions in the playground; new behavior gated on the presence of a `#p1=` hash.
