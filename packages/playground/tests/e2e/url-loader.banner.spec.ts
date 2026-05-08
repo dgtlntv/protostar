@@ -5,10 +5,9 @@
  * so a hash boot always shows it. The bundled-demo path is trusted local
  * content and stays unchrome'd.
  *
- * Also exercises the dismiss-collapse round-trip through `sessionStorage`:
- * once dismissed the slim-icon state persists across reloads in the same
- * tab, and the e2e suite verifies a fresh navigation back to a no-hash
- * state still skips the banner entirely.
+ * Also exercises the dismiss round-trip through `sessionStorage`: once
+ * dismissed the banner stays hidden across reloads in the same tab, and
+ * a fresh browser context (new tab) opens with the full bar back.
  */
 
 import { expect, test } from "@playwright/test"
@@ -63,8 +62,8 @@ test.describe("url-loader prototype banner", () => {
 
         const banner = page.locator("#prototype-banner")
         await expect(banner).toHaveCount(1)
+        await expect(banner).toBeVisible()
         await expect(banner).toContainText(BANNER_TEXT)
-        await expect(banner).not.toHaveClass(/\bcollapsed\b/)
     })
 
     test("malformed hash still renders the banner", async ({ page }) => {
@@ -78,7 +77,7 @@ test.describe("url-loader prototype banner", () => {
         await expect(banner).toContainText(BANNER_TEXT)
     })
 
-    test("dismiss collapses the banner and persists across reloads in the same tab", async ({
+    test("dismiss hides the banner and persists across reloads in the same tab", async ({
         page,
     }) => {
         const payload = await encodeSyntheticPayload(page)
@@ -88,22 +87,19 @@ test.describe("url-loader prototype banner", () => {
         await waitForPrompt(page)
 
         const banner = page.locator("#prototype-banner")
-        await expect(banner).not.toHaveClass(/\bcollapsed\b/)
+        await expect(banner).toBeVisible()
 
         await banner.locator(".prototype-banner-dismiss").click()
-        await expect(banner).toHaveClass(/\bcollapsed\b/)
+        await expect(banner).toBeHidden()
 
-        // Reloading the same tab must keep the collapsed state — that's
-        // the contract for `sessionStorage`. The dismiss button itself
-        // is hidden in the collapsed state, so its existence flipping to
-        // "hidden" is implicit in the class assertion above.
+        // Reloading the same tab must keep the dismissed state — that's
+        // the contract for `sessionStorage`.
         await page.reload()
         await waitForPrompt(page)
-        const reloadedBanner = page.locator("#prototype-banner")
-        await expect(reloadedBanner).toHaveClass(/\bcollapsed\b/)
+        await expect(page.locator("#prototype-banner")).toBeHidden()
     })
 
-    test("a fresh tab opens with the full banner again", async ({ browser }) => {
+    test("a fresh tab opens with the banner visible again", async ({ browser }) => {
         // `sessionStorage` is per-context; spawning a new context is
         // the e2e analogue of opening a brand-new browser tab.
         const firstContext = await browser.newContext()
@@ -115,18 +111,14 @@ test.describe("url-loader prototype banner", () => {
         await firstPage
             .locator("#prototype-banner .prototype-banner-dismiss")
             .click()
-        await expect(firstPage.locator("#prototype-banner")).toHaveClass(
-            /\bcollapsed\b/
-        )
+        await expect(firstPage.locator("#prototype-banner")).toBeHidden()
         await firstContext.close()
 
         const secondContext = await browser.newContext()
         const secondPage = await secondContext.newPage()
         await secondPage.goto(`/#${payload}`)
         await waitForPrompt(secondPage)
-        await expect(secondPage.locator("#prototype-banner")).not.toHaveClass(
-            /\bcollapsed\b/
-        )
+        await expect(secondPage.locator("#prototype-banner")).toBeVisible()
         await secondContext.close()
     })
 })

@@ -167,7 +167,7 @@ Three new specs cover the security mitigations:
 
 - `decode.size-limit.spec.ts` (codec unit) — constructs a payload by compressing 1.5× the cap of repeated bytes (a few KB compressed, hundreds of KB decompressed). Asserts `decode` returns `{ ok: false, error: /size limit/ }` in well under 100 ms. The streaming size check aborts at the cap+ε, so the test never holds the full decompressed buffer in memory and runs quickly.
 - `encode.size-limit.spec.ts` (codec unit) — calls `encode` with a synthetic over-cap `Commands` value (programmatically generated, not loaded from a fixture file). Asserts the function throws with the documented oversized-prototype message.
-- `url-loader.banner.spec.ts` (playground e2e) — three cases: hash-with-valid-payload boots show the banner; no-hash boots don't; hash-with-malformed-payload boots still show the banner (it's a property of the boot mode, not of decode success). Also verifies the dismiss-collapse interaction round-trips through `sessionStorage`.
+- `url-loader.banner.spec.ts` (playground e2e) — three cases: hash-with-valid-payload boots show the banner; no-hash boots don't; hash-with-malformed-payload boots still show the banner (it's a property of the boot mode, not of decode success). Also verifies the dismiss-hide interaction round-trips through `sessionStorage`.
 
 The size-limit tests do not contain or run anything exploit-grade — both inputs are constructed programmatically by the test, with our own code on both sides of the boundary. There's no risk to CI or to a developer running `pnpm test:unit` locally.
 

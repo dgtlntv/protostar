@@ -32,6 +32,10 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+#prototype-banner[hidden] {
+    display: none;
+}
+
 #prototype-banner .prototype-banner-text {
     flex: 1;
 }
@@ -49,25 +53,4 @@ body {
 
 #prototype-banner .prototype-banner-dismiss:hover {
     opacity: 1;
-}
-
-#prototype-banner.collapsed {
-    width: auto;
-    align-self: flex-start;
-    border-bottom: none;
-    padding: 4px 8px;
-}
-
-#prototype-banner.collapsed .prototype-banner-text,
-#prototype-banner.collapsed .prototype-banner-dismiss {
-    display: none;
-}
-
-#prototype-banner .prototype-banner-icon {
-    display: none;
-    font-size: 12px;
-}
-
-#prototype-banner.collapsed .prototype-banner-icon {
-    display: inline;
 }

@@ -187,7 +187,7 @@ When the playground boots from a URL hash (success or failure), a single-line no
 - Tone: informational, not alarming. No red, no warning iconography, no scary modal. Slim bar, lower-contrast text, blends with the chrome.
 - Banner DOM is owned by the playground, outside the xterm host element — prototype content cannot cover, restyle, or remove it.
 - Shown only on URL-hash boots. The bundled-demo path (no hash) is trusted local content; no banner there.
-- Small "dismiss" affordance at the right end collapses the banner to a tiny icon for the rest of the tab session (`sessionStorage`, not `localStorage` — a fresh tab always shows the full banner). Discoverable for repeat users, not nagging.
+- Small "dismiss" affordance at the right end hides the banner for the rest of the tab session (`sessionStorage`, not `localStorage` — a fresh tab always shows the full banner). Once gone, gone for the session — no collapsed-icon state to argue with the chrome.
 
 ### Mitigations explicitly NOT in scope
 
@@ -204,7 +204,7 @@ Decisions captured here so they don't drift back in by accident:
   - `encode.size-limit.spec.ts` — calls `encode` with a synthetic over-cap `Commands` value. Asserts the function throws with the documented message.
 - Playground e2e: `url-loader.banner.spec.ts` — boots with a valid hash, asserts the banner is present and renders the expected text; boots without a hash, asserts no banner; boots with a malformed hash, asserts the banner is still present (it's a property of the boot mode, not of decode success).
 
-**Exit criteria:** size-limit specs green and fast (<100 ms each). Banner shows on URL-hash boots, hidden on bundled-demo boots, persists across prototype renders, dismiss-collapse stays collapsed within the tab session and resets in a new tab. Existing e2e green.
+**Exit criteria:** size-limit specs green and fast (<100 ms each). Banner shows on URL-hash boots, hidden on bundled-demo boots, persists across prototype renders, dismiss stays hidden within the tab session and resets in a new tab. Existing e2e green.
 **Commit:** `feat(security): cap decoded size, warn on oversized encode, banner URL-loaded prototypes`
 
 ## Sub-phase 3.H — Workspace orchestration: scripts + linting

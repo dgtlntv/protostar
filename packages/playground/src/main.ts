@@ -95,10 +95,9 @@ function isHashBoot(hash: string): boolean {
  * column reordering in `playground.css`) so URL-loaded content running
  * inside xterm can never reach up and remove or restyle it.
  *
- * If the user dismissed the banner earlier this tab session, restore
- * the collapsed icon-only state instead of the full bar — the dismiss
- * is per-tab (`sessionStorage`) so a fresh tab always opens with the
- * full message.
+ * If the user dismissed the banner earlier this tab session, leave it
+ * hidden — the dismiss is per-tab (`sessionStorage`), so a fresh tab
+ * always opens with the full message.
  */
 function renderPrototypeBanner(): void {
     if (document.getElementById("prototype-banner")) return
@@ -106,11 +105,6 @@ function renderPrototypeBanner(): void {
     const banner = document.createElement("div")
     banner.id = "prototype-banner"
     banner.setAttribute("role", "note")
-
-    const icon = document.createElement("span")
-    icon.className = "prototype-banner-icon"
-    icon.setAttribute("aria-hidden", "true")
-    icon.textContent = "⚠"
 
     const text = document.createElement("span")
     text.className = "prototype-banner-text"
@@ -122,17 +116,17 @@ function renderPrototypeBanner(): void {
     dismiss.setAttribute("aria-label", "Dismiss prototype banner")
     dismiss.textContent = "×"
     dismiss.addEventListener("click", () => {
-        banner.classList.add("collapsed")
+        banner.hidden = true
         try {
             sessionStorage.setItem(BANNER_DISMISSED_STORAGE_KEY, "1")
         } catch {
             // Storage unavailable (private mode quotas, disabled by
-            // policy). The collapse still applies for this view; we
-            // just lose persistence — no need to warn.
+            // policy). The hide still applies for this view; we just
+            // lose persistence — no need to warn.
         }
     })
 
-    banner.append(icon, text, dismiss)
+    banner.append(text, dismiss)
 
     let dismissed = false
     try {
@@ -140,7 +134,7 @@ function renderPrototypeBanner(): void {
     } catch {
         dismissed = false
     }
-    if (dismissed) banner.classList.add("collapsed")
+    if (dismissed) banner.hidden = true
 
     document.body.prepend(banner)
 }
