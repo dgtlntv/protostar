@@ -118,6 +118,8 @@ export interface HarnessOptions {
     argv?: Record<string, unknown>
     columns?: number
     rows?: number
+    /** Optional cancel signal threaded into the component context. */
+    signal?: AbortSignal
 }
 
 /**
@@ -138,6 +140,7 @@ export function makeHarness(opts: HarnessOptions = {}) {
         argv: opts.argv ?? {},
         variables,
         run: dispatch,
+        signal: opts.signal,
     }
     return {
         term,

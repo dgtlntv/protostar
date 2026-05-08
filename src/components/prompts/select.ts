@@ -66,9 +66,15 @@ export async function runSelect(
     const message = renderMessage(component.message, ctx)
     const items = toSelectItems(component.choices)
     const list = new SelectList(items, Math.min(items.length || 1, 8), SELECT_THEME)
-    const value = await runInline<string>(ctx.tui, message, list, (done) => {
-        list.onSelect = (item) => done(item.value, item.label)
-        list.onCancel = () => done(undefined, null)
+    const value = await runInline<string>({
+        tui: ctx.tui,
+        message,
+        body: list,
+        wire: (done) => {
+            list.onSelect = (item) => done(item.value, item.label)
+            list.onCancel = () => done(undefined, null)
+        },
+        signal: ctx.signal,
     })
     if (value !== undefined) persist(ctx.variables, component.name, value)
 }
@@ -79,7 +85,7 @@ export async function runSelect(
  * to the input. Enter resolves with the currently-highlighted item.
  *
  * The combo also passes the live filter into the `SelectList` layout so
- * the matched prefix on each visible item is highlighted in cyan.
+ * the matched prefix on each visible item is highlighted in yellow.
  */
 class AutoCompleteCombo implements Component, Focusable {
     /** Set by TUI when focus changes. */
@@ -149,7 +155,8 @@ class AutoCompleteCombo implements Component, Focusable {
  * `autoComplete` prompt. Stacks a filter input above a `SelectList`;
  * resolves with the selected item's `value`. The `SelectList` is
  * configured with a `truncatePrimary` callback that wraps the matched
- * prefix in cyan so the user can see what their typed filter is matching.
+ * prefix in yellow so the user can see what their typed filter is
+ * matching, distinct from the cyan that marks the active row.
  *
  * @param component AutoComplete component definition.
  * @param ctx Shared execution context.
@@ -171,14 +178,20 @@ export async function runAutoComplete(
             if (!lowerText.startsWith(lowerFilter)) return text
             const head = text.slice(0, filter.length)
             const tail = text.slice(filter.length)
-            return `${chalk.cyan(head)}${tail}`
+            return `${chalk.yellow(head)}${tail}`
         },
     })
     if (component.initial !== undefined) list.setSelectedIndex(component.initial)
     combo = new AutoCompleteCombo(list)
-    const value = await runInline<string>(ctx.tui, message, combo, (done) => {
-        combo!.onSelect = (item) => done(item.value, item.label)
-        combo!.onCancel = () => done(undefined, null)
+    const value = await runInline<string>({
+        tui: ctx.tui,
+        message,
+        body: combo,
+        wire: (done) => {
+            combo!.onSelect = (item) => done(item.value, item.label)
+            combo!.onCancel = () => done(undefined, null)
+        },
+        signal: ctx.signal,
     })
     if (value !== undefined) persist(ctx.variables, component.name, value)
 }

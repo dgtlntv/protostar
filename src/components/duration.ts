@@ -21,11 +21,27 @@ export function resolveDuration(duration: Duration): number {
 }
 
 /**
- * Promise-returning `setTimeout`.
+ * Promise-returning `setTimeout` with optional cancellation. When `signal`
+ * is provided and aborts before the timer fires, the timer is cleared and
+ * the promise resolves immediately — the resolution is intentional (not a
+ * rejection) so callers don't have to wrap the await in try/catch; the
+ * dispatcher inspects `signal.aborted` separately to abandon the handler.
  *
  * @param ms Delay in milliseconds. `0` resolves on the next macrotask.
- * @returns A promise that resolves once the timer fires.
+ * @param signal Optional cancel signal.
+ * @returns A promise that resolves once the timer fires or the signal aborts.
  */
-export function sleep(ms: number): Promise<void> {
-    return new Promise((resolve) => setTimeout(resolve, ms))
+export function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+    if (signal?.aborted) return Promise.resolve()
+    return new Promise((resolve) => {
+        const timer = setTimeout(() => {
+            signal?.removeEventListener("abort", onAbort)
+            resolve()
+        }, ms)
+        const onAbort = () => {
+            clearTimeout(timer)
+            resolve()
+        }
+        signal?.addEventListener("abort", onAbort, { once: true })
+    })
 }

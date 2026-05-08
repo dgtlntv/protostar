@@ -17,8 +17,6 @@ const PASTE_START = "\x1b[200~"
 const PASTE_END = "\x1b[201~"
 /** Length of {@link PASTE_END}. */
 const PASTE_END_LEN = PASTE_END.length
-/** Ctrl+C — cancels the prompt. */
-const CTRL_C = "\x03"
 
 /** Single grapheme segmenter shared across instances. */
 const segmenter = new Intl.Segmenter()
@@ -71,7 +69,9 @@ function isPunctuation(ch: string): boolean {
  * Single-row inline prompt component used by `input`, `number`,
  * `password`, `invisible`, and `list`. Owns the editable buffer + cursor
  * and emits `onSubmit(value)` when the user presses Enter or
- * `onCancel()` when they press Escape or Ctrl+C.
+ * `onCancel()` when they press Escape. Ctrl+C is handled centrally by
+ * `Protostar`'s `term.onData` interceptor and reaches the prompt as an
+ * `AbortSignal` rather than a keystroke.
  */
 export class InlinePrompt implements Component, Focusable {
     /** Set by TUI when focus changes. */
@@ -79,7 +79,7 @@ export class InlinePrompt implements Component, Focusable {
 
     /** Invoked with the buffer contents on Enter. */
     onSubmit?: (value: string) => void
-    /** Invoked when the user cancels (Escape / Ctrl+C). */
+    /** Invoked when the user cancels with Escape. */
     onCancel?: () => void
 
     /** Pre-rendered prompt prefix `? <message> ` (ANSI sequences allowed). */
@@ -134,8 +134,9 @@ export class InlinePrompt implements Component, Focusable {
     invalidate(): void {}
 
     /**
-     * Pi-tui input dispatch. Handles bracketed paste, Ctrl+C, Enter,
-     * cursor movement, deletion, and inserting accepted printable text.
+     * Pi-tui input dispatch. Handles bracketed paste, Enter, cursor
+     * movement, deletion, and inserting accepted printable text. Ctrl+C
+     * is consumed by `Protostar` before reaching the focus chain.
      *
      * @param data Raw bytes from the terminal.
      */
@@ -155,11 +156,6 @@ export class InlinePrompt implements Component, Focusable {
             this.pasteBuffer = ""
             this.handlePaste(pasted)
             if (remainder) this.handleInput(remainder)
-            return
-        }
-
-        if (data === CTRL_C) {
-            this.onCancel?.()
             return
         }
 

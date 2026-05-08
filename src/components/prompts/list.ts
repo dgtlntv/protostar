@@ -20,7 +20,7 @@ export async function runList(
     ctx: ComponentContext
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
-    const raw = await runInlinePrompt(ctx.tui, message)
+    const raw = await runInlinePrompt({ tui: ctx.tui, message, signal: ctx.signal })
     if (raw === undefined) return
     const items = raw
         .split(",")

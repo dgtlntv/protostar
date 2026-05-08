@@ -7,6 +7,7 @@
 
 import type { Component as ProtoComponent } from "../types/commands.js"
 import type { ComponentContext } from "../components/context.js"
+import { CommandCanceledError } from "../shell/CommandCanceledError.js"
 import { runText } from "../components/text.js"
 import { runProgressBar } from "../components/progressBar.js"
 import { runSpinner } from "../components/spinner.js"
@@ -33,9 +34,16 @@ import { runSort } from "../components/prompts/sort.js"
  * single component or an array — the legacy schema permits both shapes for
  * `handler` and for `conditional.then` / `conditional.else`.
  *
+ * Between every component the dispatcher inspects `ctx.signal?.aborted`;
+ * if the user pressed Ctrl+C while the previous component was running,
+ * a {@link CommandCanceledError} is thrown so the rest of the handler
+ * list (and any enclosing `conditional`) is abandoned. The `ShellLoop`
+ * catches the sentinel, prints `^C`, and remounts the prompt.
+ *
  * @param components One component or an array of components.
  * @param ctx Shared execution context.
  * @returns A promise that resolves once every component has finished.
+ * @throws {CommandCanceledError} When `ctx.signal` reports aborted.
  */
 export async function runComponents(
     components: ProtoComponent | ProtoComponent[],
@@ -43,7 +51,9 @@ export async function runComponents(
 ): Promise<void> {
     const list = Array.isArray(components) ? components : [components]
     for (const component of list) {
+        if (ctx.signal?.aborted) throw new CommandCanceledError()
         await runOne(component, ctx)
+        if (ctx.signal?.aborted) throw new CommandCanceledError()
     }
 }
 

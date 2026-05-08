@@ -34,4 +34,13 @@ export interface ComponentContext {
     variables: VariableStore
     /** Recursive dispatcher used by `conditional` to run sub-trees. */
     run: ComponentRunner
+    /**
+     * Cancel signal for the in-flight command. Fires when the user presses
+     * Ctrl+C while a handler is running. Long-running components (timers,
+     * prompts) should subscribe so the user gets immediate feedback; the
+     * dispatcher inspects `signal.aborted` between components and throws a
+     * `CommandCanceledError` to abandon the rest of the handler list.
+     * Unset for synthetic contexts (unit tests that don't exercise cancel).
+     */
+    signal?: AbortSignal
 }

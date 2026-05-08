@@ -20,6 +20,7 @@ import type { TUI } from "@mariozechner/pi-tui"
 import type { VariableStore } from "../shell/VariableStore.js"
 import type { XtermTerminalAdapter } from "../tui/XtermTerminal.js"
 import { flatText } from "../tui/theme.js"
+import { isCommandCanceledError } from "../shell/CommandCanceledError.js"
 
 /**
  * Hooks the yargs handler binding needs in order to run components and
@@ -34,6 +35,15 @@ export interface BuildYargsContext {
     run: ComponentRunner
     /** Adapter used to service the built-in `clear` command. */
     terminal: XtermTerminalAdapter
+    /**
+     * Returns the cancel signal for the current dispatch, or `undefined`
+     * when no dispatch is active. Threaded into each handler's
+     * {@link ComponentContext} so long-running components can listen for
+     * Ctrl+C. Resolved at handler-invocation time so the closure works
+     * even though the shell loop holding the AbortController is
+     * constructed after `buildYargs` runs.
+     */
+    getSignal?: () => AbortSignal | undefined
 }
 
 /**
@@ -169,11 +179,21 @@ function makeHandler(
             argv,
             variables: ctx.variables,
             run: ctx.run,
+            signal: ctx.getSignal?.(),
         }
         try {
             await ctx.run(handler, componentCtx)
         } catch (error) {
-            console.error("Error in command handler:", error)
+            // Cancellation is expected when the user pressed Ctrl+C —
+            // `ShellLoop.cancelDispatch` already wrote `^C` and aborted
+            // every subscribing component; the sentinel only exists to
+            // unwind the runComponents loop. Swallow it here so it does
+            // not reach yargs's `.fail` (which would render the help
+            // banner on every cancel). Other errors stay logged so a
+            // single broken component cannot wedge the prompt.
+            if (!isCommandCanceledError(error)) {
+                console.error("Error in command handler:", error)
+            }
         }
     }
 }

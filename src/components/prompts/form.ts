@@ -16,15 +16,10 @@
 
 import { CURSOR_MARKER, getKeybindings, visibleWidth } from "@mariozechner/pi-tui"
 import type { Component, Focusable } from "@mariozechner/pi-tui"
-import {
-    flatText,
-    mutedColor,
-    promptOpenColor,
-    successColor,
-} from "../../tui/theme.js"
+import { mutedColor, successColor } from "../../tui/theme.js"
 import type { FormChoice, FormComponent } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"
-import { answerLine, persist, renderMessage } from "./promptUtils.js"
+import { persist, renderMessage, runInline } from "./promptUtils.js"
 
 /** Single grapheme segmenter shared across instances. */
 const segmenter = new Intl.Segmenter()
@@ -55,7 +50,7 @@ class FormBlock implements Component, Focusable {
 
     /** Invoked with `{ name: value }` once Enter on the last field fires. */
     onSubmit?: (result: Record<string, string>) => void
-    /** Invoked when the user cancels (Escape / Ctrl+C). */
+    /** Invoked when the user cancels with Escape. */
     onCancel?: () => void
 
     private readonly fields: FormField[]
@@ -84,10 +79,6 @@ class FormBlock implements Component, Focusable {
     handleInput(data: string): void {
         const kb = getKeybindings()
 
-        if (data === "\x03") {
-            this.onCancel?.()
-            return
-        }
         if (kb.matches(data, "tui.select.cancel")) {
             this.onCancel?.()
             return
@@ -389,38 +380,22 @@ export async function runForm(
     ctx: ComponentContext
 ): Promise<void> {
     const heading = renderMessage(component.message, ctx)
-    const headingLine = flatText(`${promptOpenColor("?")} ${heading}`)
     const block = new FormBlock(component.choices)
-    ctx.tui.addChild(headingLine)
-    ctx.tui.addChild(block)
-    ctx.tui.setFocus(block)
-    ctx.tui.requestRender()
-
-    const result = await new Promise<Record<string, string> | undefined>(
-        (resolve) => {
-            let settled = false
-            const finish = (
-                value: Record<string, string> | undefined,
-                answer: string | null
-            ) => {
-                if (settled) return
-                settled = true
-                ctx.tui.setFocus(null)
-                ctx.tui.removeChild(block)
-                ctx.tui.removeChild(headingLine)
-                if (answer !== null) ctx.tui.addChild(answerLine(heading, answer))
-                ctx.tui.requestRender()
-                resolve(value)
-            }
+    const result = await runInline<Record<string, string>>({
+        tui: ctx.tui,
+        message: heading,
+        body: block,
+        wire: (done) => {
             block.onSubmit = (r) =>
-                finish(
+                done(
                     r,
                     Object.entries(r)
                         .map(([k, v]) => `${k}=${v}`)
                         .join(", ")
                 )
-            block.onCancel = () => finish(undefined, null)
-        }
-    )
+            block.onCancel = () => done(undefined, null)
+        },
+        signal: ctx.signal,
+    })
     if (result !== undefined) persist(ctx.variables, component.name, result)
 }

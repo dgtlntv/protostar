@@ -39,6 +39,12 @@ export class ShellLoop {
     private dispatching = false
     /** Paste tail that should seed the next prompt's buffer. */
     private carryover = ""
+    /**
+     * Per-dispatch cancellation source. Non-null only while a command is
+     * mid-flight; `cancelDispatch()` aborts it to propagate Ctrl+C into
+     * every long-running component.
+     */
+    private activeAbort: AbortController | null = null
 
     /**
      * @param opts.tui Shared TUI; the prompt mounts here.
@@ -66,6 +72,37 @@ export class ShellLoop {
     /** @returns The PromptLine currently mounted, or `null` while running. */
     get currentPrompt(): PromptLine | null {
         return this.active
+    }
+
+    /**
+     * @returns The cancel signal for the in-flight dispatch, or
+     *   `undefined` when the loop is idle. Read by `buildYargs` when
+     *   constructing each handler's `ComponentContext`.
+     */
+    get currentSignal(): AbortSignal | undefined {
+        return this.activeAbort?.signal
+    }
+
+    /** @returns `true` while a command is mid-flight (queue or active). */
+    get isDispatching(): boolean {
+        return this.dispatching
+    }
+
+    /**
+     * Cancel the in-flight command (Ctrl+C while a handler is running).
+     * Aborts every long-running component via the shared signal, drops any
+     * queued paste lines, and prints `^C` to scrollback. Safe to call when
+     * idle — it's a no-op in that case.
+     */
+    cancelDispatch(): void {
+        if (!this.activeAbort) return
+        this.activeAbort.abort()
+        // Drop any queued paste lines so a multi-line paste doesn't keep
+        // running after Ctrl+C — matches bash, where SIGINT abandons the
+        // rest of a pasted command sequence.
+        this.queue.length = 0
+        this.tui.addChild(flatText("^C"))
+        this.tui.requestRender()
     }
 
     /**
@@ -156,6 +193,14 @@ export class ShellLoop {
      * Tokenize `input` with `shell-quote`, hand the resulting positional
      * tokens to yargs, and surface any rendered output as scrollback.
      *
+     * Manages a per-dispatch {@link AbortController}: each call installs
+     * a fresh controller on `activeAbort` so the buildYargs `getSignal`
+     * closure picks it up when the handler builds its
+     * {@link ComponentContext}. A `CommandCanceledError` thrown by the
+     * handler (in response to {@link cancelDispatch}) is swallowed — the
+     * `^C` line was already emitted by `cancelDispatch` — so the drain
+     * loop continues to the next prompt instead of unwinding.
+     *
      * @param input The complete command line.
      */
     private async dispatch(input: string): Promise<void> {
@@ -163,31 +208,38 @@ export class ShellLoop {
         const tokens = parse(input).filter(
             (tok): tok is string => typeof tok === "string"
         )
-        // yargs uses an internal freeze/unfreeze guard during `parse`. For
-        // async handlers the parseFn callback fires before yargs unfreezes
-        // (the unfreeze runs in a `.finally`), so awaiting only the
-        // callback would let the next `parse` re-enter while still frozen
-        // — which makes yargs misparse the second command as an unknown
-        // argument to the first. Awaiting the Promise that `parse` returns
-        // waits past the unfreeze so re-entry is safe.
-        let captured = ""
-        const result = this.yargs.parse(
-            tokens,
-            (_err: Error | undefined, _argv: unknown, output: string) => {
-                captured = output ?? ""
+        const abort = new AbortController()
+        this.activeAbort = abort
+        try {
+            // yargs uses an internal freeze/unfreeze guard during `parse`.
+            // For async handlers the parseFn callback fires before yargs
+            // unfreezes (the unfreeze runs in a `.finally`), so awaiting
+            // only the callback would let the next `parse` re-enter while
+            // still frozen — which makes yargs misparse the second
+            // command as an unknown argument to the first. Awaiting the
+            // Promise that `parse` returns waits past the unfreeze so
+            // re-entry is safe.
+            let captured = ""
+            const result = this.yargs.parse(
+                tokens,
+                (_err: Error | undefined, _argv: unknown, output: string) => {
+                    captured = output ?? ""
+                }
+            )
+            if (
+                result !== null &&
+                typeof result === "object" &&
+                "then" in (result as Record<string, unknown>) &&
+                typeof (result as { then: unknown }).then === "function"
+            ) {
+                await (result as Promise<unknown>)
             }
-        )
-        if (
-            result !== null &&
-            typeof result === "object" &&
-            "then" in (result as Record<string, unknown>) &&
-            typeof (result as { then: unknown }).then === "function"
-        ) {
-            await (result as Promise<unknown>)
-        }
-        if (captured) {
-            this.tui.addChild(flatText(captured))
-            this.tui.requestRender()
+            if (captured) {
+                this.tui.addChild(flatText(captured))
+                this.tui.requestRender()
+            }
+        } finally {
+            this.activeAbort = null
         }
     }
 }

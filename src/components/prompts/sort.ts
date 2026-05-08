@@ -70,7 +70,7 @@ class SortList implements Component, Focusable {
             this.onSelect?.([...this.order])
             return
         }
-        if (data === "\x1b" || data === "\x03") {
+        if (data === "\x1b") {
             this.onCancel?.()
         }
     }
@@ -114,9 +114,15 @@ export async function runSort(
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
     const list = new SortList(component.choices)
-    const order = await runInline<string[]>(ctx.tui, message, list, (done) => {
-        list.onSelect = (o) => done(o, o.join(", "))
-        list.onCancel = () => done(undefined, null)
+    const order = await runInline<string[]>({
+        tui: ctx.tui,
+        message,
+        body: list,
+        wire: (done) => {
+            list.onSelect = (o) => done(o, o.join(", "))
+            list.onCancel = () => done(undefined, null)
+        },
+        signal: ctx.signal,
     })
     if (order !== undefined) persist(ctx.variables, component.name, order)
 }

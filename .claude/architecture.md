@@ -36,9 +36,20 @@ Protostar is a browser-based CLI prototyping library. It renders an xterm.js ter
 
 ## Core Flow
 
-1. `Protostar.start()` opens xterm in the host element, runs the FitAddon, starts the pi-tui `TUI`, optionally writes the welcome banner, then calls `ShellLoop.start()`.
+1. `Protostar.start()` opens xterm in the host element, runs the FitAddon, registers the Ctrl+C interceptor on `term.onData`, starts the pi-tui `TUI`, optionally writes the welcome banner, then calls `ShellLoop.start()`.
 2. `ShellLoop` mounts a `PromptLine` and wires its `onComplete` / `onCancel`. The prompt holds the editable buffer; on Enter it consults `isIncomplete(buffer)` to either insert a literal `\n` (continuation) or emit `onComplete([buffer])`. A multi-line paste fans out to one `onComplete([line1, line2, …])` call, with any post-last-`\n` tail left in the buffer to seed the next prompt.
 3. `ShellLoop` flushes each submitted line plus the prompt prefix to scrollback, pushes each to history, and drains the queue by awaiting `yargs.parse(...)` for each line in turn. The matched handler runs the component list via `runComponents(...)`. After the queue empties, a fresh prompt is mounted (with any paste tail seeded as the initial value).
+
+## Cancellation (Ctrl+C)
+
+`ShellLoop` owns a per-dispatch `AbortController`; `currentSignal` is non-null only while a command is mid-flight. `buildYargs` reads it via the `getSignal` closure and threads it into each handler's `ComponentContext.signal`. Long-running components subscribe (timer-based ones via `sleep(ms, signal)`, prompt helpers via an `abort` event listener); `runComponents` checks `signal.aborted` between iterations and throws `CommandCanceledError` to abandon the rest of the handler list (`buildYargs` swallows the sentinel before it reaches yargs's `.fail`).
+
+Two paths into the abort:
+
+- **Idle** — `\x03` falls through pi-tui's focus chain to `PromptLine`, whose own handler clears the buffer, prints `^C`, and re-mounts.
+- **Mid-dispatch** — `Protostar` registers a `term.onData` listener **before** `tui.start()` so it fires ahead of pi-tui's input dispatcher; that order matters because the focused prompt's local cancel path would otherwise resolve the prompt promise first and short-circuit the snapshot path. While `shell.isDispatching`, the listener calls `shell.cancelDispatch()`, which aborts the controller (cascading into every subscribed component), drops any queued paste lines, and writes `^C` to scrollback.
+
+Snapshot rendering on abort lives in `promptUtils.ts` — see the policy table at the top of that file.
 
 ## TUI Integration
 

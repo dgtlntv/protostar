@@ -115,11 +115,16 @@ export async function runSpinner(
     const sliceMs = totalMs / phrases.length
     for (let i = 0; i < phrases.length; i++) {
         if (i > 0) spinner.setMessage(phrases[i])
-        await sleep(sliceMs)
+        await sleep(sliceMs, ctx.signal)
+        if (ctx.signal?.aborted) break
     }
 
     spinner.stop()
     ctx.tui.removeChild(spinner)
+    if (ctx.signal?.aborted) {
+        ctx.tui.requestRender()
+        return
+    }
     const finalLine = `${conclusionPrefix(component.conclusion)}${phrases[phrases.length - 1]}`
     ctx.tui.addChild(flatText(finalLine))
     ctx.tui.requestRender()

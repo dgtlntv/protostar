@@ -28,8 +28,11 @@ export async function runInput(
     ctx: ComponentContext
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
-    const value = await runInlinePrompt(ctx.tui, message, {
-        initial: component.initial ?? "",
+    const value = await runInlinePrompt({
+        tui: ctx.tui,
+        message,
+        promptOptions: { initial: component.initial ?? "" },
+        signal: ctx.signal,
     })
     if (value !== undefined) persist(ctx.variables, component.name, value)
 }
@@ -58,8 +61,12 @@ export async function runNumber(
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
     while (true) {
-        const raw = await runInlinePrompt(ctx.tui, message, {
-            accept: numberKey,
+        if (ctx.signal?.aborted) return
+        const raw = await runInlinePrompt({
+            tui: ctx.tui,
+            message,
+            promptOptions: { accept: numberKey },
+            signal: ctx.signal,
         })
         if (raw === undefined) return
         const parsed = Number(raw)
@@ -82,12 +89,13 @@ export async function runPassword(
     ctx: ComponentContext
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
-    const value = await runInlinePrompt(
-        ctx.tui,
+    const value = await runInlinePrompt({
+        tui: ctx.tui,
         message,
-        { mask: { kind: "mask", char: "•" } },
-        (v) => "•".repeat([...v].length)
-    )
+        promptOptions: { mask: { kind: "mask", char: "•" } },
+        renderAnswer: (v) => "•".repeat([...v].length),
+        signal: ctx.signal,
+    })
     if (value !== undefined) persist(ctx.variables, component.name, value)
 }
 
@@ -103,11 +111,12 @@ export async function runInvisible(
     ctx: ComponentContext
 ): Promise<void> {
     const message = renderMessage(component.message, ctx)
-    const value = await runInlinePrompt(
-        ctx.tui,
+    const value = await runInlinePrompt({
+        tui: ctx.tui,
         message,
-        { mask: { kind: "hidden" } },
-        () => ""
-    )
+        promptOptions: { mask: { kind: "hidden" } },
+        renderAnswer: () => "",
+        signal: ctx.signal,
+    })
     if (value !== undefined) persist(ctx.variables, component.name, value)
 }

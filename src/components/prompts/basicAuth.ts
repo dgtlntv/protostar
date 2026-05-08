@@ -25,17 +25,26 @@ export async function runBasicAuth(
     ctx.tui.addChild(flatText(heading))
     ctx.tui.requestRender()
 
-    const username = await runInlinePrompt(ctx.tui, "Username:")
+    const username = await runInlinePrompt({
+        tui: ctx.tui,
+        message: "Username:",
+        signal: ctx.signal,
+    })
     if (username === undefined) return
 
     const password = component.showPassword
-        ? await runInlinePrompt(ctx.tui, "Password:")
-        : await runInlinePrompt(
-              ctx.tui,
-              "Password:",
-              { mask: { kind: "mask", char: "•" } },
-              (v) => "•".repeat([...v].length)
-          )
+        ? await runInlinePrompt({
+              tui: ctx.tui,
+              message: "Password:",
+              signal: ctx.signal,
+          })
+        : await runInlinePrompt({
+              tui: ctx.tui,
+              message: "Password:",
+              promptOptions: { mask: { kind: "mask", char: "•" } },
+              renderAnswer: (v) => "•".repeat([...v].length),
+              signal: ctx.signal,
+          })
     if (password === undefined) return
 
     const ok =

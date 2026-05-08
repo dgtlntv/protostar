@@ -77,6 +77,7 @@ export class Protostar {
     private readonly element: HTMLElement
     private readonly commands: Commands
     private resizeHandler?: () => void
+    private interruptDisposable?: { dispose(): void }
 
     /**
      * @param element Host DOM element; xterm.js attaches its viewport here.
@@ -119,6 +120,9 @@ export class Protostar {
             variables: this.variables,
             run: runComponents,
             terminal: this.terminal,
+            // Resolved at handler-invocation time so the closure works
+            // despite `this.shell` being assigned only after this call.
+            getSignal: () => this.shell?.currentSignal,
         })
 
         this.shell = new ShellLoop({
@@ -140,6 +144,24 @@ export class Protostar {
         this.resizeHandler = () => this.fitAddon.fit()
         window.addEventListener("resize", this.resizeHandler)
 
+        // Catch Ctrl+C alongside whatever pi-tui delivers to the focused
+        // child. While a command is dispatching, the byte routes to
+        // `shell.cancelDispatch()` so non-focused components (spinner,
+        // progressBar, timed text) get cancelled too — pi-tui's focus
+        // chain only reaches whichever child has focus, which is `null`
+        // for those components. While idle, the byte falls through to
+        // PromptLine's own `\x03` handler unchanged.
+        //
+        // Registered BEFORE `tui.start()` so xterm fires this listener
+        // before the TUI's own input dispatcher: that way `cancelDispatch`
+        // runs the snapshot/abort path before any focused component's
+        // local `\x03` handler can short-circuit the same prompt promise.
+        this.interruptDisposable = this.term.onData((data) => {
+            if (data === "\x03" && this.shell.isDispatching) {
+                this.shell.cancelDispatch()
+            }
+        })
+
         this.tui.start()
 
         if (this.commands.welcome) {
@@ -157,6 +179,8 @@ export class Protostar {
             window.removeEventListener("resize", this.resizeHandler)
             this.resizeHandler = undefined
         }
+        this.interruptDisposable?.dispose()
+        this.interruptDisposable = undefined
         this.tui.stop()
         this.term.dispose()
     }

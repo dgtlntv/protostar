@@ -61,7 +61,7 @@ class MultiSelectList implements Component, Focusable {
             this.onSelect?.(picked)
             return
         }
-        if (data === "\x1b" || data === "\x03") {
+        if (data === "\x1b") {
             this.onCancel?.()
         }
     }
@@ -117,9 +117,15 @@ export async function runMultiSelect(
     const message = renderMessage(component.message, ctx)
     const limit = component.limit ?? Math.min(component.choices.length, 8)
     const list = new MultiSelectList(component.choices, Math.max(1, limit))
-    const values = await runInline<string[]>(ctx.tui, message, list, (done) => {
-        list.onSelect = (picked) => done(picked, picked.join(", "))
-        list.onCancel = () => done(undefined, null)
+    const values = await runInline<string[]>({
+        tui: ctx.tui,
+        message,
+        body: list,
+        wire: (done) => {
+            list.onSelect = (picked) => done(picked, picked.join(", "))
+            list.onCancel = () => done(undefined, null)
+        },
+        signal: ctx.signal,
     })
     if (values !== undefined) persist(ctx.variables, component.name, values)
 }

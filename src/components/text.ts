@@ -27,6 +27,6 @@ export async function runText(
     ctx.tui.addChild(flatText(rendered))
     ctx.tui.requestRender()
     if (component.duration !== undefined) {
-        await sleep(resolveDuration(component.duration))
+        await sleep(resolveDuration(component.duration), ctx.signal)
     }
 }

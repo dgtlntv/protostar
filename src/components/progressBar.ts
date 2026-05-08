@@ -10,7 +10,7 @@ import type { ProgressBarComponent } from "../types/commands.js"
 import { interpolate } from "../shell/interpolate.js"
 import { accentColor } from "../tui/theme.js"
 import type { ComponentContext } from "./context.js"
-import { resolveDuration } from "./duration.js"
+import { resolveDuration, sleep } from "./duration.js"
 
 /** Width of the rendered bar, in cells. */
 const BAR_WIDTH = 40
@@ -71,43 +71,38 @@ class ProgressBarComponentImpl implements Component {
 /**
  * Drive a {@link ProgressBarComponentImpl} from 0 to 100% over `duration`
  * milliseconds. Step durations are jittered (60% normal, 40% burst) with a
- * 0–80 ms gap between updates so the bar advances unevenly.
+ * 0–80 ms gap between updates so the bar advances unevenly. The inter-step
+ * pause uses {@link sleep} so an aborting `signal` returns from each await
+ * immediately; the loop checks `signal.aborted` and exits.
  *
  * @param bar The pi-tui component being animated.
  * @param tui Owning TUI used to request re-renders.
  * @param duration Total animation budget in ms.
- * @returns A promise that resolves when the animation finishes.
+ * @param signal Optional cancel signal.
+ * @returns A promise that resolves when the animation finishes or aborts.
  */
-function animate(
+async function animate(
     bar: ProgressBarComponentImpl,
     tui: TUI,
-    duration: number
+    duration: number,
+    signal?: AbortSignal
 ): Promise<void> {
-    return new Promise((resolve) => {
-        let elapsed = 0
-        const avgStepMs = duration / TOTAL_STEPS
-
-        const tick = () => {
-            const jitter =
-                Math.random() < 0.6
-                    ? Math.random() * 0.5 + 0.1
-                    : Math.random() * 2 + 2
-            const stepMs = Math.max(10, Math.floor(avgStepMs * jitter))
-            elapsed += stepMs
-            const ratio = Math.min(1, elapsed / duration)
-            bar.setProgress(ratio)
-            bar.setEta(Math.max(0, (duration - elapsed) / 1000))
-            tui.requestRender()
-
-            if (ratio >= 1) {
-                resolve()
-                return
-            }
-            setTimeout(tick, Math.random() * 80)
-        }
-
-        tick()
-    })
+    let elapsed = 0
+    const avgStepMs = duration / TOTAL_STEPS
+    while (!signal?.aborted) {
+        const jitter =
+            Math.random() < 0.6
+                ? Math.random() * 0.5 + 0.1
+                : Math.random() * 2 + 2
+        const stepMs = Math.max(10, Math.floor(avgStepMs * jitter))
+        elapsed += stepMs
+        const ratio = Math.min(1, elapsed / duration)
+        bar.setProgress(ratio)
+        bar.setEta(Math.max(0, (duration - elapsed) / 1000))
+        tui.requestRender()
+        if (ratio >= 1) return
+        await sleep(Math.random() * 80, signal)
+    }
 }
 
 /**
@@ -125,5 +120,9 @@ export async function runProgressBar(
     const bar = new ProgressBarComponentImpl(label)
     ctx.tui.addChild(bar)
     ctx.tui.requestRender()
-    await animate(bar, ctx.tui, resolveDuration(component.duration))
+    await animate(bar, ctx.tui, resolveDuration(component.duration), ctx.signal)
+    if (ctx.signal?.aborted) {
+        ctx.tui.removeChild(bar)
+        ctx.tui.requestRender()
+    }
 }

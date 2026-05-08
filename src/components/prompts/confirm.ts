@@ -10,13 +10,13 @@ import type { Component, Focusable } from "@mariozechner/pi-tui"
 import { promptOpenColor } from "../../tui/theme.js"
 import type { ConfirmComponent } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"
-import { answerLine, persist, renderMessage } from "./promptUtils.js"
+import { persist, renderMessage, runInline } from "./promptUtils.js"
 
 /**
  * Custom focusable that renders the `(Y/n)` hint and resolves on a single
  * key press. Either `y`/`Y` or Enter (when default is `true`) resolves to
  * `true`; either `n`/`N` or Enter (when default is `false`) resolves to
- * `false`. Escape and Ctrl+C cancel.
+ * `false`. Escape cancels; Ctrl+C is handled centrally.
  */
 class ConfirmKey implements Component, Focusable {
     /** Set by TUI when focus changes. */
@@ -45,7 +45,7 @@ class ConfirmKey implements Component, Focusable {
 
     /**
      * Pi-tui input dispatch. Handles single-key resolution + Enter
-     * default + Escape/Ctrl+C cancel.
+     * default + Escape cancel.
      *
      * @param data Raw bytes from the terminal.
      */
@@ -65,7 +65,7 @@ class ConfirmKey implements Component, Focusable {
             )
             return
         }
-        if (data === "\x1b" || data === "\x03") {
+        if (data === "\x1b") {
             this.onCancel?.()
             return
         }
@@ -104,22 +104,16 @@ export async function runConfirm(
     const message = renderMessage(component.message, ctx)
     const initial = component.initial ?? true
     const body = new ConfirmKey(message, initial)
-    ctx.tui.addChild(body)
-    ctx.tui.setFocus(body)
-    ctx.tui.requestRender()
-    const value = await new Promise<boolean | undefined>((resolve) => {
-        let settled = false
-        const finish = (v: boolean | undefined, answer: string | null) => {
-            if (settled) return
-            settled = true
-            ctx.tui.setFocus(null)
-            ctx.tui.removeChild(body)
-            if (answer !== null) ctx.tui.addChild(answerLine(message, answer))
-            ctx.tui.requestRender()
-            resolve(v)
-        }
-        body.onSelect = (val, label) => finish(val, label)
-        body.onCancel = () => finish(undefined, null)
+    const value = await runInline<boolean>({
+        tui: ctx.tui,
+        message,
+        body,
+        bodyOwnsMessage: true,
+        wire: (done) => {
+            body.onSelect = (v, label) => done(v, label)
+            body.onCancel = () => done(undefined, null)
+        },
+        signal: ctx.signal,
     })
     if (value !== undefined) persist(ctx.variables, component.name, String(value))
 }

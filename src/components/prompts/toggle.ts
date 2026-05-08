@@ -5,13 +5,13 @@
  * states; Enter submits.
  */
 
-import { CURSOR_MARKER, visibleWidth } from "@mariozechner/pi-tui"
+import { visibleWidth } from "@mariozechner/pi-tui"
 import type { Component, Focusable } from "@mariozechner/pi-tui"
 import chalk from "chalk"
 import { mutedColor, promptOpenColor } from "../../tui/theme.js"
 import type { ToggleComponent } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"
-import { answerLine, persist, renderMessage } from "./promptUtils.js"
+import { persist, renderMessage, runInline } from "./promptUtils.js"
 
 /**
  * Custom focusable that renders both labels side-by-side with the active
@@ -47,7 +47,7 @@ class HorizontalToggle implements Component, Focusable {
 
     /**
      * Pi-tui input dispatch. Handles arrow Left/Right (and `h`/`l`)
-     * navigation, Enter submission, and Escape/Ctrl+C cancellation.
+     * navigation, Enter submission, and Escape cancellation.
      *
      * @param data Raw bytes from the terminal.
      */
@@ -70,7 +70,7 @@ class HorizontalToggle implements Component, Focusable {
             this.onSelect?.(this.active, label)
             return
         }
-        if (data === "\x1b" || data === "\x03") {
+        if (data === "\x1b") {
             this.onCancel?.()
         }
     }
@@ -79,7 +79,10 @@ class HorizontalToggle implements Component, Focusable {
     invalidate(): void {}
 
     /**
-     * Render the prompt + horizontal labels with the active one underlined.
+     * Render the prompt + horizontal labels with the active one
+     * underlined. No `CURSOR_MARKER` is emitted: the active label's
+     * underline already signals state, and pi-tui hides the hardware
+     * cursor when no marker appears in the rendered output.
      *
      * @param width Terminal width in cells.
      */
@@ -90,8 +93,7 @@ class HorizontalToggle implements Component, Focusable {
         const right = this.active
             ? chalk.underline(this.enabledLabel)
             : mutedColor(this.enabledLabel)
-        const marker = this.focused ? CURSOR_MARKER : ""
-        const composed = `${this.prefix}${left} ${mutedColor("/")} ${right}${marker}`
+        const composed = `${this.prefix}${left} ${mutedColor("/")} ${right}`
         const visualLength = visibleWidth(composed)
         const target = Math.max(visibleWidth(this.prefix) + 1, width)
         const pad = " ".repeat(Math.max(0, target - visualLength))
@@ -116,22 +118,16 @@ export async function runToggle(
         component.enabled,
         component.disabled
     )
-    ctx.tui.addChild(body)
-    ctx.tui.setFocus(body)
-    ctx.tui.requestRender()
-    const value = await new Promise<boolean | undefined>((resolve) => {
-        let settled = false
-        const finish = (v: boolean | undefined, answer: string | null) => {
-            if (settled) return
-            settled = true
-            ctx.tui.setFocus(null)
-            ctx.tui.removeChild(body)
-            if (answer !== null) ctx.tui.addChild(answerLine(message, answer))
-            ctx.tui.requestRender()
-            resolve(v)
-        }
-        body.onSelect = (val, label) => finish(val, label)
-        body.onCancel = () => finish(undefined, null)
+    const value = await runInline<boolean>({
+        tui: ctx.tui,
+        message,
+        body,
+        bodyOwnsMessage: true,
+        wire: (done) => {
+            body.onSelect = (v, label) => done(v, label)
+            body.onCancel = () => done(undefined, null)
+        },
+        signal: ctx.signal,
     })
     if (value !== undefined) persist(ctx.variables, component.name, String(value))
 }
