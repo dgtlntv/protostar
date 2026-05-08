@@ -1,0 +1,70 @@
+{
+    "name": "@dgtlntv/protostar",
+    "version": "0.0.1",
+    "type": "module",
+    "main": "./src/library.ts",
+    "module": "./src/library.ts",
+    "types": "./src/library.ts",
+    "exports": {
+        ".": {
+            "types": "./src/library.ts",
+            "default": "./src/library.ts"
+        },
+        "./styles.css": "./src/styles.css"
+    },
+    "files": [
+        "dist",
+        "src/styles.css"
+    ],
+    "publishConfig": {
+        "main": "./dist/index.umd.js",
+        "module": "./dist/index.es.js",
+        "exports": {
+            ".": {
+                "import": "./dist/index.es.js",
+                "require": "./dist/index.umd.js"
+            },
+            "./styles.css": "./src/styles.css"
+        }
+    },
+    "scripts": {
+        "build:lib": "vite build --mode lib",
+        "test:unit": "vitest run",
+        "test:unit:ui": "vitest --ui",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "prepublishOnly": "pnpm build:lib"
+    },
+    "dependencies": {
+        "@earendil-works/pi-tui": "^0.74.0",
+        "@xterm/addon-fit": "^0.11.0",
+        "@xterm/xterm": "^6.0.0",
+        "chalk": "^5.3.0",
+        "cliui": "^8.0.1",
+        "shell-quote": "^1.8.3",
+        "yargs": "^18.0.0",
+        "yargs-parser": "^21.1.1"
+    },
+    "devDependencies": {
+        "@types/node": "^25.6.0",
+        "@types/shell-quote": "^1.7.5",
+        "@vitest/ui": "^4.1.5",
+        "@xterm/headless": "^6.0.0",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.11",
+        "vitest": "^4.1.5"
+    },
+    "description": "A CLI prototyping library",
+    "keywords": [
+        "cli",
+        "terminal",
+        "prototype",
+        "console"
+    ],
+    "author": "dgtlntv",
+    "license": "GPL-3.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dgtlntv/protostar.git",
+        "directory": "packages/protostar"
+    }
+}

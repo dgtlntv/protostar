@@ -1,60 +1,30 @@
 {
-    "name": "@dgtlntv/protostar",
+    "name": "protostar-monorepo",
+    "private": true,
     "version": "0.0.1",
     "type": "module",
     "packageManager": "pnpm@11.0.8",
-    "main": "dist/index.umd.js",
-    "module": "dist/index.es.js",
-    "exports": {
-        ".": {
-            "import": "./dist/index.es.js",
-            "require": "./dist/index.umd.js"
-        }
-    },
-    "files": [
-        "dist"
-    ],
     "scripts": {
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview",
-        "build:lib": "vite build --mode lib",
-        "prepublishOnly": "pnpm build:lib",
+        "build:lib": "pnpm --filter @dgtlntv/protostar build:lib",
         "test:e2e": "playwright test",
         "test:e2e:ui": "playwright test --ui",
         "test:e2e:headed": "playwright test --headed",
-        "test:unit": "vitest run",
-        "test:unit:ui": "vitest --ui",
-        "typecheck": "tsc -p tsconfig.json --noEmit"
+        "test:unit": "pnpm -r test:unit",
+        "test:unit:ui": "pnpm --filter @dgtlntv/protostar test:unit:ui",
+        "typecheck": "pnpm -r typecheck"
     },
     "devDependencies": {
         "@playwright/test": "^1.59.1",
         "@types/node": "^25.6.0",
-        "@types/shell-quote": "^1.7.5",
-        "@vitest/ui": "^4.1.5",
-        "@xterm/headless": "^6.0.0",
-        "typescript": "^6.0.3",
-        "vite": "^8.0.11",
-        "vitest": "^4.1.5"
+        "vite": "^8.0.11"
     },
     "dependencies": {
-        "@earendil-works/pi-tui": "^0.74.0",
-        "@xterm/addon-fit": "^0.11.0",
-        "@xterm/xterm": "^6.0.0",
-        "chalk": "^5.3.0",
-        "cliui": "^8.0.1",
-        "shell-quote": "^1.8.3",
-        "yargs": "^18.0.0",
-        "yargs-parser": "^21.1.1"
+        "@dgtlntv/protostar": "workspace:*",
+        "@xterm/xterm": "^6.0.0"
     },
-    "description": "A CLI prototyping library",
-    "keywords": [
-        "cli",
-        "terminal",
-        "prototype",
-        "console"
-    ],
-    "author": "dgtlntv",
     "license": "GPL-3.0",
     "repository": {
         "type": "git",
