@@ -14,14 +14,17 @@ const LIB_SHIMS_DIR = path.resolve(LIB_PACKAGE_DIR, "src/shims")
  * those entries to `./dist/...` at `pnpm publish` time, so npm consumers
  * still get the built bundle.
  *
- * Shim aliases come along for the ride: in dev (and the playground app
- * build) the lib's `src/library.ts` is bundled directly through Vite's
- * resolver, so pi-tui's Node-only transitive imports (`node:module`,
- * `node:perf_hooks`, `child_process`, `fs`, `os`, `path`, `events`) need
- * to resolve to the same shims the lib build uses. Phase 3.D bakes these
- * shims into the published lib bundle and removes this duplication on
- * the consumer side; for now the playground still bundles lib source
- * through Vite, so the aliases stay.
+ * The shim aliases below are intentionally duplicated from the lib's own
+ * `vite.config.ts`. Don't try to remove them: in dev (and the playground
+ * app build) the lib's `src/library.ts` is bundled directly through this
+ * Vite instance, not through the lib's prebuilt `dist/`. pi-tui's Node-
+ * only transitive imports (`node:module`, `node:perf_hooks`,
+ * `child_process`, `fs`, `os`, `path`, `events`) reach this resolver and
+ * need the same no-op shims the lib build applies. The asymmetry is the
+ * conventional monorepo pattern — dev/HMR resolves to source for fast
+ * iteration; downstream npm consumers resolve to the prebuilt bundle
+ * (where the shims are already baked in). Whoever bundles the source is
+ * on the hook for the shims.
  */
 export default defineConfig({
     base: process.env.BASE_PATH || "/",

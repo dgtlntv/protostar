@@ -135,18 +135,20 @@ In addition to using Protostar as a standalone CLI prototyping tool, you can als
 ### Installation
 
 ```bash
-pnpm add protostar
+pnpm add @dgtlntv/protostar
 ```
+
+The published bundle is self-contained — no shim aliases or polyfills required in your Vite, webpack, or Next.js config. Drop it into any modern bundler and import.
 
 ### Usage as a library
 
 ```javascript
 // Import the required styles
 import "@xterm/xterm/css/xterm.css"
-import "./styles.css"
+import "@dgtlntv/protostar/styles.css"
 
 // Import the Protostar class
-import { Protostar } from "protostar"
+import { Protostar } from "@dgtlntv/protostar"
 
 // Import your commands configuration
 import commandsData from "./commands.json"

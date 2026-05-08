@@ -1,4 +1,9 @@
 packages:
   - "packages/*"
+# koffi is a transitive dep of @earendil-works/pi-tui that exposes Windows
+# console FFI for VT input. pi-tui dynamic-requires it inside a try/catch
+# with a graceful fallback, and we never run on a real Windows TTY (we're
+# browser-only), so its native bindings are dead weight. `false` tells
+# pnpm 11 to silently skip the build instead of erroring on the warning.
 allowBuilds:
-  koffi: true
+  koffi: false

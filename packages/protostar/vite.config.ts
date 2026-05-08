@@ -12,6 +12,10 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
  * additionally hard-codes unpkg URLs for `cliui` / `yargs-parser`; we
  * redirect those to the locally installed copies to avoid a runtime CDN
  * fetch.
+ *
+ * These aliases also apply to the bundled deps' transitive imports — every
+ * `import "fs"` deep inside yargs or pi-tui resolves to the matching shim
+ * before it reaches the bundle output.
  */
 const shimAliases = {
     "node:module": path.resolve(__dirname, "./src/shims/nodeModuleShim.js"),
@@ -52,6 +56,17 @@ export default defineConfig({
             name: "Protostar",
             formats: ["es", "umd"],
             fileName: (format) => `index.${format}.js`,
+        },
+        /**
+         * Bundle every runtime dep into `dist/` so consumers can `npm install
+         * @dgtlntv/protostar` and use it without writing a single shim alias of
+         * their own. The empty `external` is explicit — without it, a future
+         * tooling default that re-externalizes `dependencies` would silently
+         * resurrect the "you need these aliases in your Vite config"
+         * onboarding step we just deleted from the README.
+         */
+        rollupOptions: {
+            external: [],
         },
     },
 })

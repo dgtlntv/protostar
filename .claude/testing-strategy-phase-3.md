@@ -1,14 +1,13 @@
 # Phase 3 Testing Strategy
 
-Phase 3 introduces a new layer (build-smoke) on top of the two layers Phase 2 established (e2e + Vitest unit), and extends both existing layers to cover the new packages. None of the layers are duplicate signals — each catches a class of break the others miss.
+Phase 3 keeps the same two test layers Phase 2 established (e2e + Vitest unit) and extends both to cover the new packages. An automated build-smoke layer was scoped, prototyped, and dropped — see "Why no build-smoke" below. Each remaining layer catches a class of break the other misses.
 
 | Layer | Catches | Runs |
 |---|---|---|
 | Vitest unit (per package) | Pure-function correctness in lib + codec; component rendering against a virtual terminal | `pnpm -r test:unit` |
-| Build smoke (3.D onward) | "Published lib bundle is broken when a real downstream consumer imports it" | `pnpm --filter @dgtlntv/protostar test:smoke` |
 | Playwright e2e (playground) | DOM bootstrap, hash reading, error rendering, clipboard, full integration through xterm | `pnpm --filter @dgtlntv/playground test:e2e` |
 
-The order is also the cost ordering: unit fast, smoke medium (builds the lib first), e2e slow. CI runs them in that order so a fast layer fails fast.
+CI runs unit before e2e so a fast layer fails fast.
 
 ## Layer 1 — Vitest unit (extends Phase 2)
 
@@ -69,33 +68,17 @@ New in 3.E. Six spec files cover each codec module plus the CLI. Each is the exi
 - Spawn with schema-invalid input: exit code non-zero, AJV error path on stderr, stdout empty.
 - Round-trip: pipe the CLI's stdout (`#p1=...` portion) into `decode`, assert deep equality with the original input.
 
-## Layer 2 — Build smoke (new in 3.D)
+## Why no build-smoke
 
-### Why this layer exists
+The class of break a build-smoke layer would catch is "the published `@dgtlntv/protostar` bundle is broken when imported by a real downstream Vite/webpack project" — for example, a pi-tui transitive import that escapes the shim aliases at lib-build time and surfaces as an unresolved external in the consumer's build. We considered an automated smoke harness (tiny Vite project + tarball install + consumer build) and dropped it for three reasons:
 
-Neither unit nor e2e tests catch "the *published* `@dgtlntv/protostar` bundle is broken when imported by a real downstream Vite/webpack project." E2E in the playground consumes the lib via workspace symlink (raw source through Vite's resolver), not through the built `dist/index.es.js`. Unit tests run against module code, not the bundle. A regression where, e.g., a pi-tui transitive import escapes the shim aliases would slip past both layers.
+1. **The playground covers most of the same surface.** The playground bundles the lib's source through its own Vite resolver with the same shim aliases. A new Node-only transitive import would break the playground's app build before it broke a downstream project.
+2. **Post-publish manual smoke (in 3.J) is the canonical first-release sanity check** and catches anything the playground misses. The cost is one fresh `npm install` in a tmp dir per release — cheap, infrequent, high signal.
+3. **The setup is fragile.** pnpm 11's strict build-script approval, tarball naming + lifecycle, and `--ignore-workspace` interactions make the harness easy to break for reasons orthogonal to the lib. Maintenance cost > value at this scale.
 
-### Setup
+If a real downstream consumer ever reports "your published bundle doesn't import," that's the trigger to revisit. Until then, the layered approach (unit → e2e → manual release smoke) is the right cost/coverage balance.
 
-Lands in 3.D as `packages/protostar/tests/build-smoke/`:
-
-- A self-contained tiny Vite project: `package.json`, `vite.config.ts` with **no shim aliases of any kind**, `index.html`, `src/main.ts` that imports `Protostar` from `@dgtlntv/protostar` (resolved via `file:` reference to `packages/protostar/dist/`) and instantiates it against a `#terminal` div.
-- `tests/build-smoke/test:smoke` script that:
-  1. Runs `pnpm --filter @dgtlntv/protostar build:lib` to refresh the bundle.
-  2. Runs `vite build` inside the smoke project.
-  3. Asserts the build exits 0 and the resulting `dist/` contains the expected output files.
-  4. Optionally: spawns Playwright on the smoke project's preview server and asserts the prompt renders. Defer this to a follow-up if it complicates CI; the build-pass alone catches 90% of breaks.
-
-### CI integration
-
-Runs after `pnpm --filter @dgtlntv/protostar test:unit`, before any e2e step. Fails fast if the lib bundle isn't consumable.
-
-### What it does NOT cover
-
-- Webpack consumers (Next.js, Remix). Vite-only smoke is the minimum; expanding to a webpack matrix is a follow-up if a real consumer reports a break.
-- TypeScript type resolution. The smoke project uses TS but doesn't deeply exercise the `Commands` type. If type drift becomes an issue, add a `tsc --noEmit` step.
-
-## Layer 3 — Playwright e2e (extends Phase 2)
+## Layer 2 — Playwright e2e (extends Phase 2)
 
 ### Continuity contract for 3.B / 3.C
 
@@ -157,8 +140,6 @@ Playwright's default Chromium-only matrix is sufficient for Phase 3. `Compressio
 ```
 pnpm install --frozen-lockfile
 pnpm -r test:unit                                        # fast — all packages
-pnpm --filter @dgtlntv/protostar build:lib               # gate for smoke
-pnpm --filter @dgtlntv/protostar test:smoke              # medium
 pnpm --filter @dgtlntv/playground build                  # gate for e2e
 pnpm --filter @dgtlntv/playground test:e2e               # slow
 ```
@@ -211,9 +192,9 @@ Two checks gate a release, layered:
    - No accidental leaks (e.g., source `.ts` files getting published).
    This catches the class of break "the publishable artifact is malformed" before tag time, where it's cheap to fix.
 
-2. **Post-publish (manual, first release only):** in a tmp directory outside the workspace, fresh `npm install @dgtlntv/protostar` and `npm install @dgtlntv/protostar-codec`. Tiny smoke script imports both, instantiates the lib, encodes/decodes through the codec. Catches the class of break "the registry has the artifact but it doesn't actually work when installed" — which the build-smoke layer cannot catch because build-smoke uses a `file:` reference to the local `dist/`, not the published tarball.
+2. **Post-publish (manual, every release for now):** in a tmp directory outside the workspace, fresh `npm install @dgtlntv/protostar` and `npm install @dgtlntv/protostar-codec`. Tiny smoke script imports both, instantiates the lib, encodes/decodes through the codec. Catches the class of break "the registry has the artifact but it doesn't actually work when installed."
 
-Subsequent releases after the first don't need the manual step — build-smoke covers the same surface, and the only new variable on a re-release is the version bump itself, which `release:dry-run` already validates.
+Without an automated build-smoke layer (see "Why no build-smoke" above), the post-publish step is our only end-to-end verification that a downstream consumer can actually `npm install` and run the lib. Keep it on every release until either (a) usage stabilizes enough that we're confident in the publish flow, or (b) we revisit automated smoke coverage.
 
 ### Test fixtures
 
@@ -227,17 +208,17 @@ Subsequent releases after the first don't need the manual step — build-smoke c
 | 3.A | Existing `pnpm test:unit` and `pnpm test:e2e` pass exactly as before. |
 | 3.B | Lib unit specs pass from `packages/protostar/tests/unit/`. E2E pass (paths only). |
 | 3.C | E2E pass from `packages/playground/tests/e2e/`. CI artifact path verified via `workflow_dispatch`. |
-| 3.D | Build-smoke project compiles against `packages/protostar/dist/` with zero shim config. Lib unit + e2e green. |
+| 3.D | `pnpm --filter @dgtlntv/protostar build:lib` produces a self-contained `dist/`. Lib unit + e2e green. Bundle size noted in commit body. |
 | 3.E | All six codec spec files pass. CLI spawn test passes against the built binary. Format-stability fixture passes. `pnpm publish --dry-run` validates the publishable artifact. |
 | 3.F | All five new playground e2e specs pass. Existing e2e green. Manual verification on Pages preview. |
 | 3.G | Codec size-limit specs (`decode.size-limit.spec.ts`, `encode.size-limit.spec.ts`) green and fast (<100 ms each). Banner spec (`url-loader.banner.spec.ts`) green. Existing suites green. |
-| 3.H | `pnpm ci` (typecheck + lint + unit + smoke + e2e) green from the workspace root. ESLint reports 0 problems on the existing tree. CI workflow runs the same six steps and matches local output. |
+| 3.H | `pnpm ci` (typecheck + lint + unit + e2e) green from the workspace root. ESLint reports 0 problems on the existing tree. CI workflow runs the same five steps and matches local output. |
 | 3.I | No new tests; existing suites unchanged. |
 | 3.J | `pnpm release:dry-run` succeeds for both packages. Post-publish manual smoke (fresh `npm install @dgtlntv/protostar` and `@dgtlntv/protostar-codec` in a workspace-free tmp dir, import both, exercise basic API) passes. |
 
 ## Out of scope for Phase 3
 
-- **Webpack/Next.js consumer matrix.** Vite-only build smoke. Expand if real consumers report breaks.
+- **Automated build-smoke layer.** Considered, prototyped, dropped — see "Why no build-smoke" above. The post-publish manual smoke in 3.J covers the same regression class.
 - **Cross-browser CompressionStream coverage.** Playwright Chromium only.
 - **Performance / bundle-size budgets enforced as CI gates.** 3.D's commit body documents the lib size; we don't fail CI on it. Add a budget if a regression actually happens.
 - **Visual regression on the URL-loader error rendering.** Same reasoning as Phase 2: sub-frame transient rendering over-specifies.

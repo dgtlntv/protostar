@@ -81,18 +81,16 @@ Moves the playground out of the repo root into its own private workspace package
 
 Moves `packages/protostar/`'s lib build from "externalize deps and let the consumer figure out the shims" to "bundle deps so the published artifact is self-contained." After this commit, a Vite/webpack/Next.js consumer can `npm install @dgtlntv/protostar` and use it without writing a single shim alias of their own.
 
-- In `packages/protostar/vite.config.ts`, configure `build.rollupOptions.external = []` (or omit entirely). Ensure pi-tui, xterm, yargs, cliui, shell-quote, yargs-parser, and chalk are bundled into `dist/`.
+- In `packages/protostar/vite.config.ts`, configure `build.rollupOptions.external = []` explicitly. The empty array states intent: a future tooling default that re-externalizes `dependencies` would silently resurrect the "you need these aliases in your Vite config" onboarding step we're deleting in this commit.
 - The `resolve.alias` shims already in the same config now apply to those bundled deps' transitive imports (`node:module`, `node:events`, `node:path`, `node:perf_hooks`, `child_process`, `fs`, `os`, `path`, plus the unpkg URLs hardcoded in `yargs/browser`).
-- Bump `dist/` size budgets in any tooling that tracks them; document the new size in the commit message body.
-- Add a build-smoke test under `packages/protostar/tests/build-smoke/`:
-  - Tiny Vite project (its own `package.json`, `vite.config.ts`, `index.html`, `main.ts`) that imports `@dgtlntv/protostar` from a `file:` reference to the just-built `packages/protostar/dist/`.
-  - A test script that runs `pnpm --filter @dgtlntv/protostar build:lib`, then `vite build` inside the smoke project, and asserts the smoke build succeeds with no shim configuration on the consumer side.
-  - Wired into CI as a step after the lib build.
-- The playground in `packages/playground/` keeps its shim aliases for now — they're still needed during dev because Vite resolves `@dgtlntv/protostar` to the package's `src/` (workspace symlink), not its built `dist/`. Document this asymmetry in `packages/playground/vite.config.ts` so a future reader doesn't try to remove the aliases.
+- Document the new bundle size in the commit message body.
+- The playground in `packages/playground/` keeps its shim aliases — they're still needed during dev because Vite resolves `@dgtlntv/protostar` to the package's `src/` (workspace symlink), not its built `dist/`. The asymmetry is the conventional monorepo pattern (dev = src for HMR; consumer = dist post-publishConfig). Document it in `packages/playground/vite.config.ts` so a future reader doesn't try to remove the aliases.
 - Update `README.md`: remove any prior "you need these shim aliases in your Vite config" instructions; replace with a single-line "drop in and use" install snippet.
 - Update `.claude/architecture.md` "Entry Points" to reflect the bundled-deps lib build.
 
-**Exit criteria:** the build-smoke project compiles against `packages/protostar/dist/` with zero shim configuration. E2E green. Lib unit tests green. Bundle size noted in commit body.
+No automated build-smoke harness lands here. Considered, prototyped, dropped — see "Decisions deferred" below for the rationale. The same regression class (broken lib bundle when imported by a downstream Vite project) is covered by 3.J's post-publish manual smoke and by `pnpm publish --dry-run` once that step lands.
+
+**Exit criteria:** lib unit tests green. E2E green (lib bundle isn't on the playground's load path during dev, but `pnpm build:lib` exits 0 and the playground's app build still works). Bundle size noted in commit body.
 **Commit:** `build(lib): bundle shimmed deps so consumers work with no Vite config`
 
 ## Sub-phase 3.E — `@dgtlntv/protostar-codec` package
@@ -219,7 +217,6 @@ Every package exposes the same script names so root-level orchestration via `pnp
 |---|---|---|
 | `typecheck` | every package | `tsc --noEmit -p tsconfig.json` |
 | `test:unit` | protostar, protostar-codec | `vitest run` |
-| `test:smoke` | protostar | runs the build-smoke harness from 3.D |
 | `test:e2e` | playground | `playwright test` |
 | `build` | protostar (lib build), codec, playground (app build) | `vite build` (with mode where applicable) |
 | `dev` | playground | `vite` |
@@ -235,9 +232,8 @@ Root `package.json` becomes a thin façade — every command delegates to per-pa
   "dev": "pnpm --filter @dgtlntv/playground dev",
   "build": "pnpm -r build",
   "build:lib": "pnpm --filter @dgtlntv/protostar build",
-  "test": "pnpm test:unit && pnpm test:smoke && pnpm test:e2e",
+  "test": "pnpm test:unit && pnpm test:e2e",
   "test:unit": "pnpm -r test:unit",
-  "test:smoke": "pnpm --filter @dgtlntv/protostar test:smoke",
   "test:e2e": "pnpm --filter @dgtlntv/playground test:e2e",
   "typecheck": "pnpm -r typecheck",
   "lint": "pnpm -r lint",
@@ -266,7 +262,6 @@ The `ci` script is what `.github/workflows/test.yml` invokes (or rather, the CI 
 - run: pnpm typecheck
 - run: pnpm lint
 - run: pnpm test:unit
-- run: pnpm test:smoke
 - run: pnpm test:e2e
 ```
 
@@ -278,7 +273,7 @@ The `ci` script is what `.github/workflows/test.yml` invokes (or rather, the CI 
 - **Husky / lint-staged pre-commit hooks.** CI catches lint failures; pre-commit hooks add friction. Skip until there's a reason.
 - **Stricter rules** (e.g., `no-floating-promises`, exhaustive-deps style rules). Start with the recommended set; tighten as we find rules we want.
 
-**Exit criteria:** `pnpm ci` passes locally on a clean checkout. Every package responds to `typecheck`, `lint`, and (where applicable) `test:unit` / `test:smoke` / `test:e2e`. ESLint reports 0 problems on the tree. CI workflow runs the same six commands.
+**Exit criteria:** `pnpm ci` passes locally on a clean checkout. Every package responds to `typecheck`, `lint`, and (where applicable) `test:unit` / `test:e2e`. ESLint reports 0 problems on the tree. CI workflow runs the same five commands.
 **Commit:** `chore: standardize workspace scripts and add ESLint`
 
 ## Sub-phase 3.I — Docs + cleanup
@@ -290,7 +285,7 @@ Sweeps docs to match the new reality and closes any deferred items from earlier 
 - Add `CONTRIBUTING.md` (or extend README) covering:
   - How to add a new package to the workspace.
   - The standard script names every package exposes (`typecheck`, `lint`, `test:unit`, etc.) — so a new package fits the orchestration without retrofitting.
-  - How to run each test suite (`pnpm --filter <pkg> test:unit`, `pnpm test:e2e`, `pnpm test:smoke`).
+  - How to run each test suite (`pnpm --filter <pkg> test:unit`, `pnpm test:e2e`).
   - The release flow (placeholder, populated in 3.J).
   - The "no `npm` invocations" rule.
   - The shim asymmetry between the lib build (deps bundled) and the playground dev build (deps not bundled, shim aliases needed).
@@ -364,6 +359,7 @@ CI runs `pnpm release:dry-run` on every PR that touches `packages/*/package.json
 - **"Copy share link" UX in 3.F.** Keyboard shortcut is the minimum viable affordance. A visible button or a `/share` slash command in the prototype is a follow-up if the shortcut feels too hidden.
 - **Prettier.** Out of scope for 3.H; revisit once the lint baseline is established.
 - **Automated release workflow.** Deferred from 3.J; manual publish first.
+- **Automated build-smoke harness.** Considered for 3.D, prototyped, dropped. Rationale: (1) playground already exercises the same source paths through Vite with the same shim aliases; (2) post-publish manual smoke in 3.J covers the "downstream `npm install` works" regression at the right granularity; (3) the harness setup is fragile under pnpm 11's strict build-script approval. Revisit if a real downstream consumer reports the bundle doesn't import.
 
 ## Rough sizing
 
@@ -372,7 +368,7 @@ CI runs `pnpm release:dry-run` on every PR that touches `packages/*/package.json
 | 3.A | ~30 | ~50 | pnpm-workspace, tsconfig.base, CI tweaks; package-lock removal dominates deletes |
 | 3.B | ~80 | ~20 | New package.json, tsconfig, vite.config; mostly file moves |
 | 3.C | ~80 | ~30 | Same as 3.B for the playground; CI artifact-path edits |
-| 3.D | ~150 | ~10 | Build-smoke project + Vite config tweaks |
+| 3.D | ~15 | ~5 | Vite config: explicit `external: []`, comment update; README + architecture.md updates |
 | 3.E | ~700 | ~10 | Six modules + six spec files + CLI + schema relocation |
 | 3.F | ~250 | 0 | URL-loader wire-up + share shortcut + five e2e specs |
 | 3.G | ~120 | ~10 | Streaming size cap in `decode`, encoder size check, banner DOM + dismiss, three new specs |
