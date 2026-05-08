@@ -16,7 +16,7 @@ Root `package.json` is a thin orchestration façade: `pnpm dev` / `pnpm build` /
 
 ## Entry Points
 
-- `packages/playground/index.html` → `packages/playground/src/main.ts` — instantiates `Protostar` against `#terminal` on `DOMContentLoaded` and exposes a dev-only `window.__protostar` handle for the e2e suite.
+- `packages/playground/index.html` → `packages/playground/src/main.ts` — resolves the boot config (decodes `location.hash` via `@dgtlntv/protostar-codec` if a `#p1=…` fragment is present, falls back to the bundled `commands.json` otherwise — a malformed/schema-invalid hash is reported by prepending a one-line decode error to the bundled welcome banner), instantiates `Protostar` against `#terminal`, installs the Ctrl+Shift+L share-link shortcut via `term.attachCustomKeyEventHandler`, and exposes a dev-only `window.__protostar` handle (terminal handles + the codec primitives) for the e2e suite.
 - `packages/protostar/src/library.ts` — re-export surface for `vite build --mode lib` (npm package build, invoked via `pnpm build:lib`); re-exports `Protostar` and the `Commands` types.
 - `packages/protostar/vite.config.ts` — library build. Bundles every runtime dep into `dist/index.es.js` / `dist/index.umd.js` (`rollupOptions.external = []`) so downstream consumers can `npm install @dgtlntv/protostar` without writing any shim configuration of their own. Aliases the `node:*` / `child_process` / `fs` / `os` / `path` / `events` modules pi-tui's autocomplete provider eagerly imports to no-op shims under `src/shims/`; those aliases also catch the bundled deps' transitive imports. Aliases the unpkg `cliui` / `yargs-parser` URLs to local packages so `yargs/browser` doesn't fetch from the CDN at runtime.
 - `packages/playground/vite.config.ts` — playground dev/app build; consumes the library via the `@dgtlntv/protostar` workspace symlink. Re-applies the same shim aliases the lib build uses, because Vite resolves the workspace symlink to the lib's `src/library.ts` (not its prebuilt `dist/`) for fast dev iteration. The asymmetry is intentional: dev/HMR resolves to source, downstream npm consumers resolve to the prebuilt bundle (where the shims are already baked in) — whoever bundles the source is on the hook for the shims.
@@ -25,7 +25,7 @@ Root `package.json` is a thin orchestration façade: `pnpm dev` / `pnpm build` /
 
 | File | Purpose |
 |---|---|
-| `Protostar.ts` | Top-level wiring: xterm.js `Terminal` + `FitAddon` + `XtermTerminalAdapter` + pi-tui `TUI` + `VariableStore` + `HistoryStore` + yargs + `ShellLoop`. Owns `start()` / `destroy()`. |
+| `Protostar.ts` | Top-level wiring: xterm.js `Terminal` + `FitAddon` + `XtermTerminalAdapter` + pi-tui `TUI` + `VariableStore` + `HistoryStore` + yargs + `ShellLoop`. Owns `start()` / `destroy()` and a `print(message)` helper that drops a static line above the live region (used by the playground for URL-loader notices and share-link confirmations). |
 | `library.ts` | Library entry. |
 | `tui/XtermTerminal.ts` | Adapter implementing pi-tui's `Terminal` interface against an xterm.js `Terminal`. |
 | `tui/theme.ts` | Shared color / style helpers (`flatText`, log-symbol prefixes). |

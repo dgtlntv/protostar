@@ -173,6 +173,22 @@ export class Protostar {
         this.term.focus()
     }
 
+    /**
+     * Append a static line above the live region. Use for one-shot notices
+     * that should land in scrollback (URL-loader error messages, share-link
+     * confirmations) without disturbing whatever component currently owns
+     * the prompt area. Multi-line strings are split on `\n` so each line
+     * occupies its own row, matching how the welcome banner renders.
+     *
+     * @param message Pre-rendered line(s); ANSI sequences are allowed.
+     */
+    print(message: string): void {
+        for (const line of message.split("\n")) {
+            this.tui.addChild(flatText(line))
+        }
+        this.tui.requestRender()
+    }
+
     /** Tear down listeners and dispose the underlying xterm. */
     destroy(): void {
         if (this.resizeHandler) {

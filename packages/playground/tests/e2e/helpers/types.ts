@@ -33,6 +33,28 @@ export interface VariablesHandle {
 }
 
 /**
+ * Decoded result of a `decode(...)` call. Mirrors the codec's
+ * `DecodeResult` discriminated union, narrowed to the surface the e2e
+ * suite actually inspects (we only assert `ok` and read either `commands`
+ * or `error` in the share-link round-trip spec).
+ */
+export type CodecDecodeResult =
+    | { ok: true; commands: unknown }
+    | { ok: false; error: string }
+
+/**
+ * Codec primitives re-exported on the dev handle so the URL-loader e2e
+ * suite can encode payloads in the same browser context the playground
+ * runs in. Only the calls the suite uses are typed.
+ */
+export interface CodecHandle {
+    encode(commands: unknown): Promise<string>
+    decode(input: string): Promise<CodecDecodeResult>
+    compressDeflateRaw(input: string): Promise<Uint8Array>
+    bytesToBase64url(bytes: Uint8Array): string
+}
+
+/**
  * Dev-only browser handle the e2e specs talk to. Helpers read editing
  * state via queries against `shell.currentPrompt`.
  */
@@ -42,6 +64,7 @@ export interface ProtostarHandle {
     shell: ShellHandle
     history: HistoryHandle
     variables: VariablesHandle
+    codec: CodecHandle
 }
 
 declare global {

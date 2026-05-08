@@ -185,6 +185,18 @@ const result = await decode(payload)                  // { ok, commands } | { ok
 
 The encoded format is versioned (`p1=`) so future format changes can roll forward without breaking links already in the wild. Validation is built in — `encode` throws on schema-invalid input and `decode` returns a discriminated `{ ok: false, error }` describing which pipeline stage rejected the payload.
 
+### Loading and sharing prototypes from the playground
+
+Open the playground with a `#p1=…` fragment and the embedded prototype boots instead of the bundled demo:
+
+```
+https://dgtlntv.github.io/protostar/#p1=<base64url-payload>
+```
+
+The hash is the only data source — the URL is never sent to the server, so prototypes stay fully client-side. A malformed or schema-invalid hash falls back to the bundled demo with a one-line error explaining which pipeline stage rejected the payload, so a recipient who clicked a broken share link knows what to fix.
+
+Press **Ctrl+Shift+L** in the playground to encode the live `commands.json` and copy a share URL to the clipboard. The shortcut is most useful when the playground is showing the bundled demo and you want to share the *current* state — for prototypes that came in via URL, the existing URL already works.
+
 ## Customizing Your CLI
 
 This prototyping tool is build in a way so that the only file you need to change to customize your CLI prototype is the `src/commands.json` file.

@@ -14,6 +14,7 @@
     },
     "dependencies": {
         "@dgtlntv/protostar": "workspace:*",
+        "@dgtlntv/protostar-codec": "workspace:*",
         "@xterm/xterm": "^6.0.0"
     },
     "devDependencies": {

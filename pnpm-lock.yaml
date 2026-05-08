@@ -13,6 +13,9 @@ importers:
       '@dgtlntv/protostar':
         specifier: workspace:*
         version: link:../protostar
+      '@dgtlntv/protostar-codec':
+        specifier: workspace:*
+        version: link:../protostar-codec
       '@xterm/xterm':
         specifier: ^6.0.0
         version: 6.0.0
