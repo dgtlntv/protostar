@@ -10,10 +10,11 @@ body {
     height: 100%;
     width: 100%;
 }
-.xterm-viewport {
+.xterm .xterm-viewport {
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+    background-color: transparent;
 }
 .xterm-viewport::-webkit-scrollbar {
     width: 0;
