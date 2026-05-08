@@ -5,25 +5,16 @@
     "type": "module",
     "packageManager": "pnpm@11.0.8",
     "scripts": {
-        "dev": "vite",
-        "build": "vite build",
-        "preview": "vite preview",
+        "dev": "pnpm --filter @dgtlntv/playground dev",
+        "build": "pnpm --filter @dgtlntv/playground build",
+        "preview": "pnpm --filter @dgtlntv/playground preview",
         "build:lib": "pnpm --filter @dgtlntv/protostar build:lib",
-        "test:e2e": "playwright test",
-        "test:e2e:ui": "playwright test --ui",
-        "test:e2e:headed": "playwright test --headed",
+        "test:e2e": "pnpm --filter @dgtlntv/playground test:e2e",
+        "test:e2e:ui": "pnpm --filter @dgtlntv/playground test:e2e:ui",
+        "test:e2e:headed": "pnpm --filter @dgtlntv/playground test:e2e:headed",
         "test:unit": "pnpm -r test:unit",
         "test:unit:ui": "pnpm --filter @dgtlntv/protostar test:unit:ui",
         "typecheck": "pnpm -r typecheck"
-    },
-    "devDependencies": {
-        "@playwright/test": "^1.59.1",
-        "@types/node": "^25.6.0",
-        "vite": "^8.0.11"
-    },
-    "dependencies": {
-        "@dgtlntv/protostar": "workspace:*",
-        "@xterm/xterm": "^6.0.0"
     },
     "license": "GPL-3.0",
     "repository": {

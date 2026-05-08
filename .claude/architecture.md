@@ -2,18 +2,29 @@
 
 Protostar is a browser-based CLI prototyping library. It renders an xterm.js terminal and lets authors declaratively define commands (via yargs) whose handlers run a sequence of components — text, spinner, progress bar, table, interactive prompts. Everything runs client-side; the app is a static bundle.
 
+## Workspace Layout
+
+The repo is a pnpm workspace with two packages today (a third, `@dgtlntv/protostar-codec`, lands in Phase 3.E):
+
+| Package | Path | Role |
+|---|---|---|
+| `@dgtlntv/protostar` | `packages/protostar/` | Published library — the `Protostar` class, shell, components, types. |
+| `@dgtlntv/playground` | `packages/playground/` | Private app — boots the library against `commands.json` for development and the GitHub Pages demo. |
+
+Root `package.json` is a thin orchestration façade: `pnpm dev` / `pnpm build` / `pnpm test:e2e` filter into the playground, `pnpm build:lib` filters into the library, `pnpm test:unit` and `pnpm typecheck` recurse across the workspace.
+
 ## Entry Points
 
-- `index.html` → `src/index.ts` — instantiates `Protostar` against `#terminal` on `DOMContentLoaded` and exposes a dev-only `window.__protostar` handle for the e2e suite.
-- `src/library.ts` — re-export surface for `vite build --mode lib` (npm package build, invoked via `pnpm build:lib`); re-exports `Protostar` and the `Commands` types from `./index.ts`.
-- `vite.config.js` — default dev/app build; library build when `--mode lib`. Aliases the `node:*` / `child_process` / `fs` / `os` / `path` modules pi-tui's autocomplete provider eagerly imports to no-op shims under `src/shims/`. Aliases `https://unpkg.com/cliui@7.0.1/index.mjs` and the unpkg `yargs-parser` URL to local packages so `yargs/browser` doesn't fetch from the CDN at runtime. `vite-plugin-node-polyfills` polyfills `process` for yargs.
+- `packages/playground/index.html` → `packages/playground/src/main.ts` — instantiates `Protostar` against `#terminal` on `DOMContentLoaded` and exposes a dev-only `window.__protostar` handle for the e2e suite.
+- `packages/protostar/src/library.ts` — re-export surface for `vite build --mode lib` (npm package build, invoked via `pnpm build:lib`); re-exports `Protostar` and the `Commands` types.
+- `packages/protostar/vite.config.ts` — library build; aliases the `node:*` / `child_process` / `fs` / `os` / `path` / `events` modules pi-tui's autocomplete provider eagerly imports to no-op shims under `src/shims/`. Aliases the unpkg `cliui` / `yargs-parser` URLs to local packages so `yargs/browser` doesn't fetch from the CDN at runtime.
+- `packages/playground/vite.config.ts` — playground dev/app build; consumes the library via the `@dgtlntv/protostar` workspace symlink and re-applies the same shim aliases (the lib's `src/library.ts` is bundled directly through Vite during dev/app build, so the shims still need to resolve here too — Phase 3.D bakes them into the published lib bundle and removes this duplication on the consumer side).
 
-## File Layout (`src/`)
+## File Layout (`packages/protostar/src/`)
 
 | File | Purpose |
 |---|---|
 | `Protostar.ts` | Top-level wiring: xterm.js `Terminal` + `FitAddon` + `XtermTerminalAdapter` + pi-tui `TUI` + `VariableStore` + `HistoryStore` + yargs + `ShellLoop`. Owns `start()` / `destroy()`. |
-| `index.ts` | DOM bootstrap; instantiates `Protostar`, prints the welcome banner via the `Commands` config, exposes the dev handle. |
 | `library.ts` | Library entry. |
 | `tui/XtermTerminal.ts` | Adapter implementing pi-tui's `Terminal` interface against an xterm.js `Terminal`. |
 | `tui/theme.ts` | Shared color / style helpers (`flatText`, log-symbol prefixes). |
@@ -31,8 +42,9 @@ Protostar is a browser-based CLI prototyping library. It renders an xterm.js ter
 | `components/prompts/*` | Interactive prompt components (input, number, password, invisible, list, select, autoComplete, multiSelect, confirm, form, basicAuth, toggle, sort) backed by `InlinePrompt`, pi-tui `SelectList`, and custom focusables. `confirm`, `toggle`, and `form` use bespoke focusables that match the legacy enquirer layouts. |
 | `components/context.ts` | Shared component-execution context (`tui`, `variables`, `terminal`). |
 | `types/commands.ts` | TypeScript surface mirroring `commands-schema.json`: `Commands`, the `Component` discriminated union, option/positional types. |
-| `commands.json` / `commands-schema.json` | Default CLI definition + JSON Schema; `commands.json` is bundled at build time. |
 | `shims/node*.js` | Minimal stand-ins for the Node-only modules pi-tui's server-side autocomplete eagerly imports (`node:module`, `node:perf_hooks`, `child_process`, `fs`, `os`, `path`). The provider that uses them never instantiates in the browser, so the shims throw on call. |
+
+The playground owns the bundled CLI definition (`packages/playground/src/commands.json`) and the demo coverage config used by the e2e suite (`packages/playground/src/test-commands.json`). The JSON Schema (`src/commands-schema.json`) currently sits at the repo root and relocates into `@dgtlntv/protostar-codec` in Phase 3.E.
 
 ## Core Flow
 
@@ -68,7 +80,7 @@ Snapshot rendering on abort lives in `promptUtils.ts` — see the policy table a
 
 ## Testing State
 
-- **Unit suite** (Vitest, `tests/unit/`) covers each shell primitive (`HistoryStore`, `VariableStore`, `interpolate`, `evalCondition`, `isIncomplete`), the xterm adapter, every display component, and at least one happy-path test per prompt component. Helpers under `tests/unit/helpers/virtualTerm.ts` mount components against `@xterm/headless` + a real `TUI`.
-- **End-to-end suite** (Playwright, `tests/e2e/`) covers the terminal editing surface: input, history, Ctrl+C, multi-line continuation, paste, line wrap, resize, ignored keys, plus per-component happy paths. Tests drive xterm via `window.__protostar` (dev/test builds only) and read state through `shell.currentPrompt.getValue()` / `getCursor()`. Known UX bugs surfaced by the suite are tracked in `.claude/known-bugs.md`; matching tests are `test.fixme`.
+- **Unit suite** (Vitest, `packages/protostar/tests/unit/`) covers each shell primitive (`HistoryStore`, `VariableStore`, `interpolate`, `evalCondition`, `isIncomplete`), the xterm adapter, every display component, and at least one happy-path test per prompt component. Helpers under `tests/unit/helpers/virtualTerm.ts` mount components against `@xterm/headless` + a real `TUI`. Run via `pnpm -r test:unit`.
+- **End-to-end suite** (Playwright, `packages/playground/tests/e2e/`) covers the terminal editing surface: input, history, Ctrl+C, multi-line continuation, paste, line wrap, resize, ignored keys, plus per-component happy paths. Tests drive xterm via `window.__protostar` (dev/test builds only) and read state through `shell.currentPrompt.getValue()` / `getCursor()`. Known UX bugs surfaced by the suite are tracked in `.claude/known-bugs.md`; matching tests are `test.fixme`. Run via `pnpm test:e2e`.
 
 CI runs unit + e2e on every PR via `.github/workflows/test.yml`.
