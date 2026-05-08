@@ -45,13 +45,13 @@ cd cli-prototype
 3. In the cloned repository install the dependencies:
 
 ```bash
-npm install
+pnpm install
 ```
 
 4. Run the development server:
 
 ```bash
-npm run dev
+pnpm dev
 ```
 
 5. Open the provided URL in your web browser to interact with your CLI prototype.
@@ -63,20 +63,20 @@ Two test suites run on every pull request via `.github/workflows/test.yml`:
 - **Unit suite** — Vitest specs under `tests/unit/`. Cover the shell primitives (`HistoryStore`, `VariableStore`, `interpolate`, `evalCondition`, `isIncomplete`), the xterm adapter, every display component, and at least one happy-path test per prompt component.
 - **End-to-end suite** — Playwright specs under `tests/e2e/` running against the Vite dev server. Cover the terminal editing surface (input, history, Ctrl+C, multi-line continuation, paste, line wrap, resize) and per-component happy paths.
 
-Install the Playwright browser binaries once after `npm install`:
+Install the Playwright browser binaries once after `pnpm install`:
 
 ```bash
-npx playwright install --with-deps chromium
+pnpm exec playwright install --with-deps chromium
 ```
 
 Then:
 
 ```bash
-npm run test:unit         # Vitest run
-npm run test:unit:ui      # Vitest's interactive UI
-npm run test:e2e          # Playwright headless run
-npm run test:e2e:ui       # Playwright's interactive UI
-npm run test:e2e:headed   # run a visible Chromium window
+pnpm test:unit         # Vitest run
+pnpm test:unit:ui      # Vitest's interactive UI
+pnpm test:e2e          # Playwright headless run
+pnpm test:e2e:ui       # Playwright's interactive UI
+pnpm test:e2e:headed   # run a visible Chromium window
 ```
 
 Known UX bugs surfaced by the suite are tracked in `.claude/known-bugs.md`; tests that exercise them are marked `test.fixme` until the underlying issues are fixed.
@@ -135,7 +135,7 @@ In addition to using Protostar as a standalone CLI prototyping tool, you can als
 ### Installation
 
 ```bash
-npm install protostar
+pnpm add protostar
 ```
 
 ### Usage as a library

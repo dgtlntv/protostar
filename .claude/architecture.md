@@ -5,7 +5,7 @@ Protostar is a browser-based CLI prototyping library. It renders an xterm.js ter
 ## Entry Points
 
 - `index.html` → `src/index.ts` — instantiates `Protostar` against `#terminal` on `DOMContentLoaded` and exposes a dev-only `window.__protostar` handle for the e2e suite.
-- `src/library.ts` — re-export surface for `vite build --mode lib` (npm package build); re-exports `Protostar` and the `Commands` types from `./index.ts`.
+- `src/library.ts` — re-export surface for `vite build --mode lib` (npm package build, invoked via `pnpm build:lib`); re-exports `Protostar` and the `Commands` types from `./index.ts`.
 - `vite.config.js` — default dev/app build; library build when `--mode lib`. Aliases the `node:*` / `child_process` / `fs` / `os` / `path` modules pi-tui's autocomplete provider eagerly imports to no-op shims under `src/shims/`. Aliases `https://unpkg.com/cliui@7.0.1/index.mjs` and the unpkg `yargs-parser` URL to local packages so `yargs/browser` doesn't fetch from the CDN at runtime. `vite-plugin-node-polyfills` polyfills `process` for yargs.
 
 ## File Layout (`src/`)
@@ -60,7 +60,7 @@ Snapshot rendering on abort lives in `promptUtils.ts` — see the policy table a
 ## Notable Dependencies
 
 - `@xterm/xterm`, `@xterm/addon-fit` — terminal.
-- `@mariozechner/pi-tui` — TUI rendering primitives, `Input`, `SelectList`, `Loader`.
+- `@earendil-works/pi-tui` — TUI rendering primitives, `Input`, `SelectList`, `Loader`.
 - `yargs`, `yargs-parser`, `cliui`, `shell-quote` — command parsing. `cliui` is bundled locally because `yargs/browser` imports it from an unpkg URL we alias.
 - `chalk`, `cli-spinners`, `command-line-usage`, `string-width`, `strip-ansi`, `ansi-escapes`, `ansi-regex` — styling and width-aware rendering.
 - `handlebars` — variable interpolation in components.

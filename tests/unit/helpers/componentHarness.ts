@@ -5,7 +5,7 @@
  * recurse during tests without depending on the production dispatcher.
  */
 
-import { TUI } from "@mariozechner/pi-tui"
+import { TUI } from "@earendil-works/pi-tui"
 import { VirtualTerminal } from "./virtualTerm.js"
 import { VariableStore } from "../../../src/shell/VariableStore.js"
 import type {

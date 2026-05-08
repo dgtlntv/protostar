@@ -5,7 +5,7 @@
  * smoothly.
  */
 
-import type { Component, TUI } from "@mariozechner/pi-tui"
+import type { Component, TUI } from "@earendil-works/pi-tui"
 import type { ProgressBarComponent } from "../types/commands.js"
 import { interpolate } from "../shell/interpolate.js"
 import { accentColor } from "../tui/theme.js"

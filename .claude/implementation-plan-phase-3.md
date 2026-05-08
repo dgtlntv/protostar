@@ -39,7 +39,7 @@ Lays the workspace plumbing without touching the source tree. After this commit,
 Moves the library source — everything that ships in `dist/index.es.js` today — into its own workspace package. The playground (still at repo root) becomes a workspace consumer of the lib.
 
 - Create `packages/protostar/` with:
-  - `package.json` — `name: "@dgtlntv/protostar"`, `version: "0.0.1"`, `type: "module"`, the existing `main`/`module`/`exports`/`files` fields, and only the lib's runtime deps (`@mariozechner/pi-tui`, `@xterm/*`, `chalk`, `cliui`, `shell-quote`, `yargs`, `yargs-parser`). Move `vitest`, `typescript`, `vite`, `@types/*` into the package's `devDependencies`.
+  - `package.json` — `name: "@dgtlntv/protostar"`, `version: "0.0.1"`, `type: "module"`, the existing `main`/`module`/`exports`/`files` fields, and only the lib's runtime deps (`@earendil-works/pi-tui`, `@xterm/*`, `chalk`, `cliui`, `shell-quote`, `yargs`, `yargs-parser`). Move `vitest`, `typescript`, `vite`, `@types/*` into the package's `devDependencies`.
   - `tsconfig.json` extending `../../tsconfig.base.json`.
   - `vite.config.ts` containing only the lib build (the current `getLibConfig` path), with the existing `resolve.alias` block for the pi-tui shims. Strip the dev/app config — that moves to the playground in 3.C.
   - `vitest.config.ts` mirroring the current root config; unit tests for lib code move with the source.

@@ -5,8 +5,8 @@
  * viewport-aware downscaling so the table fits the current terminal width.
  */
 
-import { visibleWidth, wrapTextWithAnsi } from "@mariozechner/pi-tui"
-import type { Component } from "@mariozechner/pi-tui"
+import { visibleWidth, wrapTextWithAnsi } from "@earendil-works/pi-tui"
+import type { Component } from "@earendil-works/pi-tui"
 import type { TableComponent } from "../types/commands.js"
 import { interpolate } from "../shell/interpolate.js"
 import type { ComponentContext } from "./context.js"

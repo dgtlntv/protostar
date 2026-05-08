@@ -4,13 +4,13 @@
  * list so typing narrows the visible options.
  */
 
-import { Input, SelectList } from "@mariozechner/pi-tui"
+import { Input, SelectList } from "@earendil-works/pi-tui"
 import type {
     Component,
     Focusable,
     SelectItem,
     SelectListTheme,
-} from "@mariozechner/pi-tui"
+} from "@earendil-works/pi-tui"
 import chalk from "chalk"
 import { accentColor, mutedColor } from "../../tui/theme.js"
 import type {

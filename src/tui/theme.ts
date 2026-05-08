@@ -4,7 +4,7 @@
  */
 
 import chalk from "chalk"
-import { Text } from "@mariozechner/pi-tui"
+import { Text } from "@earendil-works/pi-tui"
 
 /**
  * Colored status glyphs used by the spinner's conclusion line and

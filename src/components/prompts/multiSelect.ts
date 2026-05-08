@@ -4,7 +4,7 @@
  * array of `value`s on Enter.
  */
 
-import type { Component, Focusable } from "@mariozechner/pi-tui"
+import type { Component, Focusable } from "@earendil-works/pi-tui"
 import { accentColor, mutedColor, successColor } from "../../tui/theme.js"
 import type {
     MultiSelectChoice,

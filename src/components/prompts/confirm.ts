@@ -5,8 +5,8 @@
  * default. Matches the legacy enquirer keystroke flow.
  */
 
-import { CURSOR_MARKER, visibleWidth } from "@mariozechner/pi-tui"
-import type { Component, Focusable } from "@mariozechner/pi-tui"
+import { CURSOR_MARKER, visibleWidth } from "@earendil-works/pi-tui"
+import type { Component, Focusable } from "@earendil-works/pi-tui"
 import { promptOpenColor } from "../../tui/theme.js"
 import type { ConfirmComponent } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"

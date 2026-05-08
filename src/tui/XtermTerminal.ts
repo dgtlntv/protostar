@@ -4,7 +4,7 @@
  * browser (or `@xterm/headless` under unit tests).
  */
 
-import type { Terminal as PiTerminal } from "@mariozechner/pi-tui"
+import type { Terminal as PiTerminal } from "@earendil-works/pi-tui"
 
 /**
  * Structural subset of the xterm Terminal API that the adapter actually uses.

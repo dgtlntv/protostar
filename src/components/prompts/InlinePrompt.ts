@@ -7,8 +7,8 @@
  * password-style prompts.
  */
 
-import { CURSOR_MARKER, getKeybindings, visibleWidth } from "@mariozechner/pi-tui"
-import type { Component, Focusable } from "@mariozechner/pi-tui"
+import { CURSOR_MARKER, getKeybindings, visibleWidth } from "@earendil-works/pi-tui"
+import type { Component, Focusable } from "@earendil-works/pi-tui"
 import { promptOpenColor } from "../../tui/theme.js"
 
 /** Bracketed paste start marker. */

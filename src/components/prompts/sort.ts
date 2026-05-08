@@ -4,7 +4,7 @@
  * item up/down. Enter submits the reordered list.
  */
 
-import type { Component, Focusable } from "@mariozechner/pi-tui"
+import type { Component, Focusable } from "@earendil-works/pi-tui"
 import { accentColor, mutedColor } from "../../tui/theme.js"
 import type { SortComponent } from "../../types/commands.js"
 import type { ComponentContext } from "../context.js"

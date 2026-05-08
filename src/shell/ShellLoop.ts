@@ -8,7 +8,7 @@
  * `onCancel` (Ctrl+C) without managing intermediate continuation state.
  */
 
-import type { TUI } from "@mariozechner/pi-tui"
+import type { TUI } from "@earendil-works/pi-tui"
 import { parse } from "shell-quote"
 import type Yargs from "yargs/browser"
 import { PromptLine } from "./PromptLine.js"

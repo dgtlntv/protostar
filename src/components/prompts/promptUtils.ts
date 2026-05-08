@@ -23,8 +23,8 @@
  * own their own snapshot rendering.
  */
 
-import { Text } from "@mariozechner/pi-tui"
-import type { Component, TUI } from "@mariozechner/pi-tui"
+import { Text } from "@earendil-works/pi-tui"
+import type { Component, TUI } from "@earendil-works/pi-tui"
 import { interpolate } from "../../shell/interpolate.js"
 import { flatText, promptOpenColor, successColor } from "../../tui/theme.js"
 import type { ComponentContext } from "../context.js"

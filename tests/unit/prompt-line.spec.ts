@@ -8,7 +8,7 @@
  */
 
 import { describe, it, expect } from "vitest"
-import { TUI } from "@mariozechner/pi-tui"
+import { TUI } from "@earendil-works/pi-tui"
 import { VirtualTerminal } from "./helpers/virtualTerm.js"
 import { HistoryStore } from "../../src/shell/HistoryStore.js"
 import { PromptLine } from "../../src/shell/PromptLine.js"

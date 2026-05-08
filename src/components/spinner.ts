@@ -4,7 +4,7 @@
  * live row with a static line carrying a conclusion glyph (`✔` / `✖`).
  */
 
-import type { Component, TUI } from "@mariozechner/pi-tui"
+import type { Component, TUI } from "@earendil-works/pi-tui"
 import type { SpinnerComponent } from "../types/commands.js"
 import { interpolate } from "../shell/interpolate.js"
 import { LOG_SYMBOLS, accentColor, flatText, mutedColor } from "../tui/theme.js"

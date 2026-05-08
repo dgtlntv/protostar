@@ -12,7 +12,7 @@ import {
     TUI,
     TUI_KEYBINDINGS,
     type KeybindingsConfig,
-} from "@mariozechner/pi-tui"
+} from "@earendil-works/pi-tui"
 import chalk from "chalk"
 
 import type { Commands } from "./types/commands.js"

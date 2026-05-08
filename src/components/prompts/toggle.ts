@@ -5,8 +5,8 @@
  * states; Enter submits.
  */
 
-import { visibleWidth } from "@mariozechner/pi-tui"
-import type { Component, Focusable } from "@mariozechner/pi-tui"
+import { visibleWidth } from "@earendil-works/pi-tui"
+import type { Component, Focusable } from "@earendil-works/pi-tui"
 import chalk from "chalk"
 import { mutedColor, promptOpenColor } from "../../tui/theme.js"
 import type { ToggleComponent } from "../../types/commands.js"

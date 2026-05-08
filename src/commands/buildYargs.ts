@@ -16,7 +16,7 @@ import type {
     CommandOptions,
 } from "../types/commands.js"
 import type { ComponentContext, ComponentRunner } from "../components/context.js"
-import type { TUI } from "@mariozechner/pi-tui"
+import type { TUI } from "@earendil-works/pi-tui"
 import type { VariableStore } from "../shell/VariableStore.js"
 import type { XtermTerminalAdapter } from "../tui/XtermTerminal.js"
 import { flatText } from "../tui/theme.js"

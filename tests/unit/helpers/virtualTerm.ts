@@ -30,7 +30,7 @@
 
 import xterm from "@xterm/headless"
 import type { Terminal as XtermHeadlessTerminal } from "@xterm/headless"
-import type { Terminal as PiTerminal } from "@mariozechner/pi-tui"
+import type { Terminal as PiTerminal } from "@earendil-works/pi-tui"
 
 const HeadlessTerminal = xterm.Terminal
 
