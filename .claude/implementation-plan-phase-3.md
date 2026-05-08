@@ -116,7 +116,7 @@ Adds the standalone codec that encodes a `Commands` config into a URL-safe hash 
     2. Parse `key=value`. If `key !== "p1"`, return `{ ok: false, error: "unsupported encoding version: <key>" }`. The versioned key lets us swap compression or alphabet later without breaking old links.
     3. Base64url-decode → decompress → `JSON.parse` → validate. Wrap each step's failure in a clear error string.
   - `index.ts` — re-exports `encode`, `decode`, `validateCommands`, plus the `Commands` type re-imported from `@dgtlntv/protostar`.
-  - `cli.ts` — Node CLI: reads JSON from stdin, calls `encode`, writes `https://<host>/#p1=...` to stdout. `--host <url>` flag overrides the default; default is a placeholder string (`https://example.com`) so output is never silently wrong. `--no-host` writes only the fragment. Exit code non-zero on validation failure with the AJV error on stderr.
+  - `cli.ts` — Node CLI: reads JSON from stdin, calls `encode`, writes `https://<host>#p1=...` to stdout. `--host <url>` flag overrides the default; default is the GitHub Pages playground host (`https://dgtlntv.github.io/protostar/`) so the no-flags output is a working share URL. `--no-host` writes only the fragment. Exit code non-zero on validation failure with the AJV error on stderr.
   - Bundles the schema JSON inline at build time (Vite/tsup `assetsInlineLimit` or explicit JSON import) so consumers don't need a separate schema file.
 - Unit tests under `packages/protostar-codec/tests/`:
   - `roundtrip.spec.ts` — encode then decode for the bundled `test-commands.json`, assert deep equality. Same for `commands.json`.

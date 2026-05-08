@@ -1,5 +1,5 @@
 {
-    "$schema": "../../../src/commands-schema.json",
+    "$schema": "../../protostar-codec/schema/commands.schema.json",
     "welcome": "Coverage CLI — exercises every component variant. Type `demo --help` to list groups.",
     "variables": {
         "declaredVar": "initial",

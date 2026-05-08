@@ -1,0 +1,68 @@
+{
+    "name": "@dgtlntv/protostar-codec",
+    "version": "0.0.1",
+    "type": "module",
+    "main": "./src/index.ts",
+    "module": "./src/index.ts",
+    "types": "./src/index.ts",
+    "exports": {
+        ".": {
+            "types": "./src/index.ts",
+            "default": "./src/index.ts"
+        }
+    },
+    "bin": {
+        "protostar-encode": "./dist/cli.js"
+    },
+    "files": [
+        "dist",
+        "schema",
+        "README.md",
+        "LICENSE.md"
+    ],
+    "publishConfig": {
+        "main": "./dist/index.js",
+        "module": "./dist/index.js",
+        "types": "./dist/index.d.ts",
+        "exports": {
+            ".": {
+                "types": "./dist/index.d.ts",
+                "import": "./dist/index.js"
+            }
+        }
+    },
+    "scripts": {
+        "build": "vite build",
+        "test:unit": "vitest run",
+        "test:unit:ui": "vitest --ui",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "prepublishOnly": "pnpm build"
+    },
+    "dependencies": {
+        "ajv": "^8.17.1"
+    },
+    "devDependencies": {
+        "@dgtlntv/protostar": "workspace:*",
+        "@types/node": "^25.6.0",
+        "@vitest/ui": "^4.1.5",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.11",
+        "vitest": "^4.1.5"
+    },
+    "description": "URL-safe encoder/decoder for Protostar CLI prototypes. Serializes a Commands config to a base64url, deflate-compressed payload suitable for sharing via the page hash.",
+    "keywords": [
+        "protostar",
+        "cli",
+        "codec",
+        "encode",
+        "share-url",
+        "deflate"
+    ],
+    "author": "dgtlntv",
+    "license": "GPL-3.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dgtlntv/protostar.git",
+        "directory": "packages/protostar-codec"
+    }
+}

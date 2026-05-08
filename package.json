@@ -9,6 +9,7 @@
         "build": "pnpm --filter @dgtlntv/playground build",
         "preview": "pnpm --filter @dgtlntv/playground preview",
         "build:lib": "pnpm --filter @dgtlntv/protostar build:lib",
+        "build:codec": "pnpm --filter @dgtlntv/protostar-codec build",
         "test:e2e": "pnpm --filter @dgtlntv/playground test:e2e",
         "test:e2e:ui": "pnpm --filter @dgtlntv/playground test:e2e:ui",
         "test:e2e:headed": "pnpm --filter @dgtlntv/playground test:e2e:headed",

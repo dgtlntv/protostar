@@ -163,6 +163,28 @@ document.addEventListener("DOMContentLoaded", () => {
 })
 ```
 
+## URL-shareable prototypes via `@dgtlntv/protostar-codec`
+
+The `@dgtlntv/protostar-codec` workspace package encodes a `commands.json` config into a base64url, deflate-compressed payload suitable for sharing as a URL hash. The companion `protostar-encode` CLI does the same from the terminal so an agent (or a human) can mint share links without instantiating the playground.
+
+```bash
+# In a fresh repo:
+pnpm add @dgtlntv/protostar-codec
+
+# Or run the bundled CLI to mint a share link:
+cat commands.json | pnpm exec protostar-encode
+# → https://dgtlntv.github.io/protostar/#p1=<base64url>
+```
+
+```javascript
+import { encode, decode } from "@dgtlntv/protostar-codec"
+
+const payload = await encode(commandsData)            // "p1=…"
+const result = await decode(payload)                  // { ok, commands } | { ok: false, error }
+```
+
+The encoded format is versioned (`p1=`) so future format changes can roll forward without breaking links already in the wild. Validation is built in — `encode` throws on schema-invalid input and `decode` returns a discriminated `{ ok: false, error }` describing which pipeline stage rejected the payload.
+
 ## Customizing Your CLI
 
 This prototyping tool is build in a way so that the only file you need to change to customize your CLI prototype is the `src/commands.json` file.

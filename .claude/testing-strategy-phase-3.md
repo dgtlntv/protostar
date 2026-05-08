@@ -62,7 +62,7 @@ New in 3.E. Six spec files cover each codec module plus the CLI. Each is the exi
 
 #### `cli.spec.ts`
 
-- Spawn the built CLI: pipe `test-commands.json` to stdin, assert stdout is `https://example.com/#p1=<base64url>`, exit 0.
+- Spawn the built CLI: pipe `test-commands.json` to stdin, assert stdout is `https://dgtlntv.github.io/protostar/#p1=<base64url>`, exit 0.
 - Spawn with `--host https://my.site/path`: stdout is `https://my.site/path#p1=<base64url>`.
 - Spawn with `--no-host`: stdout is `p1=<base64url>` (no scheme/host, just the fragment payload).
 - Spawn with schema-invalid input: exit code non-zero, AJV error path on stderr, stdout empty.

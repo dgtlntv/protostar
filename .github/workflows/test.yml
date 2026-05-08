@@ -29,6 +29,9 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
+            - name: Build codec (required by CLI spec)
+              run: pnpm --filter @dgtlntv/protostar-codec build
+
             - name: Run Vitest unit tests
               run: pnpm test:unit
 

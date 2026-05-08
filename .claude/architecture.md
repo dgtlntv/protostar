@@ -4,14 +4,15 @@ Protostar is a browser-based CLI prototyping library. It renders an xterm.js ter
 
 ## Workspace Layout
 
-The repo is a pnpm workspace with two packages today (a third, `@dgtlntv/protostar-codec`, lands in Phase 3.E):
+The repo is a pnpm workspace with three packages:
 
 | Package | Path | Role |
 |---|---|---|
 | `@dgtlntv/protostar` | `packages/protostar/` | Published library — the `Protostar` class, shell, components, types. |
+| `@dgtlntv/protostar-codec` | `packages/protostar-codec/` | Published encoder/decoder for URL-shareable `Commands` payloads. Owns the JSON Schema + AJV validator + the `protostar-encode` Node CLI. |
 | `@dgtlntv/playground` | `packages/playground/` | Private app — boots the library against `commands.json` for development and the GitHub Pages demo. |
 
-Root `package.json` is a thin orchestration façade: `pnpm dev` / `pnpm build` / `pnpm test:e2e` filter into the playground, `pnpm build:lib` filters into the library, `pnpm test:unit` and `pnpm typecheck` recurse across the workspace.
+Root `package.json` is a thin orchestration façade: `pnpm dev` / `pnpm build` / `pnpm test:e2e` filter into the playground, `pnpm build:lib` and `pnpm build:codec` filter into the published packages, `pnpm test:unit` and `pnpm typecheck` recurse across the workspace.
 
 ## Entry Points
 
@@ -44,7 +45,7 @@ Root `package.json` is a thin orchestration façade: `pnpm dev` / `pnpm build` /
 | `types/commands.ts` | TypeScript surface mirroring `commands-schema.json`: `Commands`, the `Component` discriminated union, option/positional types. |
 | `shims/node*.js` | Minimal stand-ins for the Node-only modules pi-tui's server-side autocomplete eagerly imports (`node:module`, `node:perf_hooks`, `child_process`, `fs`, `os`, `path`). The provider that uses them never instantiates in the browser, so the shims throw on call. |
 
-The playground owns the bundled CLI definition (`packages/playground/src/commands.json`) and the demo coverage config used by the e2e suite (`packages/playground/src/test-commands.json`). The JSON Schema (`src/commands-schema.json`) currently sits at the repo root and relocates into `@dgtlntv/protostar-codec` in Phase 3.E.
+The playground owns the bundled CLI definition (`packages/playground/src/commands.json`) and the demo coverage config used by the e2e suite (`packages/playground/src/test-commands.json`). The JSON Schema lives at `packages/protostar-codec/schema/commands.schema.json` — the codec is its runtime home, and any consumer (playground, agent skill, CLI) validates `Commands` payloads through `validateCommands` from `@dgtlntv/protostar-codec`.
 
 ## Core Flow
 
