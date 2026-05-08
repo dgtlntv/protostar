@@ -1,0 +1,73 @@
+/*
+ * Layout and chrome for the playground shell. The lib's `styles.css`
+ * fills the viewport with a single full-height `#terminal`; this file
+ * stacks the prototype banner above it without disturbing xterm's own
+ * host (the banner sits in playground-owned DOM so URL-loaded prototype
+ * content cannot cover, restyle, or remove it).
+ */
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+#terminal {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+}
+
+#prototype-banner {
+    flex-shrink: 0;
+    box-sizing: border-box;
+    width: 100%;
+    padding: 6px 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.6);
+    font-family: "Ubuntu Mono", monospace;
+    font-size: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+#prototype-banner .prototype-banner-text {
+    flex: 1;
+}
+
+#prototype-banner .prototype-banner-dismiss {
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 2px 6px;
+    opacity: 0.7;
+}
+
+#prototype-banner .prototype-banner-dismiss:hover {
+    opacity: 1;
+}
+
+#prototype-banner.collapsed {
+    width: auto;
+    align-self: flex-start;
+    border-bottom: none;
+    padding: 4px 8px;
+}
+
+#prototype-banner.collapsed .prototype-banner-text,
+#prototype-banner.collapsed .prototype-banner-dismiss {
+    display: none;
+}
+
+#prototype-banner .prototype-banner-icon {
+    display: none;
+    font-size: 12px;
+}
+
+#prototype-banner.collapsed .prototype-banner-icon {
+    display: inline;
+}

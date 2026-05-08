@@ -14,6 +14,10 @@ export type {
     ValidateErr,
     ValidateResult,
 } from "./validate.js"
-export { compressDeflateRaw, decompressDeflateRaw } from "./compress.js"
+export {
+    compressDeflateRaw,
+    decompressDeflateRaw,
+    MAX_DECOMPRESSED_BYTES,
+} from "./compress.js"
 export { bytesToBase64url, base64urlToBytes } from "./base64url.js"
 export type { Commands } from "@dgtlntv/protostar"

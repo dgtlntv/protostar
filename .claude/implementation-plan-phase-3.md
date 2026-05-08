@@ -163,16 +163,18 @@ Lands the user-visible feature. The playground reads the URL hash on boot, decod
 
 Adds the hardening that makes the URL loader safe to ship publicly. Three mitigations land together: a decompressed-size cap in the codec, an encoder-side size check so authors hit a clear error before shipping a too-large prototype, and a friendly banner in the playground that frames URL-loaded prototypes as mock environments. Nothing here changes the feature surface — it constrains it.
 
-### Codec: 1 MB decompressed-size cap (`decode`)
+The cap is set at **256 KiB (262144 bytes)**. Realistic prototype JSON is in the 4–7 KB range (current bundled demos), so 256 KiB sits ~30–50× above real use while bounding worst-case parse + AJV-validate workload to a few tens of milliseconds. Sized as a security ceiling, not a UX ceiling — practical "shareable URL" failure (chat apps, email previewers) hits 10–100× sooner than the cap.
 
-- `decompressDeflateRaw` switches from "decompress all, then return" to a streaming pipeline that counts emitted bytes. As soon as cumulative output crosses 1 MB, the stream is aborted and the function returns `{ ok: false, error: "decompressed payload exceeds size limit" }`.
+### Codec: 256 KiB decompressed-size cap (`decode`)
+
+- `decompressDeflateRaw` switches from "decompress all, then return" to a streaming pipeline that counts emitted bytes. As soon as cumulative output crosses 256 KiB, the stream is aborted and the function returns `{ ok: false, error: "decompress: decompressed payload exceeds size limit of 262144 bytes" }`.
 - Implementation: a `TransformStream` between `DecompressionStream` and the consumer. Counts bytes per chunk and aborts the moment a chunk would push the running total past the cap. The full payload is never held in memory; pathological inputs fail fast.
-- Cap value lives in one place as `MAX_DECOMPRESSED_BYTES = 1_048_576` so future tuning is a single edit.
+- Cap value lives in one place as `MAX_DECOMPRESSED_BYTES = 262_144` so future tuning is a single edit.
 
 ### Codec: encoder size check (`encode`)
 
 - Before compressing, `encode` measures `JSON.stringify(commands).byteLength` (UTF-8 bytes via `TextEncoder`, not `String.length`).
-- If it exceeds 1 MB, throw with a message that explains why: `"Prototype is X.X MB raw JSON; the maximum supported size is 1 MB. The decoder rejects payloads that decompress beyond this limit, so a URL produced from this input would not load on the receiver."`
+- If it exceeds 256 KiB, throw with a message that explains why: `"Prototype is X.X KB raw JSON; the maximum supported size is 256 KB. The decoder rejects payloads that decompress beyond this limit, so a URL produced from this input would not load on the receiver."`
 - The check runs after schema validation — a malformed prototype is a more useful error than a size error, so we surface that first.
 - CLI surfaces the message to stderr and exits non-zero. Programmatic callers (agent skill, share button) get a rejected promise with the same message and can present it in their own UI.
 
@@ -193,13 +195,13 @@ Decisions captured here so they don't drift back in by accident:
 
 - **No xterm.js feature lockdown** (OSC 8 hyperlinks, OSC 52 clipboard, OSC 0/1/2 window title) for URL-loaded prototypes. The banner is the user-facing trust boundary; locking down terminal features beyond that fights the prototyping use case.
 - **No `{{var}}` interpolation sanitization.** Same rationale — the banner sets expectations; over-constraining the feature surface to defend against contrived phishing chains is not worth the cost in real-world expressiveness.
-- **No schema bounds (`maxLength`, `maxItems`, `maxProperties`).** The 1 MB decompressed cap bounds total parser/validator workload; per-field bounds add maintenance friction without meaningful additional protection.
+- **No schema bounds (`maxLength`, `maxItems`, `maxProperties`).** The 256 KiB decompressed cap bounds total parser/validator workload; per-field bounds add maintenance friction without meaningful additional protection.
 
 ### Testing
 
 - Codec unit tests:
-  - `decode.size-limit.spec.ts` — constructs a payload by compressing 1.5 MB of repeated bytes (a few KB compressed). Asserts `decode` returns the size-limit error in well under 100 ms. We construct the input ourselves; nothing exploit-grade is in the repo.
-  - `encode.size-limit.spec.ts` — calls `encode` with a synthetic >1 MB `Commands` value. Asserts the function throws with the documented message.
+  - `decode.size-limit.spec.ts` — constructs a payload by compressing 1.5× the cap of repeated bytes (a few KB compressed). Asserts `decode` returns the size-limit error in well under 100 ms. We construct the input ourselves; nothing exploit-grade is in the repo.
+  - `encode.size-limit.spec.ts` — calls `encode` with a synthetic over-cap `Commands` value. Asserts the function throws with the documented message.
 - Playground e2e: `url-loader.banner.spec.ts` — boots with a valid hash, asserts the banner is present and renders the expected text; boots without a hash, asserts no banner; boots with a malformed hash, asserts the banner is still present (it's a property of the boot mode, not of decode success).
 
 **Exit criteria:** size-limit specs green and fast (<100 ms each). Banner shows on URL-hash boots, hidden on bundled-demo boots, persists across prototype renders, dismiss-collapse stays collapsed within the tab session and resets in a new tab. Existing e2e green.

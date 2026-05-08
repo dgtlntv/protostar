@@ -13,6 +13,7 @@
 
 import "@xterm/xterm/css/xterm.css"
 import "@dgtlntv/protostar/styles.css"
+import "./playground.css"
 import { Protostar, type Commands } from "@dgtlntv/protostar"
 import {
     bytesToBase64url,
@@ -22,6 +23,10 @@ import {
 } from "@dgtlntv/protostar-codec"
 import bundledCommands from "./commands.json"
 
+const BANNER_DISMISSED_STORAGE_KEY = "protostar:banner:dismissed"
+const BANNER_TEXT =
+    "This is a prototype, not a real terminal. Don't enter real credentials."
+
 document.addEventListener("DOMContentLoaded", () => {
     void boot()
 })
@@ -30,10 +35,18 @@ document.addEventListener("DOMContentLoaded", () => {
  * Resolve the boot config, instantiate Protostar, install the share
  * shortcut, and (in dev) wire the e2e handle. Async because URL decoding
  * is async (deflate-raw runs through the browser's CompressionStream).
+ *
+ * Banner placement runs before Protostar mounts so the slim chrome bar
+ * is part of the layout xterm measures itself against on first render.
  */
 async function boot(): Promise<void> {
     const host = document.getElementById("terminal")
     if (!host) throw new Error("Missing #terminal mount point")
+
+    const bootedFromHash = isHashBoot(window.location.hash)
+    if (bootedFromHash) {
+        renderPrototypeBanner()
+    }
 
     const bundled = bundledCommands as Commands
     const commands = await resolveBootCommands(bundled)
@@ -63,6 +76,73 @@ async function boot(): Promise<void> {
             },
         }
     }
+}
+
+/**
+ * True when `location.hash` carries something more than `#` — the boot
+ * is going to attempt a URL-loaded prototype, regardless of whether
+ * decode eventually succeeds. Banner visibility keys off this rather
+ * than decode success: a malformed share URL is the case where a
+ * recipient most needs the trust framing.
+ */
+function isHashBoot(hash: string): boolean {
+    return hash.length > 0 && hash !== "#"
+}
+
+/**
+ * Insert the playground-owned trust banner above the terminal host. The
+ * banner DOM is appended to `<body>` (ahead of `#terminal` via the flex
+ * column reordering in `playground.css`) so URL-loaded content running
+ * inside xterm can never reach up and remove or restyle it.
+ *
+ * If the user dismissed the banner earlier this tab session, restore
+ * the collapsed icon-only state instead of the full bar — the dismiss
+ * is per-tab (`sessionStorage`) so a fresh tab always opens with the
+ * full message.
+ */
+function renderPrototypeBanner(): void {
+    if (document.getElementById("prototype-banner")) return
+
+    const banner = document.createElement("div")
+    banner.id = "prototype-banner"
+    banner.setAttribute("role", "note")
+
+    const icon = document.createElement("span")
+    icon.className = "prototype-banner-icon"
+    icon.setAttribute("aria-hidden", "true")
+    icon.textContent = "⚠"
+
+    const text = document.createElement("span")
+    text.className = "prototype-banner-text"
+    text.textContent = BANNER_TEXT
+
+    const dismiss = document.createElement("button")
+    dismiss.type = "button"
+    dismiss.className = "prototype-banner-dismiss"
+    dismiss.setAttribute("aria-label", "Dismiss prototype banner")
+    dismiss.textContent = "×"
+    dismiss.addEventListener("click", () => {
+        banner.classList.add("collapsed")
+        try {
+            sessionStorage.setItem(BANNER_DISMISSED_STORAGE_KEY, "1")
+        } catch {
+            // Storage unavailable (private mode quotas, disabled by
+            // policy). The collapse still applies for this view; we
+            // just lose persistence — no need to warn.
+        }
+    })
+
+    banner.append(icon, text, dismiss)
+
+    let dismissed = false
+    try {
+        dismissed = sessionStorage.getItem(BANNER_DISMISSED_STORAGE_KEY) === "1"
+    } catch {
+        dismissed = false
+    }
+    if (dismissed) banner.classList.add("collapsed")
+
+    document.body.prepend(banner)
 }
 
 /**
