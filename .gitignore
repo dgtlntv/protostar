@@ -31,3 +31,6 @@ playwright/.cache/
 
 workshop.yaml
 .workshop.pnpm-store
+.pnpm-store
+.workshop
+.workshop.lock
