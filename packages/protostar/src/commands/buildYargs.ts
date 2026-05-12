@@ -5,9 +5,7 @@
  */
 
 import Yargs from "yargs/browser"
-// `yargs/browser` has no shipped types; the runtime shape we use is a small
-// subset of the documented yargs API, so a structural type captures it.
-type YargsInstance = ReturnType<typeof Yargs>
+import type { YargsInstance } from "../types/yargs-browser.js"
 
 import type {
     Command,
@@ -62,7 +60,12 @@ export function buildYargs(
     commands: Commands,
     ctx: BuildYargsContext
 ): YargsInstance {
-    const yargs: YargsInstance = Yargs()
+    // Single cast at the boundary: `Yargs()` returns `{}` because
+    // yargs/browser ships a broken .d.ts (references a missing
+    // yargs-factory.d.ts). The runtime value is a fully-featured yargs
+    // instance; `YargsInstance` captures the subset we use.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+    const yargs = (Yargs() as unknown as YargsInstance)
         .usageConfiguration({ "hide-types": true })
         .demandCommand(1, "You need to specify a command.")
         .strict()

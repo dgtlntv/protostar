@@ -10,12 +10,10 @@
 
 import type { TUI } from "@earendil-works/pi-tui"
 import { parse } from "shell-quote"
-import type Yargs from "yargs/browser"
+import type { YargsInstance } from "../types/yargs-browser.js"
 import { PromptLine } from "./PromptLine.js"
 import type { HistoryStore } from "./HistoryStore.js"
 import { flatText } from "../tui/theme.js"
-
-type YargsInstance = ReturnType<typeof Yargs>
 
 /**
  * Wires a {@link PromptLine} to a yargs instance and runs the read → parse →
@@ -220,20 +218,12 @@ export class ShellLoop {
             // Promise that `parse` returns waits past the unfreeze so
             // re-entry is safe.
             let captured = ""
-            const result = this.yargs.parse(
+            await this.yargs.parse(
                 tokens,
                 (_err: Error | undefined, _argv: unknown, output: string) => {
                     captured = output ?? ""
                 }
             )
-            if (
-                result !== null &&
-                typeof result === "object" &&
-                "then" in (result as Record<string, unknown>) &&
-                typeof (result as { then: unknown }).then === "function"
-            ) {
-                await (result as Promise<unknown>)
-            }
             if (captured) {
                 this.tui.addChild(flatText(captured))
                 this.tui.requestRender()

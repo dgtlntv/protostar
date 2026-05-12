@@ -64,10 +64,12 @@ describe("runComponents abort handling", () => {
             { component: "text", output: "second" },
             { component: "text", output: "third" },
         ]
-        const dispatch = runComponents(components, h.ctx).catch((e) => e)
+        const dispatch = runComponents(components, h.ctx).catch(
+            (e: unknown) => e,
+        )
         // Abort during the first component's sleep.
         setTimeout(() => ctrl.abort(), 10)
-        const result = await dispatch
+        const result: unknown = await dispatch
         expect(isCommandCanceledError(result)).toBe(true)
         await flushRender(h.tui, h.term)
         const joined = (await h.term.getViewport()).join("\n")

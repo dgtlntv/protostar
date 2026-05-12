@@ -63,24 +63,10 @@ export default tseslint.config(
     // published tarball. The default export resolves to `any`, so every
     // chained call on a yargs instance triggers no-unsafe-*.
     //
-    // Upstream bug — the fix is removing the `!**/*.d.ts` exclusion from
-    // yargs's `package.json#files`. Until that ships, suppress the rules
-    // on the three files that touch the yargs instance and the one test
-    // file that stubs it.
+    // Rather than suppressing per-file, we added a local `YargsInstance`
+    // interface (`src/types/yargs-browser.d.ts`) covering the subset of
+    // the API we use. The only remaining suppression is a single
+    // eslint-disable-next-line on the `Yargs()` factory call itself.
     //
     // Revisit when yargs >18.0.0 publishes its declaration files.
-    {
-        files: [
-            "packages/protostar/src/commands/buildYargs.ts",
-            "packages/protostar/src/shell/ShellLoop.ts",
-            "packages/protostar/src/Protostar.ts",
-            "packages/protostar/tests/unit/cancellation.spec.ts",
-        ],
-        rules: {
-            "@typescript-eslint/no-unsafe-call": "off",
-            "@typescript-eslint/no-unsafe-member-access": "off",
-            "@typescript-eslint/no-unsafe-assignment": "off",
-            "@typescript-eslint/no-unsafe-return": "off",
-        },
-    },
 )
