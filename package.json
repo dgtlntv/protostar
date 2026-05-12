@@ -19,7 +19,9 @@
         "typecheck": "pnpm -r typecheck",
         "lint": "pnpm -r lint",
         "lint:fix": "pnpm -r lint:fix",
-        "ci": "pnpm typecheck && pnpm lint && pnpm test"
+        "ci": "pnpm typecheck && pnpm lint && pnpm test",
+        "release:dry-run": "pnpm -r publish --dry-run --no-git-checks",
+        "release": "pnpm -r publish --access public --no-git-checks"
     },
     "license": "GPL-3.0",
     "repository": {

@@ -1,6 +1,6 @@
 {
     "name": "@dgtlntv/protostar",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "type": "module",
     "main": "./src/library.ts",
     "module": "./src/library.ts",
@@ -14,13 +14,18 @@
     },
     "files": [
         "dist",
-        "src/styles.css"
+        "src/styles.css",
+        "README.md",
+        "LICENSE.md"
     ],
     "publishConfig": {
+        "access": "public",
         "main": "./dist/index.umd.js",
         "module": "./dist/index.es.js",
+        "types": "./dist/library.d.ts",
         "exports": {
             ".": {
+                "types": "./dist/library.d.ts",
                 "import": "./dist/index.es.js",
                 "require": "./dist/index.umd.js"
             },
@@ -35,7 +40,8 @@
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
-        "prepublishOnly": "pnpm build:lib"
+        "build:types": "tsc -p tsconfig.build.json",
+        "prepublishOnly": "pnpm build:lib && pnpm build:types"
     },
     "dependencies": {
         "@earendil-works/pi-tui": "^0.74.0",

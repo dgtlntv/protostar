@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## 1.0.0
+
+First published release of `@dgtlntv/protostar` and `@dgtlntv/protostar-codec`.
 
 ### Monorepo restructure
 

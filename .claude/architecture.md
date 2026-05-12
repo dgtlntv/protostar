@@ -12,7 +12,7 @@ The repo is a pnpm workspace with three packages:
 | `@dgtlntv/protostar-codec` | `packages/protostar-codec/` | Published encoder/decoder for URL-shareable `Commands` payloads. Owns the JSON Schema + AJV validator + the `protostar-encode` Node CLI. |
 | `@dgtlntv/playground` | `packages/playground/` | Private app — boots the library against `commands.json` for development and the GitHub Pages demo. |
 
-Root `package.json` is a thin orchestration façade: `pnpm dev` / `pnpm build` / `pnpm test:e2e` filter into the playground, `pnpm build:lib` and `pnpm build:codec` filter into the published packages, `pnpm test:unit` and `pnpm typecheck` recurse across the workspace.
+Root `package.json` is a thin orchestration façade: `pnpm dev` / `pnpm build` / `pnpm test:e2e` filter into the playground, `pnpm build:lib` and `pnpm build:codec` filter into the published packages, `pnpm test:unit` and `pnpm typecheck` recurse across the workspace. `pnpm release:dry-run` and `pnpm release` handle npm publishing; see `CONTRIBUTING.md` for the full release flow.
 
 ## Entry Points
 
