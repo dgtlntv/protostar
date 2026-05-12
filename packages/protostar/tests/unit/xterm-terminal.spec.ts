@@ -81,6 +81,7 @@ describe("XtermTerminalAdapter", () => {
         expect(term.buffer.active.cursorY).toBe(0)
     })
 
+    // eslint-disable-next-line @typescript-eslint/require-await -- test is async to match the suite signature
     it("hideCursor and showCursor toggle DECTCEM", async () => {
         const calls: string[] = []
         const fakeTerm = {

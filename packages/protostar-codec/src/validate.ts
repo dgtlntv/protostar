@@ -54,6 +54,6 @@ export function validateCommands(value: unknown): ValidateResult {
         return { ok: true, value: value as Commands }
     }
     const errors = compiledValidator.errors ?? []
-    const error = errors.length > 0 ? formatError(errors[0]!) : "unknown validation failure"
+    const error = errors.length > 0 ? formatError(errors[0]) : "unknown validation failure"
     return { ok: false, error }
 }

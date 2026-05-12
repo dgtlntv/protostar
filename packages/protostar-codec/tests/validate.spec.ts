@@ -10,7 +10,6 @@ import { describe, it, expect, vi } from "vitest"
 import demoCommands from "../../playground/src/test-commands.json"
 import userCommands from "../../playground/src/commands.json"
 import { validateCommands } from "../src/validate.js"
-import type { Commands } from "@dgtlntv/protostar"
 
 describe("validateCommands", () => {
     describe("accepts valid configs", () => {
@@ -95,7 +94,7 @@ describe("validateCommands", () => {
     })
 
     describe("performance contract", () => {
-        it("does not recompile the validator on each call", async () => {
+        it("does not recompile the validator on each call", () => {
             // Re-importing the module would recompile; calling the
             // exported function many times must not. We can't observe
             // AJV.compile from outside cheaply, so we proxy it: a few
@@ -104,20 +103,20 @@ describe("validateCommands", () => {
             // each (~hundreds of ms total) and trip a tight deadline.
             const start = performance.now()
             for (let i = 0; i < 200; i++) {
-                validateCommands(demoCommands as Commands)
+                validateCommands(demoCommands)
             }
             const elapsed = performance.now() - start
             expect(elapsed).toBeLessThan(500)
         })
 
-        it("the AJV compile happens at module evaluation, not first call", async () => {
+        it("the AJV compile happens at module evaluation, not first call", () => {
             // Stubs `vi.useFakeTimers` to assert that the call site is
             // not deferring compile work into an idle callback or
             // similar. If `validate` had lazy-init, the first call
             // would do measurable work even on a tiny payload.
             const stub = vi.fn(validateCommands)
-            stub({ welcome: "x", variables: {}, commands: {} } as Commands)
-            stub({ welcome: "x", variables: {}, commands: {} } as Commands)
+            stub({ welcome: "x", variables: {}, commands: {} })
+            stub({ welcome: "x", variables: {}, commands: {} })
             expect(stub).toHaveBeenCalledTimes(2)
         })
     })

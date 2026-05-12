@@ -54,9 +54,9 @@ export async function type(page: Page, text: string): Promise<void> {
 export async function paste(page: Page, text: string): Promise<void> {
     await page.evaluate(
         ({ value, textareaSel }) => {
-            const textarea = document.querySelector(textareaSel) as HTMLTextAreaElement | null
+            const textarea = document.querySelector(textareaSel)
             if (!textarea) throw new Error(`xterm helper textarea not found: ${textareaSel}`)
-            textarea.focus()
+            ;(textarea as HTMLElement).focus()
             const dt = new DataTransfer()
             dt.setData("text/plain", value)
             textarea.dispatchEvent(

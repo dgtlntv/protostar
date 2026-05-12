@@ -50,6 +50,7 @@ export function interpolate(
     const ctx = { ...entriesOf(variables), ...argv }
     return template.replace(PLACEHOLDER, (_match, key: string) => {
         const value = ctx[key]
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string -- ctx values are primitives from argv/variables; Object.toString() is unreachable in practice.
         return value === undefined || value === null ? "" : String(value)
     })
 }

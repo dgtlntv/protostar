@@ -188,8 +188,8 @@ export async function runAutoComplete(
         message,
         body: combo,
         wire: (done) => {
-            combo!.onSelect = (item) => done(item.value, item.label)
-            combo!.onCancel = () => done(undefined, null)
+            combo.onSelect = (item) => done(item.value, item.label)
+            combo.onCancel = () => done(undefined, null)
         },
         signal: ctx.signal,
     })

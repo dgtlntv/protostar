@@ -152,6 +152,7 @@ class TableComponentImpl implements Component {
  * @param ctx Shared execution context.
  * @returns A promise that resolves once the table is mounted.
  */
+// eslint-disable-next-line @typescript-eslint/require-await -- conforms to the async component-runner interface
 export async function runTable(
     component: TableComponent,
     ctx: ComponentContext

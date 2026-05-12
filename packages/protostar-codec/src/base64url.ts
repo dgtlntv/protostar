@@ -17,7 +17,7 @@
 export function bytesToBase64url(bytes: Uint8Array): string {
     let binary = ""
     for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]!)
+        binary += String.fromCharCode(bytes[i])
     }
     const b64 = btoa(binary)
     return b64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "")

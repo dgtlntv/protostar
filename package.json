@@ -6,20 +6,28 @@
     "packageManager": "pnpm@11.0.8",
     "scripts": {
         "dev": "pnpm --filter @dgtlntv/playground dev",
-        "build": "pnpm --filter @dgtlntv/playground build",
+        "build": "pnpm -r build",
         "preview": "pnpm --filter @dgtlntv/playground preview",
-        "build:lib": "pnpm --filter @dgtlntv/protostar build:lib",
+        "build:lib": "pnpm --filter @dgtlntv/protostar build",
         "build:codec": "pnpm --filter @dgtlntv/protostar-codec build",
+        "test": "pnpm test:unit && pnpm test:e2e",
         "test:e2e": "pnpm --filter @dgtlntv/playground test:e2e",
         "test:e2e:ui": "pnpm --filter @dgtlntv/playground test:e2e:ui",
         "test:e2e:headed": "pnpm --filter @dgtlntv/playground test:e2e:headed",
         "test:unit": "pnpm -r test:unit",
         "test:unit:ui": "pnpm --filter @dgtlntv/protostar test:unit:ui",
-        "typecheck": "pnpm -r typecheck"
+        "typecheck": "pnpm -r typecheck",
+        "lint": "pnpm -r lint",
+        "lint:fix": "pnpm -r lint:fix",
+        "ci": "pnpm typecheck && pnpm lint && pnpm test"
     },
     "license": "GPL-3.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/dgtlntv/protostar.git"
+    },
+    "devDependencies": {
+        "eslint": "^10.3.0",
+        "typescript-eslint": "^8.59.2"
     }
 }

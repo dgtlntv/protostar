@@ -36,6 +36,8 @@
         "test:unit": "vitest run",
         "test:unit:ui": "vitest --ui",
         "typecheck": "tsc -p tsconfig.json --noEmit",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "prepublishOnly": "pnpm build"
     },
     "dependencies": {

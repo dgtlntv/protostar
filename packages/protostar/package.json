@@ -28,10 +28,13 @@
         }
     },
     "scripts": {
+        "build": "vite build --mode lib",
         "build:lib": "vite build --mode lib",
         "test:unit": "vitest run",
         "test:unit:ui": "vitest --ui",
         "typecheck": "tsc -p tsconfig.json --noEmit",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix",
         "prepublishOnly": "pnpm build:lib"
     },
     "dependencies": {

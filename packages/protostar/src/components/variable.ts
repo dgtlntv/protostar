@@ -18,6 +18,7 @@ import type { ComponentContext } from "./context.js"
  * @param ctx Shared execution context.
  * @returns A promise that resolves once all assignments have been attempted.
  */
+// eslint-disable-next-line @typescript-eslint/require-await -- conforms to the async component-runner interface
 export async function runVariable(
     component: VariableComponent,
     ctx: ComponentContext

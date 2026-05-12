@@ -296,10 +296,8 @@ function evalNode(node: Node, ctx: Record<string, unknown>): unknown {
                 case "!==":
                     return l !== evalNode(node.right, ctx)
                 case "==":
-                    // eslint-disable-next-line eqeqeq
                     return l == evalNode(node.right, ctx)
                 case "!=":
-                    // eslint-disable-next-line eqeqeq
                     return l != evalNode(node.right, ctx)
                 default:
                     throw new ConditionSyntaxError(

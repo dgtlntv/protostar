@@ -12,8 +12,6 @@ type YargsInstance = ReturnType<typeof Yargs>
 import type {
     Command,
     Commands,
-    PositionalOptions,
-    CommandOptions,
 } from "../types/commands.js"
 import type { ComponentContext, ComponentRunner } from "../components/context.js"
 import type { TUI } from "@earendil-works/pi-tui"
@@ -138,12 +136,12 @@ function configureBuilder(
     }
     if (def.positional) {
         for (const [argName, argConfig] of Object.entries(def.positional)) {
-            y.positional(argName, argConfig as PositionalOptions)
+            y.positional(argName, argConfig)
         }
     }
     if (def.options) {
         for (const [optName, optConfig] of Object.entries(def.options)) {
-            y.option(optName, optConfig as CommandOptions)
+            y.option(optName, optConfig)
         }
     }
     if (def.example) {
