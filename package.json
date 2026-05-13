@@ -1,64 +1,35 @@
 {
-    "name": "@dgtlntv/protostar",
+    "name": "protostar-monorepo",
+    "private": true,
     "version": "0.0.1",
     "type": "module",
-    "main": "dist/index.umd.js",
-    "module": "dist/index.es.js",
-    "exports": {
-        ".": {
-            "import": "./dist/index.es.js",
-            "require": "./dist/index.umd.js"
-        }
-    },
-    "files": [
-        "dist"
-    ],
+    "packageManager": "pnpm@11.0.8",
     "scripts": {
-        "dev": "vite",
-        "build": "vite build",
-        "preview": "vite preview",
-        "build:lib": "vite build --mode lib",
-        "prepublishOnly": "npm run build:lib"
+        "dev": "pnpm --filter @dgtlntv/playground dev",
+        "build": "pnpm -r build",
+        "preview": "pnpm --filter @dgtlntv/playground preview",
+        "build:lib": "pnpm --filter @dgtlntv/protostar build",
+        "build:codec": "pnpm --filter @dgtlntv/protostar-codec build",
+        "test": "pnpm test:unit && pnpm test:e2e",
+        "test:e2e": "pnpm --filter @dgtlntv/playground test:e2e",
+        "test:e2e:ui": "pnpm --filter @dgtlntv/playground test:e2e:ui",
+        "test:e2e:headed": "pnpm --filter @dgtlntv/playground test:e2e:headed",
+        "test:unit": "pnpm -r test:unit",
+        "test:unit:ui": "pnpm --filter @dgtlntv/protostar test:unit:ui",
+        "typecheck": "pnpm -r typecheck",
+        "lint": "pnpm -r lint",
+        "lint:fix": "pnpm -r lint:fix",
+        "ci": "pnpm typecheck && pnpm lint && pnpm test",
+        "release:dry-run": "pnpm -r publish --dry-run --no-git-checks",
+        "release": "pnpm -r publish --access public --no-git-checks"
     },
-    "devDependencies": {
-        "vite": "^5.3.1"
-    },
-    "dependencies": {
-        "@xterm/addon-fit": "^0.10.0",
-        "@xterm/xterm": "^5.5.0",
-        "ansi-escapes": "^7.0.0",
-        "ansi-regex": "^6.0.1",
-        "chalk": "^5.3.0",
-        "cli-progress": "^3.12.0",
-        "cli-spinners": "^3.1.0",
-        "cli-table3": "^0.6.5",
-        "cliui": "^8.0.1",
-        "command-line-usage": "^7.0.3",
-        "enquirer": "^2.4.1",
-        "eventemitter3": "^5.0.1",
-        "handlebars": "^4.7.8",
-        "log-symbols": "^6.0.0",
-        "ora": "8.0.1",
-        "path": "^0.12.7",
-        "shell-quote": "^1.8.1",
-        "string-argv": "^0.3.2",
-        "string-width": "^7.2.0",
-        "strip-ansi": "^7.1.0",
-        "vite-plugin-node-polyfills": "^0.22.0",
-        "yargs": "^17.7.2",
-        "yargs-parser": "^21.1.1"
-    },
-    "description": "A CLI prototyping library",
-    "keywords": [
-        "cli",
-        "terminal",
-        "prototype",
-        "console"
-    ],
-    "author": "dgtlntv",
     "license": "GPL-3.0",
     "repository": {
         "type": "git",
         "url": "https://github.com/dgtlntv/protostar.git"
+    },
+    "devDependencies": {
+        "eslint": "^10.3.0",
+        "typescript-eslint": "^8.59.2"
     }
 }

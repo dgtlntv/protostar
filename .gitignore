@@ -22,3 +22,15 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Playwright
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+workshop.yaml
+.workshop.pnpm-store
+.pnpm-store
+.workshop
+.workshop.lock

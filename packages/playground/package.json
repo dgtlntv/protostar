@@ -1,0 +1,28 @@
+{
+    "name": "@dgtlntv/playground",
+    "private": true,
+    "version": "0.0.1",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview",
+        "test:e2e": "playwright test",
+        "test:e2e:ui": "playwright test --ui",
+        "test:e2e:headed": "playwright test --headed",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "lint": "eslint .",
+        "lint:fix": "eslint . --fix"
+    },
+    "dependencies": {
+        "@dgtlntv/protostar": "workspace:*",
+        "@dgtlntv/protostar-codec": "workspace:*",
+        "@xterm/xterm": "^6.0.0"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.59.1",
+        "@types/node": "^25.6.0",
+        "typescript": "^6.0.3",
+        "vite": "^8.0.11"
+    }
+}

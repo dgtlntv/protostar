@@ -17,154 +17,171 @@
 <br>
 <br>
 
-Proto\* is a tool for creating interactive CLI prototypes using a simple JSON configuration file. The tool generates a website that emulates a terminal, with only the CLI defined in the configuration file being available. It's designed for quick and easy creation of CLI prototypes, enabling rapid iterations.
+Proto\* is a tool for creating interactive CLI prototypes using a simple JSON configuration file. It generates a website that emulates a terminal, with only the CLI defined in the configuration file being available. It's designed for quick and easy creation of CLI prototypes, enabling rapid iterations.
+
 The tool automatically deploys to GitHub Pages, allowing prototypes to be easily shared. This makes it suitable for user testing, as users can access the prototype through a simple link rather than having to install anything.
 
-## Prerequisites
+Prototypes can also be [shared as a URL](#sharing-via-url) without forking or deploying anything.
 
-You have to have [git](https://git-scm.com/downloads) and [node](https://nodejs.org/en/download/package-manager) installed.
+## Table of Contents
 
-## Setup and Usage
+- [Setup](#setup)
+- [Usage](#usage)
+- [Deployment](#deployment)
+- [Sharing via URL](#sharing-via-url)
+- [Using as a Library](#using-protostar-as-a-library)
+- [Customizing Your CLI](#customizing-your-cli)
+  - [Commands](#commands)
+- [Components](#components)
 
-<ol>
-    <li>
-        <p>
-            Create a new repository using this repository as a template.</br>
-            <img src="media/template.png" width="300"><br>
-        </p>
-    </li>
-</ol>
+## Setup
 
-2. Clone the newly created repository to your local computer either with an app like [Github desktop](https://desktop.github.com/download/) or by running the following command:
+### Prerequisites
+
+- [git](https://git-scm.com/downloads)
+- [Node.js](https://nodejs.org/en/download/package-manager) (v18+)
+- [pnpm](https://pnpm.io/installation)
+
+### Getting Started
+
+1. Create a new repository using this repository as a template.
+
+   <img src="media/template.png" width="300">
+
+2. Clone the newly created repository:
+
+   ```bash
+   git clone https://github.com/your-username/cli-prototype.git
+   cd cli-prototype
+   ```
+
+3. Install dependencies:
+
+   ```bash
+   pnpm install
+   ```
+
+4. Start the development server:
+
+   ```bash
+   pnpm dev
+   ```
+
+5. Open the provided URL in your browser to interact with your CLI prototype.
+
+## Usage
+
+Edit `packages/playground/src/commands.json` to define your CLI prototype. The development server hot-reloads on changes.
+
+Run the test suites:
 
 ```bash
-git clone https://github.com/your-username/cli-prototype.git
-cd cli-prototype
+# Install Playwright browsers (first time only)
+pnpm exec playwright install --with-deps chromium
+
+# Unit tests
+pnpm test:unit
+
+# End-to-end tests
+pnpm test:e2e
 ```
-
-3. In the cloned repository install the dependencies:
-
-```bash
-npm install
-```
-
-4. Run the development server:
-
-```bash
-npm run dev
-```
-
-5. Open the provided URL in your web browser to interact with your CLI prototype.
 
 ## Deployment
 
-This project is set up to deploy automatically to GitHub Pages using GitHub Actions:
+This project deploys automatically to GitHub Pages via GitHub Actions.
 
-<ol>
-    <li>
-        <p>
-            In your Github repository, go to Settings > Pages.</br>
-        </p>
-    </li>
-    <li>
-        <p>
-            Under "Source", select "GitHub Actions".</br>
-            <img src="media/settings.png" width="300"><br>
-        </p>
-    </li>
-    <li>
-        <p>
-            On the home page of your Github repository click on the settings icon of the "About" section.</br>
-            <img src="media/about.png" width="300"><br>
-        </p>
-    </li>
-    <li>
-        <p>
-            Under website, check "Use your Github Pages website".</br>
-            <img src="media/website.png" width="300"><br>
-        </p>
-    </li>
-    <li>
-        <p>
-            Your Github pages link will now show up in the "About" section.</br>
-            <img src="media/link.png" width="300"><br>
-        </p>
-    </li>
-    <li>
-        <p>
-            The site will deploy automatically on pushes to the main branch. You can verify a succesfull deployedment by the green checkmark next to the merge.</br>
-            <img src="media/deployed.png" width="300"><br>
-        </p>
-    </li>
-    <li>
-        <p>
-            You should now be able to reach your CLI prototype with the link in the "About" section.</br>
-        </p>
-    </li>
-</ol>
+1. In your GitHub repository, go to **Settings > Pages**.
+2. Under "Source", select **GitHub Actions**.
+
+   <img src="media/settings.png" width="300">
+
+3. On the home page of your repository, click the settings icon of the "About" section.
+
+   <img src="media/about.png" width="300">
+
+4. Under website, check **"Use your GitHub Pages website"**.
+
+   <img src="media/website.png" width="300">
+
+5. Your GitHub Pages link will now show up in the "About" section.
+
+   <img src="media/link.png" width="300">
+
+6. The site deploys automatically on pushes to the main branch. A green checkmark confirms a successful deployment.
+
+   <img src="media/deployed.png" width="300">
+
+## Sharing via URL
+
+Normally, creating a prototype means forking this repo, editing `commands.json`, and deploying your own GitHub Pages site. URL sharing removes that overhead entirely: you write (or generate) a `commands.json`, encode it, and get a link that loads your prototype on the main project's hosted playground. No fork, no deploy, no server.
+
+This is especially useful when a coding agent generates the JSON for you. An agent can produce a `commands.json`, encode it, and hand you a link you can open in the browser immediately.
+
+The encoding works by compressing the JSON config and packing it into the URL hash. Since the hash never leaves the browser, nothing is sent to a server.
+
+**From the playground:** press **Ctrl+Shift+L** to copy a share URL to the clipboard.
+
+**From the command line** using the `@dgtlntv/protostar-codec` package:
+
+```bash
+cat commands.json | pnpm exec protostar-encode
+# → https://dgtlntv.github.io/protostar/#p1=<payload>
+```
+
+Open the resulting URL and the encoded prototype boots instead of the bundled demo.
 
 ## Using Protostar as a Library
 
-In addition to using Protostar as a standalone CLI prototyping tool, you can also integrate it as a library in your JavaScript projects:
-
-### Installation
+You can integrate Protostar into your own JavaScript projects. The published bundle is self-contained, no shim aliases or polyfills required.
 
 ```bash
-npm install protostar
+pnpm add @dgtlntv/protostar
 ```
 
-### Usage as a library
-
 ```javascript
-// Import the required styles
 import "@xterm/xterm/css/xterm.css"
-import "./styles.css"
-
-// Import the Terminal component
-import { Terminal } from "protostar"
-
-// Import your commands configuration
+import "@dgtlntv/protostar/styles.css"
+import { Protostar } from "@dgtlntv/protostar"
 import commandsData from "./commands.json"
 
-// Initialize the terminal when the DOM is ready
 document.addEventListener("DOMContentLoaded", () => {
-    const terminal = new Terminal(
+    const protostar = new Protostar(
         document.getElementById("terminal"),
         commandsData
     )
+    protostar.start()
 })
 ```
 
 ## Customizing Your CLI
 
-This prototyping tool is build in a way so that the only file you need to change to customize your CLI prototype is the `src/commands.json` file.
-The general schema of the `commands.json` is:
+The only file you need to change to customize your CLI prototype is `packages/playground/src/commands.json`. The general schema is:
 
 ```json5
 {
-    // Welcome message for the CLI prototype
+    // Welcome message displayed when the CLI loads
     welcome: "Welcome to My CLI! Type 'help' for available commands.",
 
-    // The global variables you can read and write accross commands
+    // Global variables that can be read and written across commands
     variables: {
         username: "dgtlntv",
         isLoggedIn: "false",
     },
-    commands: {
-        // The commands available in the CLI prototype
-    },
+
+    // The commands available in the CLI
+    commands: {},
 }
 ```
 
--   `welcome` is optional. It defines a welcome message that is output when the CLI is loaded for the first time.
--   `variables` is optional as well and can be used to define variables that can be set and checked by commands. For example, through them we can prescribe a specific command sequence.
--   The commands of the CLI are defined in the commands object.
+- `welcome` is optional. It defines a welcome message shown when the CLI loads.
+- `variables` is optional. Use it to define variables that can be set and checked by commands, enabling prescribed command sequences.
+- `commands` defines the available CLI commands.
 
 ### Commands
 
 #### Command name
 
-The command name with which the command can be called is the key of the command object. In this example we are creating a `register` command:
+The command name is the key of the command object:
 
 ```json5
 {
@@ -178,7 +195,7 @@ The command name with which the command can be called is the key of the command 
 
 ##### Description
 
-The description is shown in the automatically generated help message.
+Shown in the automatically generated help message.
 
 ```json5
 {
@@ -192,8 +209,7 @@ The description is shown in the automatically generated help message.
 
 ##### Alias
 
-An alias allows you to call the same command with a different command name. Can either be a single string or an array of strings.
-In the following example the user could call the same `register`command with `enrol` or `signup` now.
+Call the same command with a different name. Can be a string or array of strings.
 
 ```json5
 {
@@ -207,7 +223,7 @@ In the following example the user could call the same `register`command with `en
 
 ##### Example
 
-The example will be used to provide example usages of a command in the automatically generated help message. Can be a single example [command, description] or an array of such examples.
+Provides example usages in the help message. Can be a single `[command, description]` or an array.
 
 ```json5
 {
@@ -224,7 +240,7 @@ The example will be used to provide example usages of a command in the automatic
 
 ##### Positional arguments
 
-Positional arguments in commands can be either required or optional. Required positional arguments are denoted as `<email>`, while optional arguments are represented as `[username]`.
+Required positional arguments use `<email>`, optional ones use `[username]`.
 
 ```json5
 {
@@ -236,40 +252,18 @@ Positional arguments in commands can be either required or optional. Required po
 }
 ```
 
-The `|` character allows you to specify aliases for positional arguments.
+Use `|` for aliases: `<email | username>`. Use `..` for variadic: `[..socialUrls]`.
 
-```json5
-{
-    commands: {
-        "register <email | username>": {
-            // Command content
-        },
-    },
-}
-```
-
-The last positional argument can optionally accept an array of values, by using the `..` operator:
-
-```json5
-{
-    commands: {
-        "register <email> [..socialUrls]": {
-            // Command content
-        },
-    },
-}
-```
-
-Under `positional` the positional argument of a command are defined. You can use the following fields to describe the positional arguments:
+Under `positional`, describe each argument:
 
 | Field        | Description                                                                                                                   |
 | ------------ | ----------------------------------------------------------------------------------------------------------------------------- |
 | alias        | Alternative name(s) for the positional argument.                                                                              |
 | choices      | An array of valid values for this positional argument.                                                                        |
-| default      | The default value for this positional argument if not provided.                                                               |
-| demandOption | Marks the argument as required. If true, the command will fail without it. If a string, it will be used as the error message. |
-| description  | A short description of the positional argument.                                                                               |
-| type         | The expected data type of the positional argument (boolean, number, string).                                                  |
+| default      | The default value if not provided.                                                                                            |
+| demandOption | Marks the argument as required. If a string, used as the error message.                                                       |
+| description  | A short description.                                                                                                          |
+| type         | Expected data type (boolean, number, string).                                                                                 |
 
 ```json5
 {
@@ -278,13 +272,6 @@ Under `positional` the positional argument of a command are defined. You can use
             positional: {
                 email: {
                     alias: "username",
-                    // choice and default don't really make sense in this example, but is an available configuration
-                    // "choices": [
-                    //     "choice1",
-                    //     "choice2",
-                    //     "choice3"
-                    // ],
-                    // "default": "defaultOption",
                     demandOption: true,
                     description: "The email to register your account with",
                     type: "string",
@@ -297,21 +284,21 @@ Under `positional` the positional argument of a command are defined. You can use
 
 ##### Options / flags
 
-Under `options` the flags (eg. `--flag`) of a command are defined. You can use the following fields to describe the options/flags:
+Under `options`, define the flags (e.g., `--flag`) for a command:
 
 | Field              | Description                                                                                                                   |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
-| alias              | Alternative name(s) for the positional argument.                                                                              |
-| choices            | An array of valid values for this positional argument.                                                                        |
-| default            | The default value for this positional argument if not provided.                                                               |
+| alias              | Alternative name(s) for the option.                                                                                           |
+| choices            | An array of valid values.                                                                                                     |
+| default            | The default value if not provided.                                                                                            |
 | defaultDescription | A description of the default value.                                                                                           |
-| demandOption       | Marks the argument as required. If true, the command will fail without it. If a string, it will be used as the error message. |
-| description        | A short description of the positional argument.                                                                               |
-| group              | The group to which this option belongs, used for grouping related options in help output.                                     |
-| hidden             | If true, the option will not be shown in help output.                                                                         |
-| nargs              | The number of arguments to be consumed by this option.                                                                        |
-| requiresArg        | If true, the option must be specified with a value.                                                                           |
-| type               | The expected data type of the positional argument (boolean, number, string).                                                  |
+| demandOption       | Marks the option as required. If a string, used as the error message.                                                         |
+| description        | A short description.                                                                                                          |
+| group              | Group for related options in help output.                                                                                     |
+| hidden             | If true, hidden from help output.                                                                                             |
+| nargs              | Number of arguments consumed by this option.                                                                                  |
+| requiresArg        | If true, must be specified with a value.                                                                                      |
+| type               | Expected data type (boolean, number, string).                                                                                 |
 
 ```json5
 {
@@ -320,14 +307,6 @@ Under `options` the flags (eg. `--flag`) of a command are defined. You can use t
             options: {
                 password: {
                     alias: ["pwd", "pw"],
-                    // choice and default don't really make sense in this example, but is an available configuration
-                    // "choices": [
-                    //     "choice1",
-                    //     "choice2",
-                    //     "choice3"
-                    // ],
-                    // "default": "defaultOption",
-                    // "defaultDescription": "The description for the default option",
                     demandOption: true,
                     description: "The password for your account",
                     group: "Login credentials",
@@ -344,7 +323,7 @@ Under `options` the flags (eg. `--flag`) of a command are defined. You can use t
 
 ##### Sub-commands
 
-If you want to chain multiple commands you can nest commands under `commands`. The commands defined under `commands` allow for the exact same configuration as a root command.
+Nest commands under `commands` to create sub-commands:
 
 ```json5
 {
@@ -365,35 +344,31 @@ If you want to chain multiple commands you can nest commands under `commands`. T
 
 ##### Handler
 
-Under `handler` the response to a command is defined. The handler accepts the components available in the CLI prototyping tool. The available components are the following:
+Under `handler`, define the response to a command. The handler accepts one component or an array of components that run in sequence.
 
-| Component    | Description                                                                                               |
-| ------------ | --------------------------------------------------------------------------------------------------------- |
-| text         | Prints text to the terminal.                                                                              |
-| progressBar  | Renders a progress bar to the terminal.                                                                   |
-| spinner      | Renders a spinner to the terminal.                                                                        |
-| table        | Renders a table to the terminal.                                                                          |
-| conditional  | Evaluates a condition and then executes a component based on if the condition evaluated to true or false. |
-| variable     | Saves a value to a global variable.                                                                       |
-| autoComplete | Prompt that auto-completes as the user types.                                                             |
-| basicAuth    | Prompt for username and password authentication.                                                          |
-| confirm      | Prompt to confirm or deny a statement.                                                                    |
-| form         | Prompt for multiple values on a single terminal screen.                                                   |
-| input        | Prompt for user input.                                                                                    |
-| invisible    | Prompt for user input, hiding it from the terminal.                                                       |
-| list         | Prompt returning a list of values, created by splitting user input.                                       |
-| multiSelect  | Prompt allowing selection of multiple items from a list of options.                                       |
-| number       | Prompt that takes a number as input.                                                                      |
-| password     | Prompt that takes user input and masks it in the terminal.                                                |
-| quiz         | Prompt for multiple-choice quiz questions.                                                                |
-| survey       | Prompt for user feedback on a list of questions using a defined scale.                                    |
-| scale        | Compact version of Survey prompt using a Likert Scale for quick feedback.                                 |
-| select       | Prompt for selecting from a list of options.                                                              |
-| sort         | Prompt for sorting items in a list.                                                                       |
-| snippet      | Prompt for replacing placeholders in a snippet of code or text.                                           |
-| toggle       | Prompt for toggling between two values.                                                                   |
+| Component    | Description                                                                      |
+| ------------ | -------------------------------------------------------------------------------- |
+| text         | Prints text to the terminal.                                                     |
+| progressBar  | Renders a progress bar.                                                          |
+| spinner      | Renders an animated spinner.                                                     |
+| table        | Renders a table.                                                                 |
+| conditional  | Evaluates a condition and executes a component based on the result.              |
+| variable     | Saves a value to a global variable.                                              |
+| autoComplete | Prompt that auto-completes as the user types.                                    |
+| basicAuth    | Prompt for username and password authentication.                                 |
+| confirm      | Prompt to confirm or deny a statement.                                           |
+| form         | Prompt for multiple values on a single screen.                                   |
+| input        | Prompt for user input.                                                           |
+| invisible    | Prompt for user input, hiding it from the terminal.                              |
+| list         | Prompt returning a list of values from comma-separated input.                    |
+| multiSelect  | Prompt allowing selection of multiple items from a list.                         |
+| number       | Prompt that takes a number as input.                                             |
+| password     | Prompt that masks user input.                                                    |
+| select       | Prompt for selecting from a list of options.                                     |
+| sort         | Prompt for sorting items in a list.                                              |
+| toggle       | Prompt for toggling between two values.                                          |
 
-The handler accepts either a single component:
+Single component:
 
 ```json5
 {
@@ -408,7 +383,7 @@ The handler accepts either a single component:
 }
 ```
 
-Or an array of components:
+Array of components:
 
 ```json5
 {
@@ -430,67 +405,47 @@ Or an array of components:
 }
 ```
 
-The following section explains each available component more in depth:
-
 ## Components
 
-A component corresponds to something that can happen as a reaction to a command. Multiple components can be linked together to happen in sequence. See the handler documentation.
+A component corresponds to something that happens as a reaction to a command. Multiple components can be chained to run in sequence.
 
 ### Text
 
 ![](media/text.gif)
 
-The simplest of the components is the text component. It simply prints text to the terminal, while optionally waiting for some time after printing the text to the terminal.
+Prints text to the terminal, optionally waiting for a duration afterward.
 
-| field    | required/optional | Description                                                                                                                                                         |
-| -------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| output   | required          | The text that should be printed to the terminal                                                                                                                     |
-| duration | optional          | The duration (in milliseconds) that should be waited after printing the text. Also accepts "random" which will wait for a random duration between 100ms and 3000ms. |
+| Field    | Required | Description                                                                                                        |
+| -------- | -------- | ------------------------------------------------------------------------------------------------------------------ |
+| output   | Yes      | The text to print.                                                                                                 |
+| duration | No       | Duration in ms to wait after printing. Also accepts `"random"` (100ms-3000ms).                                     |
 
 ```json5
 {
-    commands: {
-        register: {
-            handler: [
-                {
-                    component: "text",
-                    output: "Registering in progress...",
-                    duration: 2000,
-                },
-                {
-                    component: "text",
-                    output: "Registered successfully",
-                },
-            ],
-        },
-    },
+    component: "text",
+    output: "Registering in progress...",
+    duration: 2000,
 }
 ```
 
 ---
 
-### Progress bar
+### Progress Bar
 
 ![](media/progressBar.gif)
 
-The progress bar component renders a progress bar in the terminal, showing a task's completion over time.
+Renders a progress bar showing task completion over time.
 
-| field    | required/optional | Description                                                                                                                                       |
-| -------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| output   | required          | The text displayed alongside the progress bar                                                                                                     |
-| duration | required          | The duration (in milliseconds) for the progress bar to complete. Also accepts "random" which will use a random duration between 100ms and 3000ms. |
+| Field    | Required | Description                                                                                          |
+| -------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| output   | Yes      | Text displayed alongside the progress bar.                                                           |
+| duration | Yes      | Duration in ms for the bar to complete. Also accepts `"random"` (100ms-3000ms).                      |
 
 ```json5
 {
-    commands: {
-        install: {
-            handler: {
-                component: "progressBar",
-                output: "Installing dependencies...",
-                duration: 2000,
-            },
-        },
-    },
+    component: "progressBar",
+    output: "Installing dependencies...",
+    duration: 2000,
 }
 ```
 
@@ -500,26 +455,20 @@ The progress bar component renders a progress bar in the terminal, showing a tas
 
 ![](media/spinner.gif)
 
-The spinner component displays an animated spinner in the terminal, indicating that a process is ongoing.
+Displays an animated spinner indicating an ongoing process.
 
-| field      | required/optional | Description                                                                                                                                       |
-| ---------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| output     | required          | The text or array of texts displayed alongside the spinner                                                                                        |
-| duration   | required          | The duration (in milliseconds) for which the spinner should run. Also accepts "random" which will use a random duration between 100ms and 3000ms. |
-| conclusion | optional          | Specifies how the spinner should conclude its animation. Can be `stop`, `success`, or `fail`.                                                     |
+| Field      | Required | Description                                                                                          |
+| ---------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| output     | Yes      | Text or array of texts displayed alongside the spinner.                                              |
+| duration   | Yes      | Duration in ms. Also accepts `"random"` (100ms-3000ms).                                             |
+| conclusion | No       | How the spinner concludes: `stop`, `success`, or `fail`.                                             |
 
 ```json5
 {
-    commands: {
-        process: {
-            handler: {
-                component: "spinner",
-                output: ["Processing", "Please wait", "Almost done"],
-                duration: 2000,
-                conclusion: "succeed",
-            },
-        },
-    },
+    component: "spinner",
+    output: ["Processing", "Please wait", "Almost done"],
+    duration: 2000,
+    conclusion: "succeed",
 }
 ```
 
@@ -529,28 +478,22 @@ The spinner component displays an animated spinner in the terminal, indicating t
 
 ![](media/table.gif)
 
-The table component renders a formatted table in the terminal.
+Renders a formatted table.
 
-| field     | required/optional | Description                                                                                                                                                         |
-| --------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| output    | required          | A 2D array representing the table data, including headers if desired.                                                                                               |
-| colWidths | optional          | An array of numbers representing the width of each column in the table. If this is not set the table will hug its content, until the table fills the terminal size. |
+| Field     | Required | Description                                                                                                          |
+| --------- | -------- | -------------------------------------------------------------------------------------------------------------------- |
+| output    | Yes      | A 2D array representing table data (including headers).                                                              |
+| colWidths | No       | Array of column widths. If not set, columns hug their content up to the terminal width.                              |
 
 ```json5
 {
-    commands: {
-        list: {
-            handler: {
-                component: "table",
-                output: [
-                    ["Name", "Age", "City"],
-                    ["John", "30", "New York"],
-                    ["Alice", "25", "London"],
-                ],
-                colWidths: [10, 5, 15],
-            },
-        },
-    },
+    component: "table",
+    output: [
+        ["Name", "Age", "City"],
+        ["John", "30", "New York"],
+        ["Alice", "25", "London"],
+    ],
+    colWidths: [10, 5, 15],
 }
 ```
 
@@ -560,38 +503,32 @@ The table component renders a formatted table in the terminal.
 
 ![](media/conditional.gif)
 
-The conditional component allows for branching logic based on a condition.
+Branches logic based on a condition evaluated against global variables.
 
-| field  | required/optional | Description                                                     |
-| ------ | ----------------- | --------------------------------------------------------------- |
-| output | required          | An object containing "if", "then", and optionally "else" fields |
+| Field  | Required | Description                                                          |
+| ------ | -------- | -------------------------------------------------------------------- |
+| output | Yes      | Object containing `if`, `then`, and optionally `else` fields.        |
 
-The output object should contain the following fields.
+The output object:
 
-| field | required/optional | Description                                                                                                                                |
-| ----- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| if    | required          | A string representing the condition to be evaluated                                                                                        |
-| then  | required          | The component to be executed if the condition is true. You can provide another conditional component as well.                              |
-| else  | optional          | The component to be executed if the condition is false (if this field is provided). You can provide another conditional component as well. |
+| Field | Required | Description                                                              |
+| ----- | -------- | ------------------------------------------------------------------------ |
+| if    | Yes      | Condition string to evaluate.                                            |
+| then  | Yes      | Component to execute if true. Can be another conditional.                |
+| else  | No       | Component to execute if false. Can be another conditional.               |
 
 ```json5
 {
-    commands: {
-        check: {
-            handler: {
-                component: "conditional",
-                output: {
-                    if: "isLoggedIn == 'true'",
-                    then: {
-                        component: "text",
-                        output: "Welcome back!",
-                    },
-                    else: {
-                        component: "text",
-                        output: "Please log in first.",
-                    },
-                },
-            },
+    component: "conditional",
+    output: {
+        if: "isLoggedIn == 'true'",
+        then: {
+            component: "text",
+            output: "Welcome back!",
+        },
+        else: {
+            component: "text",
+            output: "Please log in first.",
         },
     },
 }
@@ -603,34 +540,18 @@ The output object should contain the following fields.
 
 ![](media/variable.gif)
 
-The variable component allows setting global variables that can be used across commands. For the setting of the variable to be succesfull it needs to be initialized as a global variable in the CLIs global variables.
+Sets global variables that can be used across commands. The variable must be declared in the top-level `variables` object.
 
-| field  | required/optional | Description                                                    |
-| ------ | ----------------- | -------------------------------------------------------------- |
-| output | required          | An object where keys are variable names and values are strings |
+| Field  | Required | Description                                                    |
+| ------ | -------- | -------------------------------------------------------------- |
+| output | Yes      | Object where keys are variable names and values are strings.   |
 
 ```json5
 {
-    commands: {
-        login: {
-            handler: [
-                {
-                    component: "text",
-                    output: "Before setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}",
-                },
-                {
-                    component: "variable",
-                    output: {
-                        username: "john_doe",
-                        isLoggedIn: "true",
-                    },
-                },
-                {
-                    component: "text",
-                    output: "After setting the variables username is {{username}} and isLoggedin is {{isLoggedIn}}",
-                },
-            ],
-        },
+    component: "variable",
+    output: {
+        username: "john_doe",
+        isLoggedIn: "true",
     },
 }
 ```
@@ -641,32 +562,26 @@ The variable component allows setting global variables that can be used across c
 
 ![](media/autocomplete.gif)
 
-The autoComplete component provides a prompt that auto-completes as the user types.
+Prompt that auto-completes as the user types.
 
-| field    | required/optional | Description                                                |
-| -------- | ----------------- | ---------------------------------------------------------- |
-| name     | required          | Identifier for accessing the prompt's result               |
-| message  | required          | Message to display with the prompt in the terminal         |
-| choices  | required          | List of items for user selection                           |
-| limit    | optional          | Number of choices to display on-screen                     |
-| initial  | optional          | The index of the initial selection                         |
-| multiple | optional          | Allows selection of multiple choices                       |
-| footer   | optional          | Optional message in muted color providing interaction hint |
+| Field    | Required | Description                                        |
+| -------- | -------- | -------------------------------------------------- |
+| name     | Yes      | Identifier for the result.                         |
+| message  | Yes      | Message displayed with the prompt.                 |
+| choices  | Yes      | List of items for selection.                       |
+| limit    | No       | Number of choices visible on-screen.               |
+| initial  | No       | Index of the initial selection.                    |
+| multiple | No       | Allow multiple selections.                         |
+| footer   | No       | Muted hint message.                                |
 
 ```json5
 {
-    commands: {
-        search: {
-            handler: {
-                component: "autoComplete",
-                name: "query",
-                message: "Search for a fruit:",
-                choices: ["Apple", "Banana", "Cherry", "Date", "Elderberry"],
-                limit: 3,
-                footer: "Use arrow keys to navigate",
-            },
-        },
-    },
+    component: "autoComplete",
+    name: "query",
+    message: "Search for a fruit:",
+    choices: ["Apple", "Banana", "Cherry", "Date", "Elderberry"],
+    limit: 3,
+    footer: "Use arrow keys to navigate",
 }
 ```
 
@@ -676,30 +591,24 @@ The autoComplete component provides a prompt that auto-completes as the user typ
 
 ![](media/basicAuth.gif)
 
-The basicAuth component prompts for username and password authentication.
+Prompts for username and password authentication.
 
-| field        | required/optional | Description                                        |
-| ------------ | ----------------- | -------------------------------------------------- |
-| name         | required          | Identifier for accessing the prompt's result       |
-| message      | required          | Message to display with the prompt in the terminal |
-| username     | required          | Username to compare against                        |
-| password     | required          | Password to compare against                        |
-| showPassword | optional          | Determines whether to hide or show the password    |
+| Field        | Required | Description                                     |
+| ------------ | -------- | ----------------------------------------------- |
+| name         | Yes      | Identifier for the result.                      |
+| message      | Yes      | Message displayed with the prompt.              |
+| username     | Yes      | Username to compare against.                    |
+| password     | Yes      | Password to compare against.                    |
+| showPassword | No       | Whether to show the password.                   |
 
 ```json5
 {
-    commands: {
-        login: {
-            handler: {
-                component: "basicAuth",
-                name: "auth",
-                message: "Please enter your credentials:",
-                username: "admin",
-                password: "secret",
-                showPassword: false,
-            },
-        },
-    },
+    component: "basicAuth",
+    name: "auth",
+    message: "Please enter your credentials:",
+    username: "admin",
+    password: "secret",
+    showPassword: false,
 }
 ```
 
@@ -709,26 +618,20 @@ The basicAuth component prompts for username and password authentication.
 
 ![](media/confirm.gif)
 
-The confirm component prompts to confirm or deny a statement.
+Prompts to confirm or deny with a Y/n keystroke.
 
-| field   | required/optional | Description                                    |
-| ------- | ----------------- | ---------------------------------------------- |
-| name    | required          | Identifier for accessing the prompt's result   |
-| message | required          | Question to be confirmed or denied             |
-| initial | optional          | Set whether the initial value is true or false |
+| Field   | Required | Description                                    |
+| ------- | -------- | ---------------------------------------------- |
+| name    | Yes      | Identifier for the result.                     |
+| message | Yes      | Question to confirm or deny.                   |
+| initial | No       | Initial value (true or false).                 |
 
 ```json5
 {
-    commands: {
-        delete: {
-            handler: {
-                component: "confirm",
-                name: "confirmDelete",
-                message: "Are you sure you want to delete this item?",
-                initial: false,
-            },
-        },
-    },
+    component: "confirm",
+    name: "confirmDelete",
+    message: "Are you sure you want to delete this item?",
+    initial: false,
 }
 ```
 
@@ -738,44 +641,31 @@ The confirm component prompts to confirm or deny a statement.
 
 ![](media/form.gif)
 
-The form component prompts for multiple values on a single terminal screen.
+Prompts for multiple values on a single screen.
 
-| field   | required/optional | Description                                      |
-| ------- | ----------------- | ------------------------------------------------ |
-| name    | required          | Identifier for accessing the form's results      |
-| message | required          | Message to display with the form in the terminal |
-| choices | required          | Array of form fields                             |
+| Field   | Required | Description                                |
+| ------- | -------- | ------------------------------------------ |
+| name    | Yes      | Identifier for the form results.           |
+| message | Yes      | Message displayed with the form.           |
+| choices | Yes      | Array of form fields (see below).          |
 
-Each choice in the choices array should have the following properties:
+Each choice:
 
-| field   | required/optional | Description                             |
-| ------- | ----------------- | --------------------------------------- |
-| name    | required          | Identifier for the form field           |
-| message | required          | Label for the form field                |
-| initial | optional          | Initial placeholder value for the field |
+| Field   | Required | Description                        |
+| ------- | -------- | ---------------------------------- |
+| name    | Yes      | Identifier for the field.          |
+| message | Yes      | Label for the field.               |
+| initial | No       | Initial placeholder value.         |
 
 ```json5
 {
-    commands: {
-        register: {
-            handler: {
-                component: "form",
-                name: "userInfo",
-                message: "Please enter your information:",
-                choices: [
-                    {
-                        name: "username",
-                        message: "Username:",
-                        initial: "user123",
-                    },
-                    {
-                        name: "email",
-                        message: "Email:",
-                    },
-                ],
-            },
-        },
-    },
+    component: "form",
+    name: "userInfo",
+    message: "Please enter your information:",
+    choices: [
+        { name: "username", message: "Username:", initial: "user123" },
+        { name: "email", message: "Email:" },
+    ],
 }
 ```
 
@@ -785,26 +675,20 @@ Each choice in the choices array should have the following properties:
 
 ![](media/input.gif)
 
-The input component prompts for user input.
+Prompts for text input.
 
-| field   | required/optional | Description                                 |
-| ------- | ----------------- | ------------------------------------------- |
-| name    | required          | Identifier for accessing the input's result |
-| message | required          | Question or prompt for user input           |
-| initial | optional          | Initial placeholder value                   |
+| Field   | Required | Description                         |
+| ------- | -------- | ----------------------------------- |
+| name    | Yes      | Identifier for the result.          |
+| message | Yes      | Prompt message.                     |
+| initial | No       | Initial placeholder value.          |
 
 ```json5
 {
-    commands: {
-        name: {
-            handler: {
-                component: "input",
-                name: "username",
-                message: "What's your name?",
-                initial: "Anonymous",
-            },
-        },
-    },
+    component: "input",
+    name: "username",
+    message: "What's your name?",
+    initial: "Anonymous",
 }
 ```
 
@@ -814,24 +698,18 @@ The input component prompts for user input.
 
 ![](media/invisible.gif)
 
-The invisible component prompts for user input, hiding it from the terminal.
+Prompts for input that is completely hidden from the terminal.
 
-| field   | required/optional | Description                                 |
-| ------- | ----------------- | ------------------------------------------- |
-| name    | required          | Identifier for accessing the input's result |
-| message | required          | Question or prompt for hidden user input    |
+| Field   | Required | Description                         |
+| ------- | -------- | ----------------------------------- |
+| name    | Yes      | Identifier for the result.          |
+| message | Yes      | Prompt message.                     |
 
 ```json5
 {
-    commands: {
-        password: {
-            handler: {
-                component: "invisible",
-                name: "password",
-                message: "Enter your password:",
-            },
-        },
-    },
+    component: "invisible",
+    name: "password",
+    message: "Enter your password:",
 }
 ```
 
@@ -841,24 +719,18 @@ The invisible component prompts for user input, hiding it from the terminal.
 
 ![](media/list.gif)
 
-The list component prompts for a list of values, created by splitting user input.
+Prompts for a comma-separated list of values.
 
-| field   | required/optional | Description                                |
-| ------- | ----------------- | ------------------------------------------ |
-| name    | required          | Identifier for accessing the list's result |
-| message | required          | Question or prompt for list input          |
+| Field   | Required | Description                         |
+| ------- | -------- | ----------------------------------- |
+| name    | Yes      | Identifier for the result.          |
+| message | Yes      | Prompt message.                     |
 
 ```json5
 {
-    commands: {
-        tags: {
-            handler: {
-                component: "list",
-                name: "tags",
-                message: "Enter tags (comma-separated):",
-            },
-        },
-    },
+    component: "list",
+    name: "tags",
+    message: "Enter tags (comma-separated):",
 }
 ```
 
@@ -868,39 +740,33 @@ The list component prompts for a list of values, created by splitting user input
 
 ![](media/multiSelect.gif)
 
-The multiSelect component allows selection of multiple items from a list of options.
+Allows selection of multiple items from a list.
 
-| field   | required/optional | Description                                    |
-| ------- | ----------------- | ---------------------------------------------- |
-| name    | required          | Identifier for accessing the selection results |
-| message | required          | Message to display with the selection prompt   |
-| choices | required          | Array of selectable options                    |
-| limit   | optional          | Number of choices to display on-screen         |
+| Field   | Required | Description                              |
+| ------- | -------- | ---------------------------------------- |
+| name    | Yes      | Identifier for the results.              |
+| message | Yes      | Message displayed with the prompt.       |
+| choices | Yes      | Array of selectable options (see below). |
+| limit   | No       | Number of choices visible on-screen.     |
 
-Each choice in the choices array should have the following properties:
+Each choice:
 
-| field | required/optional | Description                      |
-| ----- | ----------------- | -------------------------------- |
-| name  | required          | Display text for the choice      |
-| value | required          | Value to be returned if selected |
+| Field | Required | Description                      |
+| ----- | -------- | -------------------------------- |
+| name  | Yes      | Display text.                    |
+| value | Yes      | Value returned if selected.      |
 
 ```json5
 {
-    commands: {
-        features: {
-            handler: {
-                component: "multiSelect",
-                name: "features",
-                message: "Select desired features:",
-                choices: [
-                    { name: "Auto-save", value: "autosave" },
-                    { name: "Dark mode", value: "darkmode" },
-                    { name: "Notifications", value: "notifications" },
-                ],
-                limit: 2,
-            },
-        },
-    },
+    component: "multiSelect",
+    name: "features",
+    message: "Select desired features:",
+    choices: [
+        { name: "Auto-save", value: "autosave" },
+        { name: "Dark mode", value: "darkmode" },
+        { name: "Notifications", value: "notifications" },
+    ],
+    limit: 2,
 }
 ```
 
@@ -910,24 +776,18 @@ Each choice in the choices array should have the following properties:
 
 ![](media/number.gif)
 
-The number component prompts for a numeric input.
+Prompts for a numeric input.
 
-| field   | required/optional | Description                                      |
-| ------- | ----------------- | ------------------------------------------------ |
-| name    | required          | Identifier for accessing the number input result |
-| message | required          | Question or prompt for number input              |
+| Field   | Required | Description                         |
+| ------- | -------- | ----------------------------------- |
+| name    | Yes      | Identifier for the result.          |
+| message | Yes      | Prompt message.                     |
 
 ```json5
 {
-    commands: {
-        age: {
-            handler: {
-                component: "number",
-                name: "age",
-                message: "Enter your age:",
-            },
-        },
-    },
+    component: "number",
+    name: "age",
+    message: "Enter your age:",
 }
 ```
 
@@ -937,170 +797,18 @@ The number component prompts for a numeric input.
 
 ![](media/password.gif)
 
-The password component prompts for a password, masking the input in the terminal.
+Prompts for a password, masking the input.
 
-| field   | required/optional | Description                                        |
-| ------- | ----------------- | -------------------------------------------------- |
-| name    | required          | Identifier for accessing the password input result |
-| message | required          | Question or prompt for password input              |
-
-```json5
-{
-    commands: {
-        password: {
-            handler: {
-                component: "password",
-                name: "newPassword",
-                message: "Enter new password:",
-            },
-        },
-    },
-}
-```
-
----
-
-### Quiz
-
-![](media/quiz.gif)
-
-The quiz component presents multiple-choice quiz questions.
-
-| field         | required/optional | Description                                        |
-| ------------- | ----------------- | -------------------------------------------------- |
-| name          | required          | Identifier for accessing the quiz result           |
-| message       | required          | Quiz question to display                           |
-| choices       | required          | List of possible answers to the quiz question      |
-| correctChoice | required          | Index of the correct choice from the choices array |
+| Field   | Required | Description                         |
+| ------- | -------- | ----------------------------------- |
+| name    | Yes      | Identifier for the result.          |
+| message | Yes      | Prompt message.                     |
 
 ```json5
 {
-    commands: {
-        quiz: {
-            handler: {
-                component: "quiz",
-                name: "capitalQuiz",
-                message: "What is the capital of France?",
-                choices: ["London", "Berlin", "Paris", "Madrid"],
-                correctChoice: 2,
-            },
-        },
-    },
-}
-```
-
----
-
-### Survey
-
-![](media/survey.gif)
-
-The survey component prompts for user feedback on a list of questions using a defined scale.
-
-| field   | required/optional | Description                                 |
-| ------- | ----------------- | ------------------------------------------- |
-| name    | required          | Identifier for accessing the survey results |
-| message | required          | Message to display with the survey prompt   |
-| scale   | required          | Definition of the survey scale              |
-| choices | required          | List of survey questions                    |
-
-Each item in the scale array should have:
-
-| field   | required/optional | Description                          |
-| ------- | ----------------- | ------------------------------------ |
-| name    | required          | Label for the scale point            |
-| message | required          | Explanation text for the scale point |
-
-Each item in the choices array should have:
-
-| field   | required/optional | Description                        |
-| ------- | ----------------- | ---------------------------------- |
-| name    | required          | Identifier for the survey question |
-| message | required          | Survey question text               |
-
-```json5
-{
-    commands: {
-        feedback: {
-            handler: {
-                component: "survey",
-                name: "userSatisfaction",
-                message: "Please rate your experience:",
-                scale: [
-                    { name: "1", message: "Strongly Disagree" },
-                    { name: "3", message: "Neutral" },
-                    { name: "5", message: "Strongly Agree" },
-                ],
-                choices: [
-                    {
-                        name: "easeOfUse",
-                        message: "The product was easy to use",
-                    },
-                    {
-                        name: "features",
-                        message: "The product had all the features I needed",
-                    },
-                ],
-            },
-        },
-    },
-}
-```
-
----
-
-### Scale
-
-![](media/scale.gif)
-
-The scale component is a compact version of the Survey prompt, using a Likert Scale for quick feedback.
-
-| field   | required/optional | Description                                |
-| ------- | ----------------- | ------------------------------------------ |
-| name    | required          | Identifier for accessing the scale results |
-| message | required          | Message to display with the scale prompt   |
-| scale   | required          | Definition of the scale                    |
-| choices | required          | List of scale questions                    |
-
-Each item in the scale array should have:
-
-| field   | required/optional | Description                          |
-| ------- | ----------------- | ------------------------------------ |
-| name    | required          | Label for the scale point            |
-| message | required          | Explanation text for the scale point |
-
-Each item in the choices array should have:
-
-| field   | required/optional | Description                 |
-| ------- | ----------------- | --------------------------- |
-| name    | required          | Identifier for the question |
-| message | required          | Question text               |
-| initial | optional          | Index of the initial value  |
-
-```json5
-{
-    commands: {
-        feedback: {
-            handler: {
-                component: "scale",
-                name: "productRating",
-                message: "Rate our product:",
-                scale: [
-                    { name: "1", message: "Poor" },
-                    { name: "3", message: "Average" },
-                    { name: "5", message: "Excellent" },
-                ],
-                choices: [
-                    {
-                        name: "overall",
-                        message: "Overall satisfaction",
-                        initial: 3,
-                    },
-                    { name: "support", message: "Customer support" },
-                ],
-            },
-        },
-    },
+    component: "password",
+    name: "newPassword",
+    message: "Enter new password:",
 }
 ```
 
@@ -1110,37 +818,31 @@ Each item in the choices array should have:
 
 ![](media/select.gif)
 
-The select component prompts for selecting from a list of options.
+Prompts for selecting a single item from a list.
 
-| field   | required/optional | Description                                   |
-| ------- | ----------------- | --------------------------------------------- |
-| name    | required          | Identifier for accessing the selection result |
-| message | required          | Message to display with the selection prompt  |
-| choices | required          | List of options to select from                |
+| Field   | Required | Description                              |
+| ------- | -------- | ---------------------------------------- |
+| name    | Yes      | Identifier for the result.               |
+| message | Yes      | Message displayed with the prompt.       |
+| choices | Yes      | List of options (strings or objects).     |
 
-The choices can be either an array of strings or an array of objects with name and value properties:
+Choices as objects:
 
-| field | required/optional | Description                      |
-| ----- | ----------------- | -------------------------------- |
-| name  | required          | Display text for the choice      |
-| value | required          | Value to be returned if selected |
+| Field | Required | Description                      |
+| ----- | -------- | -------------------------------- |
+| name  | Yes      | Display text.                    |
+| value | Yes      | Value returned if selected.      |
 
 ```json5
 {
-    commands: {
-        color: {
-            handler: {
-                component: "select",
-                name: "favoriteColor",
-                message: "Choose your favorite color:",
-                choices: [
-                    { name: "Red", value: "red" },
-                    { name: "Blue", value: "blue" },
-                    { name: "Green", value: "green" },
-                ],
-            },
-        },
-    },
+    component: "select",
+    name: "favoriteColor",
+    message: "Choose your favorite color:",
+    choices: [
+        { name: "Red", value: "red" },
+        { name: "Blue", value: "blue" },
+        { name: "Green", value: "green" },
+    ],
 }
 ```
 
@@ -1150,82 +852,25 @@ The choices can be either an array of strings or an array of objects with name a
 
 ![](media/sort.gif)
 
-The sort component prompts for sorting items in a list.
+Prompts for sorting items in a list.
 
-| field   | required/optional | Description                                |
-| ------- | ----------------- | ------------------------------------------ |
-| name    | required          | Identifier for accessing the sorted result |
-| message | required          | Message to display with the sorting prompt |
-| choices | required          | List of items to be sorted                 |
-
-```json5
-{
-    commands: {
-        tasks: {
-            handler: {
-                component: "sort",
-                name: "taskOrder",
-                message: "Sort these tasks by priority:",
-                choices: [
-                    "Fix bugs",
-                    "Implement new feature",
-                    "Write documentation",
-                    "Refactor code",
-                ],
-            },
-        },
-    },
-}
-```
-
----
-
-### Snippet
-
-![](media/snippet.gif)
-
-The snippet component prompts for replacing placeholders in a snippet of code or text.
-
-| field    | required/optional | Description                                                                                                                                                                                                                                                                                                             |
-| -------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| name     | required          | Identifier for accessing the completed snippet                                                                                                                                                                                                                                                                          |
-| message  | required          | Message to display with the snippet prompt                                                                                                                                                                                                                                                                              |
-| fields   | required          | List of fields to be filled in the snippet                                                                                                                                                                                                                                                                              |
-| template | required          | String with placeholders marked as ${name}. Linebreaks in the template need to be indicated with newline characters `\n`. You can use [online tools](https://karl-horning.github.io/replace-newlines/) to do the conversion for you. Make sure to use single quotes if your template uses double quotes and vice versa. |
-
-Each item in the fields array should have:
-
-| field   | required/optional | Description                  |
-| ------- | ----------------- | ---------------------------- |
-| name    | required          | Identifier for the field     |
-| message | required          | Prompt message for the field |
+| Field   | Required | Description                         |
+| ------- | -------- | ----------------------------------- |
+| name    | Yes      | Identifier for the sorted result.   |
+| message | Yes      | Message displayed with the prompt.  |
+| choices | Yes      | List of items to sort.              |
 
 ```json5
 {
-    commands: {
-        generate: {
-            handler: {
-                component: "snippet",
-                name: "package",
-                message: "Fill out the fields in package.json",
-                fields: [
-                    { name: "name", message: "Name of the package" },
-                    {
-                        name: "description",
-                        message: "Description of the package",
-                    },
-                    { name: "version", message: "Version of the package" },
-                    { name: "username", message: "Your username" },
-                    { name: "author_name", message: "Your name" },
-                    {
-                        name: "license",
-                        message: "The license of the package",
-                    },
-                ],
-                template: '{\n  "name": "${name}",\n  "description": "${description}",\n  "version": "${version}",\n  "homepage": "https://github.com/${username}/${name}",\n  "author": "${author_name} (https://github.com/${username})",\n  "repository": "${username}/${name}",\n  "license": "${license:ISC}"\n}\n',
-            },
-        },
-    },
+    component: "sort",
+    name: "taskOrder",
+    message: "Sort these tasks by priority:",
+    choices: [
+        "Fix bugs",
+        "Implement new feature",
+        "Write documentation",
+        "Refactor code",
+    ],
 }
 ```
 
@@ -1235,27 +880,21 @@ Each item in the fields array should have:
 
 ![](media/toggle.gif)
 
-The toggle component prompts for toggling between two values.
+Prompts for toggling between two values using Left/Right arrow keys.
 
-| field    | required/optional | Description                                |
-| -------- | ----------------- | ------------------------------------------ |
-| name     | required          | Identifier for accessing the toggle result |
-| message  | required          | Message to display with the toggle prompt  |
-| enabled  | required          | Label for the enabled state                |
-| disabled | required          | Label for the disabled state               |
+| Field    | Required | Description                         |
+| -------- | -------- | ----------------------------------- |
+| name     | Yes      | Identifier for the result.          |
+| message  | Yes      | Message displayed with the prompt.  |
+| enabled  | Yes      | Label for the enabled state.        |
+| disabled | Yes      | Label for the disabled state.       |
 
 ```json5
 {
-    commands: {
-        notifications: {
-            handler: {
-                component: "toggle",
-                name: "notificationsEnabled",
-                message: "Enable notifications?",
-                enabled: "Yes",
-                disabled: "No",
-            },
-        },
-    },
+    component: "toggle",
+    name: "notificationsEnabled",
+    message: "Enable notifications?",
+    enabled: "Yes",
+    disabled: "No",
 }
 ```
